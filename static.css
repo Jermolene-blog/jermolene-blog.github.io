@@ -900,7 +900,49 @@ a.tc-tiddlylink:hover {
 }button svg.tc-image-button, button .tc-image-button img {
 	height: 1em;
 	width: 1em;
-}/*
+}.tc-unfold-banner {
+	position: absolute;
+	padding: 0;
+	margin: 0;
+	background: none;
+	border: none;
+	width: 100%;
+    width: calc(100% + 2px);
+    margin-left: -43px;
+	text-align: center;
+	border-top: 2px solid #f8f8f8;
+	margin-top: 4px;
+}.tc-unfold-banner:hover {
+	background: #f8f8f8;
+	border-top: 2px solid #dddddd;
+}.tc-unfold-banner svg, .tc-fold-banner svg {
+	height: 0.75em;
+	fill: #cccccc;
+}.tc-unfold-banner:hover svg, .tc-fold-banner:hover svg {
+	fill: #888888;
+}.tc-fold-banner {
+	position: absolute;
+	padding: 0;
+	margin: 0;
+	background: none;
+	border: none;
+	width: 23px;
+	text-align: center;
+	margin-left: -35px;
+    top: 6px;
+    bottom: 6px;
+}.tc-fold-banner:hover {
+	background: #f8f8f8;
+}@media (max-width: 960px) {
+	
+	.tc-unfold-banner {
+		position: static;
+	    width: calc(100% + 59px);
+    }.tc-fold-banner {
+		width: 16px;
+		margin-left: -16px;
+	    font-size: 0.75em;
+	}}/*
 ** Tags and missing tiddlers
 */.tc-tag-list-item {
 	position: relative;
@@ -977,8 +1019,6 @@ a.tc-tiddlylink:hover {
 	width: 1.2em;
 	height: 1.2em;
 	vertical-align: middle;
-}.tc-search-results {
-	padding-top: 14px;
 }.tc-page-controls {
 	margin-top: 14px;
 	font-size: 1.5em;
@@ -1002,18 +1042,8 @@ a.tc-tiddlylink:hover {
 	position: relative;
 }@media (max-width: 960px) {.tc-sidebar-header {
 		padding: 14px;
-		
+		min-height: 32px;
 		margin-top: 0px;
-	}.tc-sidebar-scrollable {
-		position: fixed;
-		overflow-y: auto;
-		overflow-x: auto;
-		-webkit-overflow-scrolling: touch;
-	    z-index: 1000;
-	    background-color: #f4f4f4;
-	    width: 100%;
-	    max-height: 100%;
-		
 	}.tc-story-river {
 		position: relative;
 		padding: 0;
@@ -1052,6 +1082,7 @@ a.tc-tiddlylink:hover {
 }/*
 ** Tiddler styles
 */.tc-tiddler-frame {
+	position: relative;
 	margin-bottom: 28px;
 	background-color: #ffffff;
 	border: 1px solid #ffffff;
@@ -1170,6 +1201,8 @@ a.tc-tiddlylink:hover {
 	display: block;
 }.tc-edit-bitmapeditor-height {
 	display: block;
+}.tc-tiddler-body {
+	clear: both;
 }.tc-tiddler-frame .tc-tiddler-body {
 	font-size: 15px;
 	line-height: 22px;
@@ -1283,6 +1316,8 @@ a.tc-tiddlylink:hover {
 }.tc-drop-down-wrapper {
 	position: relative;
 }.tc-drop-down {
+	position: absolute;
+	z-index: 1000;
 	min-width: 380px;
 	border: 1px solid #bbb;
 	background-color: #ffffff;
@@ -1291,6 +1326,8 @@ a.tc-tiddlylink:hover {
 	white-space: nowrap;
 	text-shadow: none;
 	line-height: 1.4;
+}.tc-search-drop-down {
+	margin-left: -12px;
 }.tc-drop-down .tc-drop-down {
 	margin-left: 14px;
 }.tc-drop-down button svg, .tc-drop-down a svg  {
@@ -1508,6 +1545,8 @@ a.tc-tiddlylink:hover {
 	border-top: 1px solid #d8d8d8;
 	border-right: 1px solid #d8d8d8;
 }.tc-sidebar-lists .tc-tab-buttons button {
+	display: inline;
+	width: auto;
 	background-color: #e0e0e0;
 	color: #666666;
 	border-left: 1px solid #cccccc;
@@ -1516,6 +1555,8 @@ a.tc-tiddlylink:hover {
 }.tc-sidebar-lists .tc-tab-divider {
 	border-top: 1px solid #e4e4e4;
 }.tc-more-sidebar .tc-tab-buttons button {
+	display: block;
+	width: 100%;
 	background-color: #e0e0e0;
 	border-top: none;
 	border-left: none;
