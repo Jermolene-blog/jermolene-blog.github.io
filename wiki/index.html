@@ -163,13 +163,15 @@ Error message and password prompt
 
 <li>404</li>
 
+<li>about</li>
+
 <li>cecily.html</li>
 
 <li>Hackability as a Human Right</li>
 
 <li>HelloThere</li>
 
-<li>Index</li>
+<li>index</li>
 
 <li>Introducing Cecily</li>
 
@@ -2616,7 +2618,7 @@ html body.tc-body {
         &quot;$:/language/Help/rendertiddlers&quot;: {
             &quot;title&quot;: &quot;$:/language/Help/rendertiddlers&quot;,
             &quot;description&quot;: &quot;Render tiddlers matching a filter to a specified ContentType&quot;,
-            &quot;text&quot;: &quot;Render a set of tiddlers matching a filter to separate files of a specified ContentType (defaults to `text/html`) and extension (defaults to `.html`).\n\n```\n--rendertiddlers &lt;filter&gt; &lt;template&gt; &lt;pathname&gt; [&lt;type&gt;] [&lt;extension&gt;] [\&quot;noclean\&quot;]\n```\n\nFor example:\n\n```\n--rendertiddlers [!is[system]] $:/core/templates/static.tiddler.html ./static text/plain\n```\n\nBy default, the pathname is resolved relative to the `output` subdirectory of the edition directory. The `--output` command can be used to direct output to a different directory.\n\nAny files in the target directory are deleted unless the \&quot;noclean\&quot; parameter is specified. The target directory is recursively created if it is missing.\n&quot;
+            &quot;text&quot;: &quot;Render a set of tiddlers matching a filter to separate files of a specified ContentType (defaults to `text/html`) and extension (defaults to `.html`).\n\n```\n--rendertiddlers &lt;filter&gt; &lt;template&gt; &lt;pathname&gt; [&lt;type&gt;] [&lt;extension&gt;] [\&quot;noclean\&quot;]\n```\n\nFor example:\n\n```\n--rendertiddlers [!is[system]] $:/core/templates/static.tiddler.html ./static text/plain\n```\n\nBy default, the pathname is resolved relative to the `output` subdirectory of the edition directory. The `--output` command can be used to direct output to a different directory.\n\nAny files in the target directory are deleted unless the ''noclean'' flag is specified. The target directory is recursively created if it is missing.\n&quot;
         },
         &quot;$:/language/Help/savetiddler&quot;: {
             &quot;title&quot;: &quot;$:/language/Help/savetiddler&quot;,
@@ -2626,7 +2628,7 @@ html body.tc-body {
         &quot;$:/language/Help/savetiddlers&quot;: {
             &quot;title&quot;: &quot;$:/language/Help/savetiddlers&quot;,
             &quot;description&quot;: &quot;Saves a group of raw tiddlers to a directory&quot;,
-            &quot;text&quot;: &quot;Saves a group of tiddlers in their raw text or binary format to the specified directory. \n\n```\n--savetiddlers &lt;filter&gt; &lt;pathname&gt; [-do-not-delete]\n```\n\nBy default, the pathname is resolved relative to the `output` subdirectory of the edition directory. The `--output` command can be used to direct output to a different directory.\n\nThe output directory is cleared of existing files before saving the specified files. The deletion can be disabled by specifying the ''-do-not-delete'' flag.\n\nAny missing directories in the pathname are automatically created.\n&quot;
+            &quot;text&quot;: &quot;Saves a group of tiddlers in their raw text or binary format to the specified directory. \n\n```\n--savetiddlers &lt;filter&gt; &lt;pathname&gt; [\&quot;noclean\&quot;]\n```\n\nBy default, the pathname is resolved relative to the `output` subdirectory of the edition directory. The `--output` command can be used to direct output to a different directory.\n\nThe output directory is cleared of existing files before saving the specified files. The deletion can be disabled by specifying the ''noclean'' flag.\n\nAny missing directories in the pathname are automatically created.\n&quot;
         },
         &quot;$:/language/Help/server&quot;: {
             &quot;title&quot;: &quot;$:/language/Help/server&quot;,
@@ -3215,7 +3217,7 @@ html body.tc-body {
             &quot;module-type&quot;: &quot;command&quot;
         },
         &quot;$:/core/modules/commands/rendertiddlers.js&quot;: {
-            &quot;text&quot;: &quot;/*\\\ntitle: $:/core/modules/commands/rendertiddlers.js\ntype: application/javascript\nmodule-type: command\n\nCommand to render several tiddlers to a folder of files\n\n\\*/\n(function(){\n\n/*jslint node: true, browser: true */\n/*global $tw: false */\n\&quot;use strict\&quot;;\n\nvar widget = require(\&quot;$:/core/modules/widgets/widget.js\&quot;);\n\nexports.info = {\n\tname: \&quot;rendertiddlers\&quot;,\n\tsynchronous: true\n};\n\nvar Command = function(params,commander,callback) {\n\tthis.params = params;\n\tthis.commander = commander;\n\tthis.callback = callback;\n};\n\nCommand.prototype.execute = function() {\n\tif(this.params.length &lt; 2) {\n\t\treturn \&quot;Missing filename\&quot;;\n\t}\n\tvar self = this,\n\t\tfs = require(\&quot;fs\&quot;),\n\t\tpath = require(\&quot;path\&quot;),\n\t\twiki = this.commander.wiki,\n\t\tfilter = this.params[0],\n\t\ttemplate = this.params[1],\n\t\toutputPath = this.commander.outputPath,\n\t\tpathname = path.resolve(outputPath,this.params[2]),\t\t\n\t\ttype = this.params[3] || \&quot;text/html\&quot;,\n\t\textension = this.params[4] || \&quot;.html\&quot;,\n\t\tdeleteDirectory = (this.params[5] || \&quot;\&quot;) != \&quot;noclean\&quot;,\n\t\ttiddlers = wiki.filterTiddlers(filter);\n\tif(deleteDirectory) {\n\t\t$tw.utils.deleteDirectory(pathname);\n\t}\n\t$tw.utils.each(tiddlers,function(title) {\n\t\tvar parser = wiki.parseTiddler(template),\n\t\t\twidgetNode = wiki.makeWidget(parser,{variables: {currentTiddler: title}}),\n\t\t\tcontainer = $tw.fakeDocument.createElement(\&quot;div\&quot;);\n\t\twidgetNode.render(container,null);\n\t\tvar text = type === \&quot;text/html\&quot; ? container.innerHTML : container.textContent,\n\t\t\texportPath = null;\n\t\tif($tw.utils.hop($tw.macros,\&quot;tv-get-export-path\&quot;)) {\n\t\t\tvar macroPath = $tw.macros[\&quot;tv-get-export-path\&quot;].run.apply(self,[title]);\n\t\t\tif(macroPath) {\n\t\t\t\texportPath = path.resolve(outputPath,macroPath + extension);\n\t\t\t}\n\t\t}\n\t\tvar finalPath = exportPath || path.resolve(pathname,encodeURIComponent(title) + extension);\n\t\t$tw.utils.createFileDirectories(finalPath);\n\t\tfs.writeFileSync(finalPath,text,\&quot;utf8\&quot;);\n\t});\n\treturn null;\n};\n\nexports.Command = Command;\n\n})();\n&quot;,
+            &quot;text&quot;: &quot;/*\\\ntitle: $:/core/modules/commands/rendertiddlers.js\ntype: application/javascript\nmodule-type: command\n\nCommand to render several tiddlers to a folder of files\n\n\\*/\n(function(){\n\n/*jslint node: true, browser: true */\n/*global $tw: false */\n\&quot;use strict\&quot;;\n\nvar widget = require(\&quot;$:/core/modules/widgets/widget.js\&quot;);\n\nexports.info = {\n\tname: \&quot;rendertiddlers\&quot;,\n\tsynchronous: true\n};\n\nvar Command = function(params,commander,callback) {\n\tthis.params = params;\n\tthis.commander = commander;\n\tthis.callback = callback;\n};\n\nCommand.prototype.execute = function() {\n\tif(this.params.length &lt; 2) {\n\t\treturn \&quot;Missing filename\&quot;;\n\t}\n\tvar self = this,\n\t\tfs = require(\&quot;fs\&quot;),\n\t\tpath = require(\&quot;path\&quot;),\n\t\twiki = this.commander.wiki,\n\t\tfilter = this.params[0],\n\t\ttemplate = this.params[1],\n\t\toutputPath = this.commander.outputPath,\n\t\tpathname = path.resolve(outputPath,this.params[2]),\t\t\n\t\ttype = this.params[3] || \&quot;text/html\&quot;,\n\t\textension = this.params[4] || \&quot;.html\&quot;,\n\t\tdeleteDirectory = (this.params[5] || \&quot;\&quot;).toLowerCase() !== \&quot;noclean\&quot;,\n\t\ttiddlers = wiki.filterTiddlers(filter);\n\tif(deleteDirectory) {\n\t\t$tw.utils.deleteDirectory(pathname);\n\t}\n\t$tw.utils.each(tiddlers,function(title) {\n\t\tvar parser = wiki.parseTiddler(template),\n\t\t\twidgetNode = wiki.makeWidget(parser,{variables: {currentTiddler: title}}),\n\t\t\tcontainer = $tw.fakeDocument.createElement(\&quot;div\&quot;);\n\t\twidgetNode.render(container,null);\n\t\tvar text = type === \&quot;text/html\&quot; ? container.innerHTML : container.textContent,\n\t\t\texportPath = null;\n\t\tif($tw.utils.hop($tw.macros,\&quot;tv-get-export-path\&quot;)) {\n\t\t\tvar macroPath = $tw.macros[\&quot;tv-get-export-path\&quot;].run.apply(self,[title]);\n\t\t\tif(macroPath) {\n\t\t\t\texportPath = path.resolve(outputPath,macroPath + extension);\n\t\t\t}\n\t\t}\n\t\tvar finalPath = exportPath || path.resolve(pathname,encodeURIComponent(title) + extension);\n\t\t$tw.utils.createFileDirectories(finalPath);\n\t\tfs.writeFileSync(finalPath,text,\&quot;utf8\&quot;);\n\t});\n\treturn null;\n};\n\nexports.Command = Command;\n\n})();\n&quot;,
             &quot;title&quot;: &quot;$:/core/modules/commands/rendertiddlers.js&quot;,
             &quot;type&quot;: &quot;application/javascript&quot;,
             &quot;module-type&quot;: &quot;command&quot;
@@ -3233,7 +3235,7 @@ html body.tc-body {
             &quot;module-type&quot;: &quot;command&quot;
         },
         &quot;$:/core/modules/commands/savetiddlers.js&quot;: {
-            &quot;text&quot;: &quot;/*\\\ntitle: $:/core/modules/commands/savetiddlers.js\ntype: application/javascript\nmodule-type: command\n\nCommand to save several tiddlers to a folder of files\n\n\\*/\n(function(){\n\n/*jslint node: true, browser: true */\n/*global $tw: false */\n\&quot;use strict\&quot;;\n\nvar widget = require(\&quot;$:/core/modules/widgets/widget.js\&quot;);\n\nexports.info = {\n\tname: \&quot;savetiddlers\&quot;,\n\tsynchronous: true\n};\n\nvar Command = function(params,commander,callback) {\n\tthis.params = params;\n\tthis.commander = commander;\n\tthis.callback = callback;\n};\n\nCommand.prototype.execute = function() {\n\tif(this.params.length &lt; 1) {\n\t\treturn \&quot;Missing filename\&quot;;\n\t}\n\tvar self = this,\n\t\tfs = require(\&quot;fs\&quot;),\n\t\tpath = require(\&quot;path\&quot;),\n\t\twiki = this.commander.wiki,\n\t\tfilter = this.params[0],\n\t\tpathname = path.resolve(this.commander.outputPath,this.params[1]),\n\t\tdontDelete = (this.params[2] || \&quot;\&quot;).toLowerCase() === \&quot;-do-not-delete\&quot;,\n\t\ttiddlers = wiki.filterTiddlers(filter);\n\tif(!dontDelete) {\n\t\t$tw.utils.deleteDirectory(pathname);\n\t}\n\t$tw.utils.createDirectory(pathname);\n\t$tw.utils.each(tiddlers,function(title) {\n\t\tvar tiddler = self.commander.wiki.getTiddler(title),\n\t\t\ttype = tiddler.fields.type || \&quot;text/vnd.tiddlywiki\&quot;,\n\t\t\tcontentTypeInfo = $tw.config.contentTypeInfo[type] || {encoding: \&quot;utf8\&quot;},\n\t\t\tfilename = path.resolve(pathname,encodeURIComponent(title));\n\t\tfs.writeFileSync(filename,tiddler.fields.text,contentTypeInfo.encoding);\n\t});\n\treturn null;\n};\n\nexports.Command = Command;\n\n})();\n&quot;,
+            &quot;text&quot;: &quot;/*\\\ntitle: $:/core/modules/commands/savetiddlers.js\ntype: application/javascript\nmodule-type: command\n\nCommand to save several tiddlers to a folder of files\n\n\\*/\n(function(){\n\n/*jslint node: true, browser: true */\n/*global $tw: false */\n\&quot;use strict\&quot;;\n\nvar widget = require(\&quot;$:/core/modules/widgets/widget.js\&quot;);\n\nexports.info = {\n\tname: \&quot;savetiddlers\&quot;,\n\tsynchronous: true\n};\n\nvar Command = function(params,commander,callback) {\n\tthis.params = params;\n\tthis.commander = commander;\n\tthis.callback = callback;\n};\n\nCommand.prototype.execute = function() {\n\tif(this.params.length &lt; 1) {\n\t\treturn \&quot;Missing filename\&quot;;\n\t}\n\tvar self = this,\n\t\tfs = require(\&quot;fs\&quot;),\n\t\tpath = require(\&quot;path\&quot;),\n\t\twiki = this.commander.wiki,\n\t\tfilter = this.params[0],\n\t\tpathname = path.resolve(this.commander.outputPath,this.params[1]),\n\t\tdeleteDirectory = (this.params[2] || \&quot;\&quot;).toLowerCase() !== \&quot;noclean\&quot;,\n\t\ttiddlers = wiki.filterTiddlers(filter);\n\tif(deleteDirectory) {\n\t\t$tw.utils.deleteDirectory(pathname);\n\t}\n\t$tw.utils.createDirectory(pathname);\n\t$tw.utils.each(tiddlers,function(title) {\n\t\tvar tiddler = self.commander.wiki.getTiddler(title),\n\t\t\ttype = tiddler.fields.type || \&quot;text/vnd.tiddlywiki\&quot;,\n\t\t\tcontentTypeInfo = $tw.config.contentTypeInfo[type] || {encoding: \&quot;utf8\&quot;},\n\t\t\tfilename = path.resolve(pathname,encodeURIComponent(title));\n\t\tfs.writeFileSync(filename,tiddler.fields.text,contentTypeInfo.encoding);\n\t});\n\treturn null;\n};\n\nexports.Command = Command;\n\n})();\n&quot;,
             &quot;title&quot;: &quot;$:/core/modules/commands/savetiddlers.js&quot;,
             &quot;type&quot;: &quot;application/javascript&quot;,
             &quot;module-type&quot;: &quot;command&quot;
@@ -6362,7 +6364,7 @@ html body.tc-body {
     }
 }</pre>
 </div>
-<div caption="Resource not found" title="404">
+<div caption="Resource not found" tags="page" title="404">
 <pre>!! Jermolene.com
 
 //A weblog by JeremyRuston//
@@ -6370,6 +6372,16 @@ html body.tc-body {
 Whoops, that page does not exist. Perhaps you're looking for one of these:
 
 &lt;&lt;timeline subfilter:&quot;tag[post]!sort[created]&quot;&gt;&gt;
+</pre>
+</div>
+<div caption="About" tags="page" title="about">
+<pre>I cut my teeth on the home computers of the late 1970's. I've been CTO of several startups, Head of Ecommerce for an investment bank, and Head of Open Source Innovation at BT plc, and recently celebrated 10 years as the leader of the TiddlyWiki open source project. My passion is building tools that extend the capabilities of individuals and groups. I am based in Oxford, UK.
+
+|''Twitter'' |https://twitter.com/Jermolene |
+|~|https://twitter.com/TiddlyWiki |
+|''~GitHub'' |https://github.com/Jermolene |
+|''~YouTube'' |http://www.youtube.com/c/JeremyRuston |
+|''~LinkedIn'' |https://uk.linkedin.com/in/jermy |
 </pre>
 </div>
 <div created="20110826125353000" creator="Jermolene" modified="20110906101959000" modifier="Jermolene" tags="external-html-cecily" title="cecily.html" type="text/html">
@@ -17491,8 +17503,10 @@ if(useJavaSaver)
 This single HTML file is the full content of the blog in TiddlyWiki format. You'll find it faster to navigate static content that is linked from http://jermolene.com.
 </pre>
 </div>
-<div caption="Jermolene.com" title="Index">
-<pre>//A weblog by JeremyRuston//
+<div caption="Jermolene.com" tags="page" title="index">
+<pre>//A weblog by Jeremy Ruston//
+
+{{About}}
 
 &lt;&lt;timeline subfilter:&quot;tag[post]!sort[created]&quot;&gt;&gt;
 </pre>
