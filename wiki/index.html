@@ -163,7 +163,7 @@ Error message and password prompt
 
 <li>404</li>
 
-<li>about</li>
+<li>About</li>
 
 <li>cecily.html</li>
 
@@ -3756,6 +3756,12 @@ html body.tc-body {
             &quot;type&quot;: &quot;application/javascript&quot;,
             &quot;module-type&quot;: &quot;parser&quot;
         },
+        &quot;$:/core/modules/parsers/videoparser.js&quot;: {
+            &quot;text&quot;: &quot;/*\\\ntitle: $:/core/modules/parsers/videoparser.js\ntype: application/javascript\nmodule-type: parser\n\nThe video parser parses a video tiddler into an embeddable HTML element\n\n\\*/\n(function(){\n\n/*jslint node: true, browser: true */\n/*global $tw: false */\n\&quot;use strict\&quot;;\n\nvar AudioParser = function(type,text,options) {\n\tvar element = {\n\t\t\ttype: \&quot;element\&quot;,\n\t\t\ttag: \&quot;video\&quot;,\n\t\t\tattributes: {\n\t\t\t\tcontrols: {type: \&quot;string\&quot;, value: \&quot;controls\&quot;}\n\t\t\t}\n\t\t},\n\t\tsrc;\n\tif(options._canonical_uri) {\n\t\telement.attributes.src = {type: \&quot;string\&quot;, value: options._canonical_uri};\n\t} else if(text) {\n\t\telement.attributes.src = {type: \&quot;string\&quot;, value: \&quot;data:\&quot; + type + \&quot;;base64,\&quot; + text};\n\t}\n\tthis.tree = [element];\n};\n\nexports[\&quot;video/mp4\&quot;] = AudioParser;\n\n})();\n\n&quot;,
+            &quot;title&quot;: &quot;$:/core/modules/parsers/videoparser.js&quot;,
+            &quot;type&quot;: &quot;application/javascript&quot;,
+            &quot;module-type&quot;: &quot;parser&quot;
+        },
         &quot;$:/core/modules/parsers/wikiparser/rules/codeblock.js&quot;: {
             &quot;text&quot;: &quot;/*\\\ntitle: $:/core/modules/parsers/wikiparser/rules/codeblock.js\ntype: application/javascript\nmodule-type: wikirule\n\nWiki text rule for code blocks. For example:\n\n```\n\t```\n\tThis text will not be //wikified//\n\t```\n```\n\n\\*/\n(function(){\n\n/*jslint node: true, browser: true */\n/*global $tw: false */\n\&quot;use strict\&quot;;\n\nexports.name = \&quot;codeblock\&quot;;\nexports.types = {block: true};\n\nexports.init = function(parser) {\n\tthis.parser = parser;\n\t// Regexp to match and get language if defined\n\tthis.matchRegExp = /```([\\w-]*)\\r?\\n/mg;\n};\n\nexports.parse = function() {\n\tvar reEnd = /(\\r?\\n```$)/mg;\n\t// Move past the match\n\tthis.parser.pos = this.matchRegExp.lastIndex;\n\n\t// Look for the end of the block\n\treEnd.lastIndex = this.parser.pos;\n\tvar match = reEnd.exec(this.parser.source),\n\t\ttext;\n\t// Process the block\n\tif(match) {\n\t\ttext = this.parser.source.substring(this.parser.pos,match.index);\n\t\tthis.parser.pos = match.index + match[0].length;\n\t} else {\n\t\ttext = this.parser.source.substr(this.parser.pos);\n\t\tthis.parser.pos = this.parser.sourceLength;\n\t}\n\t// Return the $codeblock widget\n\treturn [{\n\t\t\ttype: \&quot;codeblock\&quot;,\n\t\t\tattributes: {\n\t\t\t\t\tcode: {type: \&quot;string\&quot;, value: text},\n\t\t\t\t\tlanguage: {type: \&quot;string\&quot;, value: this.match[1]}\n\t\t\t}\n\t}];\n};\n\n})();\n&quot;,
             &quot;title&quot;: &quot;$:/core/modules/parsers/wikiparser/rules/codeblock.js&quot;,
@@ -6227,7 +6233,11 @@ html body.tc-body {
         },
         &quot;$:/plugins/tiddlywiki/blog/templates/html-page/post&quot;: {
             &quot;title&quot;: &quot;$:/plugins/tiddlywiki/blog/templates/html-page/post&quot;,
-            &quot;text&quot;: &quot;\\define tv-wikilink-template() /$uri_doubleencoded$.html\n\\define tv-config-toolbar-icons() no\n\\define tv-config-toolbar-text() no\n\\define tv-config-toolbar-class() tc-btn-invisible\n`&lt;!doctype html&gt;\n&lt;html&gt;\n&lt;head&gt;\n&lt;meta http-equiv=\&quot;Content-Type\&quot; content=\&quot;text/html;charset=utf-8\&quot; /&gt;\n&lt;meta name=\&quot;generator\&quot; content=\&quot;TiddlyWiki\&quot; /&gt;\n&lt;meta name=\&quot;tiddlywiki-version\&quot; content=\&quot;`{{$:/core/templates/version}}`\&quot; /&gt;\n&lt;meta name=\&quot;viewport\&quot; content=\&quot;width=device-width, initial-scale=1.0\&quot; /&gt;\n&lt;meta name=\&quot;apple-mobile-web-app-capable\&quot; content=\&quot;yes\&quot; /&gt;\n&lt;meta name=\&quot;apple-mobile-web-app-status-bar-style\&quot; content=\&quot;black-translucent\&quot; /&gt;\n&lt;meta name=\&quot;format-detection\&quot; content=\&quot;telephone=no\&quot;&gt;\n&lt;link id=\&quot;faviconLink\&quot; rel=\&quot;shortcut icon\&quot; href=\&quot;../favicon.ico\&quot;&gt;\n&lt;link rel=\&quot;stylesheet\&quot; href=\&quot;../static.css\&quot;&gt;\n&lt;title&gt;`&lt;$view field=\&quot;caption\&quot;&gt;&lt;$view field=\&quot;title\&quot;/&gt;&lt;/$view&gt;: {{$:/core/wiki/title}}`&lt;/title&gt;\n&lt;/head&gt;\n&lt;body class=\&quot;tc-body\&quot;&gt;\n`{{$:/StaticBanner||$:/core/templates/html-tiddler}}`\n&lt;section class=\&quot;tc-story-river\&quot;&gt;\n`&lt;$importvariables filter=\&quot;[[$:/core/ui/PageMacros]] [all[shadows+tiddlers]tag[$:/tags/Macro]!has[draft.of]]\&quot;&gt;\n&lt;$view tiddler=\&quot;$:/plugins/tiddlywiki/blog/templates/tiddler\&quot; format=\&quot;htmlwikified\&quot;/&gt;\n&lt;/$importvariables&gt;`\n&lt;/section&gt;\n&lt;/body&gt;\n&lt;/html&gt;\n`\n&quot;
+            &quot;text&quot;: &quot;\\define tv-wikilink-template() /$uri_doubleencoded$.html\n\\define tv-config-toolbar-icons() no\n\\define tv-config-toolbar-text() no\n\\define tv-config-toolbar-class() tc-btn-invisible\n`&lt;!doctype html&gt;\n&lt;html&gt;\n&lt;head&gt;\n&lt;meta http-equiv=\&quot;Content-Type\&quot; content=\&quot;text/html;charset=utf-8\&quot; /&gt;\n&lt;meta name=\&quot;generator\&quot; content=\&quot;TiddlyWiki\&quot; /&gt;\n&lt;meta name=\&quot;tiddlywiki-version\&quot; content=\&quot;`{{$:/core/templates/version}}`\&quot; /&gt;\n&lt;meta name=\&quot;viewport\&quot; content=\&quot;width=device-width, initial-scale=1.0\&quot; /&gt;\n&lt;meta name=\&quot;apple-mobile-web-app-capable\&quot; content=\&quot;yes\&quot; /&gt;\n&lt;meta name=\&quot;apple-mobile-web-app-status-bar-style\&quot; content=\&quot;black-translucent\&quot; /&gt;\n&lt;meta name=\&quot;format-detection\&quot; content=\&quot;telephone=no\&quot;&gt;\n&lt;link id=\&quot;faviconLink\&quot; rel=\&quot;shortcut icon\&quot; href=\&quot;../favicon.ico\&quot;&gt;\n&lt;link rel=\&quot;stylesheet\&quot; href=\&quot;../static.css\&quot;&gt;\n&lt;title&gt;`&lt;$view field=\&quot;caption\&quot;&gt;&lt;$view field=\&quot;title\&quot;/&gt;&lt;/$view&gt;: {{$:/core/wiki/title}}`&lt;/title&gt;\n&lt;/head&gt;\n&lt;body class=\&quot;tc-body\&quot;&gt;\n`{{$:/StaticBanner||$:/core/templates/html-tiddler}}`\n&lt;section class=\&quot;tc-story-river\&quot;&gt;\n`&lt;$importvariables filter=\&quot;[[$:/core/ui/PageMacros]] [all[shadows+tiddlers]tag[$:/tags/Macro]!has[draft.of]]\&quot;&gt;\n&lt;$view tiddler=\&quot;$:/plugins/tiddlywiki/blog/templates/tiddler\&quot; format=\&quot;htmlwikified\&quot;/&gt;\n&lt;$view tiddler=\&quot;$:/plugins/tiddlywiki/blog/templates/menu\&quot; format=\&quot;htmlwikified\&quot;/&gt;\n&lt;/$importvariables&gt;`\n&lt;/section&gt;\n&lt;/body&gt;\n&lt;/html&gt;\n`\n&quot;
+        },
+        &quot;$:/plugins/tiddlywiki/blog/templates/menu&quot;: {
+            &quot;title&quot;: &quot;$:/plugins/tiddlywiki/blog/templates/menu&quot;,
+            &quot;text&quot;: &quot;&lt;div&gt;\n\n&lt;a href=\&quot;../index.html\&quot;&gt;\n\n{{$:/core/images/home-button}}\n\n&lt;/a&gt;\n\n&lt;/div&gt;\n&quot;
         },
         &quot;$:/plugins/tiddlywiki/blog/templates/tiddler&quot;: {
             &quot;title&quot;: &quot;$:/plugins/tiddlywiki/blog/templates/tiddler&quot;,
@@ -6367,17 +6377,13 @@ html body.tc-body {
 <div caption="Resource not found" tags="page" title="404">
 <pre>!! Jermolene.com
 
-//A weblog by JeremyRuston//
-
 Whoops, that page does not exist. Perhaps you're looking for one of these:
 
 &lt;&lt;timeline subfilter:&quot;tag[post]!sort[created]&quot;&gt;&gt;
 </pre>
 </div>
-<div caption="About" tags="page" title="about">
-<pre>I cut my teeth on the home computers of the late 1970's. I've been CTO of several startups, Head of Ecommerce for an investment bank, and Head of Open Source Innovation at BT plc, and recently celebrated 10 years as the leader of the TiddlyWiki open source project. My passion is building tools that extend the capabilities of individuals and groups. I am based in Oxford, UK.
-
-|''Twitter'' |https://twitter.com/Jermolene |
+<div caption="About" tags="post unlisted" title="About">
+<pre>|''Twitter'' |https://twitter.com/Jermolene |
 |~|https://twitter.com/TiddlyWiki |
 |''~GitHub'' |https://github.com/Jermolene |
 |''~YouTube'' |http://www.youtube.com/c/JeremyRuston |
@@ -17504,11 +17510,9 @@ This single HTML file is the full content of the blog in TiddlyWiki format. You'
 </pre>
 </div>
 <div caption="Jermolene.com" tags="page" title="index">
-<pre>//A weblog by Jeremy Ruston//
+<pre>//A weblog by [[Jeremy Ruston|About]]//
 
-{{About}}
-
-&lt;&lt;timeline subfilter:&quot;tag[post]!sort[created]&quot;&gt;&gt;
+&lt;&lt;timeline subfilter:&quot;tag[post]!tag[unlisted]!sort[created]&quot;&gt;&gt;
 </pre>
 </div>
 <div created="20080602123008381" modified="20080602123008381" tags="post" title="Introducing Cecily">
@@ -19542,6 +19546,7 @@ $tw.boot.startup = function(options) {
 	$tw.utils.registerFileType("image/x-icon","base64",".ico",{flags:["image"]});
 	$tw.utils.registerFileType("application/font-woff","base64",".woff");
 	$tw.utils.registerFileType("audio/ogg","base64",".ogg");
+	$tw.utils.registerFileType("video/mp4","base64",".mp4");
 	$tw.utils.registerFileType("audio/mp3","base64",".mp3");
 	$tw.utils.registerFileType("audio/mp4","base64",[".mp4",".m4a"]);
 	$tw.utils.registerFileType("text/x-markdown","utf8",[".md",".markdown"]);
