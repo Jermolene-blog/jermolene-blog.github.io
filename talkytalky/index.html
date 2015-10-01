@@ -211,6 +211,8 @@ Error message and password prompt
 
 <li>bbc1childrens1985b.mp4</li>
 
+<li>Childrens BBC</li>
+
 <li>Hackability as a Human Right</li>
 
 <li>Hackability as a Human Right Cecily Map</li>
@@ -421,6 +423,25 @@ html body.tc-body {
 	background-color: #A66D94;
 }
 
+.tc-presentation-title {
+	font-weight: 900;
+	font-size: 2em;
+}
+
+.tc-presentation-title a.tc-tiddlylink {
+    font-weight: 900;
+}
+
+a.tc-tiddlylink:hover {
+	color: rgba(255,255,255,0.4);
+	background-color: rgba(0,0,0,0.6);
+	text-decoration: none;
+}
+
+a.tc-tiddlylink-missing {
+	font-style: italic;
+}
+
 .tc-btn-big-blue {
 	padding: 6px;
 	margin: 4px 6px;
@@ -445,6 +466,10 @@ html body.tc-body {
 
 .tc-view-toolbar-tools p {
 	margin: 0;
+}
+
+.tc-media img, .tc-media video {
+	width: 100%;
 }
 
 .tc-edit-bitmapeditor-width,
@@ -6868,8 +6893,17 @@ html body.tc-body {
 <div _canonical_uri="./images/bbc1childrens1985b.mp4" tags="external-image" title="bbc1childrens1985b.mp4" type="video/mp4">
 <pre></pre>
 </div>
+<div title="Childrens BBC">
+<pre>&lt;div class=&quot;tc-media&quot;&gt;
+
+{{bbc1childrens1985a.mp4}}
+
+&lt;/div&gt;</pre>
+</div>
 <div created="20150929214256690" modified="20150929214257948" title="Hackability as a Human Right" type="text/vnd.tiddlywiki">
-<pre>! [[Hackability]] as a [[Human Right]]
+<pre>@@.tc-presentation-title
+! [[Hackability]] as a [[Human Right]]
+@@
 
 [[Jeremy Ruston]]
 
@@ -6907,7 +6941,12 @@ Speakers notes and references
 }</pre>
 </div>
 <div created="20150929214415064" modified="20150929214449001" tags="" title="Hacking Cats" type="text/vnd.tiddlywiki">
-<pre>[img[Hacking Cats.gif]]</pre>
+<pre>&lt;div class=&quot;tc-media&quot;&gt;
+
+[img[Hacking Cats.gif]]
+
+&lt;/div&gt;
+</pre>
 </div>
 <div _canonical_uri="./images/Hacking%2520Cats.gif" tags="external-image" title="Hacking Cats.gif" type="image/gif">
 <pre></pre>
@@ -6918,7 +6957,11 @@ Speakers notes and references
 <div created="20150929214248300" modified="20150929214353542" title="Jeremy Ruston" type="text/vnd.tiddlywiki">
 <pre>&lt;a href=&quot;https://www.youtube.com/watch?v=auyIhw8MTmQ&quot; target=&quot;_blank&quot;&gt;
 
-[img[Jeremy on TV.gif]]
+&lt;div class=&quot;tc-media&quot;&gt;
+
+[img [Jeremy on TV.gif]]
+
+&lt;/div&gt;
 
 &lt;/a&gt;
 
