@@ -723,7 +723,7 @@ html h1, html h2, html h3, html h4, html h5, html h6 {
 .jermolene-page-banner {
 	height: 200px;
 	background: rgba(255, 76, 76, 0.84);
-    background: url(../banner.jpg) center center;
+    background: url(../images/banner.jpg) center center;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
