@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Engravery</title>
+<meta name="description" content="Hide a photo in a field of parallel lines, then squint to see it reappear">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
@@ -526,7 +527,10 @@ function saveFile(filename, type, data) {
 }
 
 $("downloadSvg").addEventListener("click", () => {
-  saveFile("hidden-lines.svg", "image/svg+xml", buildSVG());
+  // Generic MIME type rather than image/svg+xml: iOS maps SVG to an image
+  // UTI, making the share sheet offer "Save Image" (to Photos, which cannot
+  // hold SVGs) instead of "Save to Files"
+  saveFile("hidden-lines.svg", "application/octet-stream", buildSVG());
 });
 
 let userLoaded = false;
