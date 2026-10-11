@@ -1,0 +1,43 @@
+{
+	"name": "Engravery",
+	"short_name": "Engravery",
+	"description": "Hide a photo in a field of parallel lines, then squint to see it reappear",
+	"id": "/toys/engravery/",
+	"start_url": "/toys/engravery/",
+	"scope": "/toys/engravery/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#f6f5f1",
+	"background_color": "#f6f5f1",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

@@ -1,0 +1,43 @@
+{
+	"name": "Mimic",
+	"short_name": "Mimic",
+	"description": "Feed in any text and dial up the gibberish index to generate new phrases in the same style",
+	"id": "/toys/mimic/",
+	"start_url": "/toys/mimic/",
+	"scope": "/toys/mimic/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#eeeeee",
+	"background_color": "#eeeeee",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

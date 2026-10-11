@@ -15,6 +15,7 @@
 
 <meta content="5.5.0-prerelease" name="tiddlywiki-version"><title>"Intertwingling the TiddlyWiki": Jermolene — learning to program since 1978</title><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com/css?family=Merriweather:400,700|Open+Sans:400,700" rel="stylesheet">
 
+
 </head>
 <body class="tc-body">
 
@@ -284,6 +285,27 @@ function findAncestorWithClass(node,className) {
 	} else {
 		return null;
 	}
+}
+
+})();
+/*\
+title: $:/_Toys/PWA.js
+type: application/javascript
+tags: $:/tags/Static/JS
+
+On the Toys page, which $:/_Toys/PWA marks with its web app manifest, load the
+script shared with the toys that registers the service worker. A <script> tag
+cannot be written in the wikified head, so it is loaded from here instead
+
+\*/
+(function(){
+
+"use strict";
+
+if(document.querySelector('link[rel="manifest"][href="/toys/manifest.webmanifest"]')) {
+	var script = document.createElement("script");
+	script.src = "/toys/pwa.js";
+	document.head.appendChild(script);
 }
 
 })();

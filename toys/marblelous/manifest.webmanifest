@@ -1,0 +1,43 @@
+{
+	"name": "Marblelous",
+	"short_name": "Marblelous",
+	"description": "Drop inks onto a virtual marbling bath and comb them into swirling Florentine patterns",
+	"id": "/toys/marblelous/",
+	"start_url": "/toys/marblelous/",
+	"scope": "/toys/marblelous/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#161310",
+	"background_color": "#161310",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

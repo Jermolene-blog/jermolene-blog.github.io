@@ -1,0 +1,176 @@
+{
+	"name": "Jermolene's Toys",
+	"short_name": "Toys",
+	"description": "Interactive toys from jermolene.com, all in one app",
+	"id": "/toys/",
+	"start_url": "/toys/",
+	"scope": "/toys/",
+	"display": "standalone",
+	"theme_color": "#5c59a7",
+	"background_color": "#ffffff",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Blobbles",
+			"description": "Blobs of glass at your command",
+			"url": "/toys/blobbles/",
+			"icons": [
+				{
+					"src": "/toys/blobbles/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Engravery",
+			"description": "Hide a photo in a field of parallel lines, then squint to see it reappear",
+			"url": "/toys/engravery/",
+			"icons": [
+				{
+					"src": "/toys/engravery/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Jpegulator",
+			"description": "Turn PNG, WebP, TIFF and other images into JPEGs, cropped and resized alike, one at a time or a whole folder into a ZIP",
+			"url": "/toys/jpegulator/",
+			"icons": [
+				{
+					"src": "/toys/jpegulator/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Jumbleword",
+			"description": "Five, six or seven lettered balls tumble out of a bingo drum: spell every word hidden in them to fill the card, and shout house when one word uses every ball",
+			"url": "/toys/jumbleword/",
+			"icons": [
+				{
+					"src": "/toys/jumbleword/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Knottery",
+			"description": "Draw Celtic knots freehand: strokes become woven ribbons, and a tap on a crossing flips which strand passes over",
+			"url": "/toys/knottery/",
+			"icons": [
+				{
+					"src": "/toys/knottery/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Marble Flick",
+			"description": "Flick marbles into the rings and knock your rivals into the hole, watched over by some very opinionated cats. For up to four players and computer opponents around one screen",
+			"url": "/toys/marble-flick/",
+			"icons": [
+				{
+					"src": "/toys/marble-flick/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Marblelous",
+			"description": "Drop inks onto a virtual marbling bath and comb them into swirling Florentine patterns",
+			"url": "/toys/marblelous/",
+			"icons": [
+				{
+					"src": "/toys/marblelous/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Mimic",
+			"description": "Feed in any text and dial up the gibberish index to generate new phrases in the same style",
+			"url": "/toys/mimic/",
+			"icons": [
+				{
+					"src": "/toys/mimic/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Over-Underiser",
+			"description": "Open an SVG and weave it: wherever closed shapes overlap, a click cycles which one passes over the top",
+			"url": "/toys/over-underiser/",
+			"icons": [
+				{
+					"src": "/toys/over-underiser/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "The Lenticulator",
+			"description": "Print and fold lenticular pictures that change as the observer moves",
+			"url": "/toys/lenticulator/",
+			"icons": [
+				{
+					"src": "/toys/lenticulator/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Vectorious",
+			"description": "Quantise a photo to black and white and trace it into a vector drawing, downloadable as SVG or PDF",
+			"url": "/toys/vectorious/",
+			"icons": [
+				{
+					"src": "/toys/vectorious/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		}
+	]
+}

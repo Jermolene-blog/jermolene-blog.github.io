@@ -1,0 +1,43 @@
+{
+	"name": "Vectorious",
+	"short_name": "Vectorious",
+	"description": "Quantise a photo to black and white and trace it into a vector drawing, downloadable as SVG or PDF",
+	"id": "/toys/vectorious/",
+	"start_url": "/toys/vectorious/",
+	"scope": "/toys/vectorious/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#f4f2ec",
+	"background_color": "#f4f2ec",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}
