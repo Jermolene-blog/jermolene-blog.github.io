@@ -1,5 +1,5 @@
 self.PRECACHE = {
-	"version": "7d1b1e6cc37d8587",
+	"version": "56ebb1cb6bb42a33",
 	"urls": [
 		"/toys/",
 		"/toys/apple-touch-icon.png",
