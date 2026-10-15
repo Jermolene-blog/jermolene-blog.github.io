@@ -1,0 +1,43 @@
+{
+	"name": "Spotty Sphericle",
+	"short_name": "Sphericle",
+	"description": "Thousands of dots on a spinning sphere, sized by the light falling on them: flick it, move the light, and breed new variations",
+	"id": "/toys/spotty-sphericle/",
+	"start_url": "/toys/spotty-sphericle/",
+	"scope": "/toys/spotty-sphericle/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#050505",
+	"background_color": "#050505",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

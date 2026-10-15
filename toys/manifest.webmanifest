@@ -149,6 +149,18 @@
 			]
 		},
 		{
+			"name": "Spotty Sphericle",
+			"description": "Thousands of dots on a spinning sphere, sized by the light falling on them: flick it, move the light, and breed new variations",
+			"url": "/toys/spotty-sphericle/",
+			"icons": [
+				{
+					"src": "/toys/spotty-sphericle/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
 			"name": "The Lenticulator",
 			"description": "Print and fold lenticular pictures that change as the observer moves",
 			"url": "/toys/lenticulator/",

@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "31be703f0a697c1d",
+	"version": "c78fd52d88610d3b",
 	"urls": [
 		"/toys/",
 		"/toys/apple-touch-icon.png",
@@ -118,6 +118,12 @@ self.PRECACHE = {
 		"/toys/over-underiser/",
 		"/toys/over-underiser/manifest.webmanifest",
 		"/toys/pwa.js",
+		"/toys/spotty-sphericle/apple-touch-icon.png",
+		"/toys/spotty-sphericle/icon-192.png",
+		"/toys/spotty-sphericle/icon-512.png",
+		"/toys/spotty-sphericle/icon.svg",
+		"/toys/spotty-sphericle/",
+		"/toys/spotty-sphericle/manifest.webmanifest",
 		"/toys/vectorious/apple-touch-icon.png",
 		"/toys/vectorious/icon-192.png",
 		"/toys/vectorious/icon-512.png",
@@ -136,6 +142,7 @@ self.PRECACHE = {
 		"/screenshots/toys/marblelous.webp",
 		"/screenshots/toys/mimic.webp",
 		"/screenshots/toys/over-underiser.webp",
+		"/screenshots/toys/spotty-sphericle.webp",
 		"/screenshots/toys/lenticulator.webp",
 		"/screenshots/toys/vectorious.webp"
 	],
@@ -144,7 +151,8 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",
 		"https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap",
-		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"
+		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js",
+		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
 	]
 };
 
