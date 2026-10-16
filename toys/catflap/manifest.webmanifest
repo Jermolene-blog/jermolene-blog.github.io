@@ -1,0 +1,43 @@
+{
+	"name": "Catflap",
+	"short_name": "Catflap",
+	"description": "A game for small children: let the cat in through the cat flap, then tap to give it dinner, water, treats and fish until it curls up in its basket to sleep",
+	"id": "/toys/catflap/",
+	"start_url": "/toys/catflap/",
+	"scope": "/toys/catflap/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#f7e6c4",
+	"background_color": "#f7e6c4",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}
