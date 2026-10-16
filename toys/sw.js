@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "6ea2abae0c33544e",
+	"version": "2dc6dc95920ff9e0",
 	"urls": [
 		"/toys/",
 		"/toys/apple-touch-icon.png",
@@ -124,6 +124,12 @@ self.PRECACHE = {
 		"/toys/spotty-sphericle/icon.svg",
 		"/toys/spotty-sphericle/",
 		"/toys/spotty-sphericle/manifest.webmanifest",
+		"/toys/tunerful/apple-touch-icon.png",
+		"/toys/tunerful/icon-192.png",
+		"/toys/tunerful/icon-512.png",
+		"/toys/tunerful/icon.svg",
+		"/toys/tunerful/",
+		"/toys/tunerful/manifest.webmanifest",
 		"/toys/vectorious/apple-touch-icon.png",
 		"/toys/vectorious/icon-192.png",
 		"/toys/vectorious/icon-512.png",
@@ -144,6 +150,7 @@ self.PRECACHE = {
 		"/screenshots/toys/over-underiser.webp",
 		"/screenshots/toys/spotty-sphericle.webp",
 		"/screenshots/toys/lenticulator.webp",
+		"/screenshots/toys/tunerful.webp",
 		"/screenshots/toys/vectorious.webp"
 	],
 	"external": [
@@ -152,7 +159,8 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap",
 		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js",
-		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
 	]
 };
 
