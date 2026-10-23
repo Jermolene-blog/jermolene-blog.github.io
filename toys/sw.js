@@ -25,9 +25,15 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "d0900e9e2f48fd82",
+	"version": "78f57e996d4b8591",
 	"urls": [
 		"/toys/",
+		"/toys/animal-island/apple-touch-icon.png",
+		"/toys/animal-island/icon-192.png",
+		"/toys/animal-island/icon-512.png",
+		"/toys/animal-island/icon.svg",
+		"/toys/animal-island/",
+		"/toys/animal-island/manifest.webmanifest",
 		"/toys/apple-touch-icon.png",
 		"/toys/blobbles/apple-touch-icon.png",
 		"/toys/blobbles/icon-192.png",
@@ -164,6 +170,7 @@ self.PRECACHE = {
 		"/static/static.css",
 		"/images/banner.jpg",
 		"/favicon.ico",
+		"/screenshots/toys/animal-island.webp",
 		"/screenshots/toys/blobbles.webp",
 		"/screenshots/toys/catflap.webp",
 		"/screenshots/toys/engravery.webp",
@@ -183,6 +190,8 @@ self.PRECACHE = {
 		"/screenshots/toys/vectorious.webp"
 	],
 	"external": [
+		"https://fonts.googleapis.com/css2?family=Grandstander:wght@700;900&family=Nunito:wght@600;800&display=swap",
+		"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",

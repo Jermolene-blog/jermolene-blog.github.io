@@ -41,6 +41,18 @@
 	],
 	"shortcuts": [
 		{
+			"name": "Animal Island",
+			"description": "A 3D game for toddlers: tap the cow, pig, sheep and friends on a little island to hear their names and noises, shake the trees for apples, or play Where's the pig?",
+			"url": "/toys/animal-island/",
+			"icons": [
+				{
+					"src": "/toys/animal-island/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
 			"name": "Blobbles",
 			"description": "Blobs of glass at your command",
 			"url": "/toys/blobbles/",

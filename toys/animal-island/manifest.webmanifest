@@ -1,0 +1,43 @@
+{
+	"name": "Animal Island",
+	"short_name": "Animal Island",
+	"description": "A 3D game for toddlers: tap the cow, pig, sheep and friends on a little island to hear their names and noises, shake the trees for apples, or play Where's the pig?",
+	"id": "/toys/animal-island/",
+	"start_url": "/toys/animal-island/",
+	"scope": "/toys/animal-island/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#5fbdea",
+	"background_color": "#5fbdea",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}
