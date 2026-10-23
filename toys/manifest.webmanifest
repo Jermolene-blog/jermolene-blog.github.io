@@ -173,6 +173,18 @@
 			]
 		},
 		{
+			"name": "Sunthesis",
+			"description": "Photorealistic sunsets computed from the physics of sunlight passing through air, haze, cloud and water: start from one of 43 real photographs, then randomise, explore nearby skies and export HDR pictures",
+			"url": "/toys/sunthesis/",
+			"icons": [
+				{
+					"src": "/toys/sunthesis/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
 			"name": "The Lenticulator",
 			"description": "Print and fold lenticular pictures that change as the observer moves",
 			"url": "/toys/lenticulator/",

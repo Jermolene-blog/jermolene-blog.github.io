@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "487a942f802043f4",
+	"version": "ea9accea5fc8c4ab",
 	"urls": [
 		"/toys/",
 		"/toys/apple-touch-icon.png",
@@ -131,6 +131,12 @@ self.PRECACHE = {
 		"/toys/spotty-sphericle/icon.svg",
 		"/toys/spotty-sphericle/",
 		"/toys/spotty-sphericle/manifest.webmanifest",
+		"/toys/sunthesis/apple-touch-icon.png",
+		"/toys/sunthesis/icon-192.png",
+		"/toys/sunthesis/icon-512.png",
+		"/toys/sunthesis/icon.svg",
+		"/toys/sunthesis/",
+		"/toys/sunthesis/manifest.webmanifest",
 		"/toys/tunerful/apple-touch-icon.png",
 		"/toys/tunerful/icon-192.png",
 		"/toys/tunerful/icon-512.png",
@@ -157,6 +163,7 @@ self.PRECACHE = {
 		"/screenshots/toys/mimic.webp",
 		"/screenshots/toys/over-underiser.webp",
 		"/screenshots/toys/spotty-sphericle.webp",
+		"/screenshots/toys/sunthesis.webp",
 		"/screenshots/toys/lenticulator.webp",
 		"/screenshots/toys/tunerful.webp",
 		"/screenshots/toys/vectorious.webp"
@@ -169,6 +176,7 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap",
 		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Familjen+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
 	]
 };
