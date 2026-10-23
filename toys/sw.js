@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "78f57e996d4b8591",
+	"version": "f5ad98d143b2c94b",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -155,6 +155,12 @@ self.PRECACHE = {
 		"/toys/sunthesis/icon.svg",
 		"/toys/sunthesis/",
 		"/toys/sunthesis/manifest.webmanifest",
+		"/toys/trundle-world/apple-touch-icon.png",
+		"/toys/trundle-world/icon-192.png",
+		"/toys/trundle-world/icon-512.png",
+		"/toys/trundle-world/icon.svg",
+		"/toys/trundle-world/",
+		"/toys/trundle-world/manifest.webmanifest",
 		"/toys/tunerful/apple-touch-icon.png",
 		"/toys/tunerful/icon-192.png",
 		"/toys/tunerful/icon-512.png",
@@ -186,6 +192,7 @@ self.PRECACHE = {
 		"/screenshots/toys/spotty-sphericle.webp",
 		"/screenshots/toys/sunthesis.webp",
 		"/screenshots/toys/lenticulator.webp",
+		"/screenshots/toys/trundle-world.webp",
 		"/screenshots/toys/tunerful.webp",
 		"/screenshots/toys/vectorious.webp"
 	],
@@ -202,6 +209,8 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@400;500;700&family=Cutive+Mono&display=swap",
 		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Familjen+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
+		"https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js",
+		"https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js",
 		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
 	]
 };
