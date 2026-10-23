@@ -1,0 +1,43 @@
+{
+	"name": "Rug Addict",
+	"short_name": "Rug Addict",
+	"description": "Persian, Anatolian, Caucasian and Turkmen rugs generated knot by knot from the grammar of real carpets: borders, field, medallions and motifs, shown as wool pile, as a weaver's cartoon or on the floor of a room, with randomise and eight-way exploration",
+	"id": "/toys/rug-addict/",
+	"start_url": "/toys/rug-addict/",
+	"scope": "/toys/rug-addict/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#e8ebe3",
+	"background_color": "#e8ebe3",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

@@ -77,6 +77,18 @@
 			]
 		},
 		{
+			"name": "Fractaliser",
+			"description": "A fast, smooth explorer of the Mandelbrot set and its relatives, the Tricorn, Burning Ship and Cubic Multibrot, and their Julia sets: zoom deep into them, randomise, and browse nearby variations of colour and place",
+			"url": "/toys/fractaliser/",
+			"icons": [
+				{
+					"src": "/toys/fractaliser/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
 			"name": "Jpegulator",
 			"description": "Turn PNG, WebP, TIFF and other images into JPEGs, cropped and resized alike, one at a time or a whole folder into a ZIP",
 			"url": "/toys/jpegulator/",
@@ -155,6 +167,18 @@
 			"icons": [
 				{
 					"src": "/toys/over-underiser/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Rug Addict",
+			"description": "Persian, Anatolian, Caucasian and Turkmen rugs generated knot by knot from the grammar of real carpets: borders, field, medallions and motifs, shown as wool pile, as a weaver's cartoon or on the floor of a room, with randomise and eight-way exploration",
+			"url": "/toys/rug-addict/",
+			"icons": [
+				{
+					"src": "/toys/rug-addict/icon-192.png",
 					"sizes": "192x192",
 					"type": "image/png"
 				}
