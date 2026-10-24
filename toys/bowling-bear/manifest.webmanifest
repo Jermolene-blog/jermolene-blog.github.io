@@ -1,0 +1,43 @@
+{
+	"name": "Bowling Bear",
+	"short_name": "Bowling Bear",
+	"description": "Ten-pin bowling in 3D for phones on the same Wi-Fi, with no server: phones join by scanning each other's QR codes, then each bowler swipes up to roll and curves the swipe to hook, on a shared score sheet. Or practise alone",
+	"id": "/toys/bowling-bear/",
+	"start_url": "/toys/bowling-bear/",
+	"scope": "/toys/bowling-bear/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#17120e",
+	"background_color": "#17120e",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "879d664993c8199e",
+	"version": "590823982bfe0ced",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -41,6 +41,12 @@ self.PRECACHE = {
 		"/toys/blobbles/icon.svg",
 		"/toys/blobbles/",
 		"/toys/blobbles/manifest.webmanifest",
+		"/toys/bowling-bear/apple-touch-icon.png",
+		"/toys/bowling-bear/icon-192.png",
+		"/toys/bowling-bear/icon-512.png",
+		"/toys/bowling-bear/icon.svg",
+		"/toys/bowling-bear/",
+		"/toys/bowling-bear/manifest.webmanifest",
 		"/toys/cat/cat-actor.js",
 		"/toys/cat/cat-puppet/arm.js",
 		"/toys/cat/cat-puppet/face.js",
@@ -191,6 +197,7 @@ self.PRECACHE = {
 		"/favicon.ico",
 		"/screenshots/toys/animal-island.webp",
 		"/screenshots/toys/blobbles.webp",
+		"/screenshots/toys/bowling-bear.webp",
 		"/screenshots/toys/catflap.webp",
 		"/screenshots/toys/engravery.webp",
 		"/screenshots/toys/fractaliser.webp",
@@ -215,6 +222,9 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Grandstander:wght@700;900&family=Nunito:wght@600;800&display=swap",
 		"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap",
+		"https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Barlow:wght@400;600;700&family=Kalam:wght@400;700&display=swap",
+		"https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js",
+		"https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap",
