@@ -1,0 +1,43 @@
+{
+	"name": "Meadow Games",
+	"short_name": "Meadow Games",
+	"description": "Five tap-only 3D games for toddlers with a herd of cows, horses, foxes and friends: peekaboo, all fall down, bedtime in the barn, find the same and pairs",
+	"id": "/toys/meadow-games/",
+	"start_url": "/toys/meadow-games/",
+	"scope": "/toys/meadow-games/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#bfe3f2",
+	"background_color": "#bfe3f2",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}
