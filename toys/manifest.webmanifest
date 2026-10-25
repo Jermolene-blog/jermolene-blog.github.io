@@ -53,6 +53,18 @@
 			]
 		},
 		{
+			"name": "Bear Beat",
+			"description": "Animated bears dance on a light-up disco floor to the beat of whatever they hear: the microphone, a song file, a built-in groove or tapped tempo. Ten routines from the Moonwalk to the Macarena, for one to four bears",
+			"url": "/toys/bear-beat/",
+			"icons": [
+				{
+					"src": "/toys/bear-beat/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
 			"name": "Blobbles",
 			"description": "Blobs of glass at your command",
 			"url": "/toys/blobbles/",

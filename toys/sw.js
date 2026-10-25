@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "5144d7c8841dfcbe",
+	"version": "ae193563be32be0a",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -35,6 +35,13 @@ self.PRECACHE = {
 		"/toys/animal-island/",
 		"/toys/animal-island/manifest.webmanifest",
 		"/toys/apple-touch-icon.png",
+		"/toys/bear-beat/apple-touch-icon.png",
+		"/toys/bear-beat/bear-model.js",
+		"/toys/bear-beat/icon-192.png",
+		"/toys/bear-beat/icon-512.png",
+		"/toys/bear-beat/icon.svg",
+		"/toys/bear-beat/",
+		"/toys/bear-beat/manifest.webmanifest",
 		"/toys/blobbles/apple-touch-icon.png",
 		"/toys/blobbles/icon-192.png",
 		"/toys/blobbles/icon-512.png",
@@ -196,6 +203,7 @@ self.PRECACHE = {
 		"/images/banner.jpg",
 		"/favicon.ico",
 		"/screenshots/toys/animal-island.webp",
+		"/screenshots/toys/bear-beat.webp",
 		"/screenshots/toys/blobbles.webp",
 		"/screenshots/toys/bowling-bear.webp",
 		"/screenshots/toys/catflap.webp",
@@ -221,6 +229,7 @@ self.PRECACHE = {
 	"external": [
 		"https://fonts.googleapis.com/css2?family=Grandstander:wght@700;900&family=Nunito:wght@600;800&display=swap",
 		"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+		"https://fonts.googleapis.com/css2?family=Monoton&family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Barlow:wght@400;600;700&family=Kalam:wght@400;700&display=swap",
 		"https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js",
