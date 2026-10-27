@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "9386e4b81b6d81b8",
+	"version": "9a7e3dae79795627",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -164,6 +164,12 @@ self.PRECACHE = {
 		"/toys/over-underiser/",
 		"/toys/over-underiser/manifest.webmanifest",
 		"/toys/pwa.js",
+		"/toys/quizbuzz/apple-touch-icon.png",
+		"/toys/quizbuzz/icon-192.png",
+		"/toys/quizbuzz/icon-512.png",
+		"/toys/quizbuzz/icon.svg",
+		"/toys/quizbuzz/",
+		"/toys/quizbuzz/manifest.webmanifest",
 		"/toys/rug-addict/apple-touch-icon.png",
 		"/toys/rug-addict/icon-192.png",
 		"/toys/rug-addict/icon-512.png",
@@ -219,6 +225,7 @@ self.PRECACHE = {
 		"/screenshots/toys/meadow-games.webp",
 		"/screenshots/toys/mimic.webp",
 		"/screenshots/toys/over-underiser.webp",
+		"/screenshots/toys/quizbuzz.webp",
 		"/screenshots/toys/rug-addict.webp",
 		"/screenshots/toys/spotty-sphericle.webp",
 		"/screenshots/toys/sunthesis.webp",
