@@ -1,0 +1,43 @@
+{
+	"name": "Trackaholic",
+	"short_name": "Trackaholic",
+	"description": "A car race through a glowing valley at dusk, against bots on one screen or with phones joining over the same Wi-Fi by QR code. Every track is new, and the car has real suspension and tyre grip, so brake before the bends",
+	"id": "/toys/trackaholic/",
+	"start_url": "/toys/trackaholic/",
+	"scope": "/toys/trackaholic/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#140f2e",
+	"background_color": "#140f2e",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

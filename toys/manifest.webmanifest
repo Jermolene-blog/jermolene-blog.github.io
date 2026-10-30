@@ -113,6 +113,18 @@
 			]
 		},
 		{
+			"name": "Flowing Field",
+			"description": "An animated ink drawing of thousands of fine pen strokes sweeping into dark creased ridges, with sections filled with hand-drawn patterns. Drag to rake the strokes into line, then randomise, explore nearby drawings and cycle psychedelic colours",
+			"url": "/toys/flowing-field/",
+			"icons": [
+				{
+					"src": "/toys/flowing-field/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
 			"name": "Fractaliser",
 			"description": "A fast, smooth explorer of the Mandelbrot set and its relatives, the Tricorn, Burning Ship and Cubic Multibrot, and their Julia sets: zoom deep into them, randomise, and browse nearby variations of colour and place",
 			"url": "/toys/fractaliser/",
@@ -287,6 +299,18 @@
 			"icons": [
 				{
 					"src": "/toys/lenticulator/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Trackaholic",
+			"description": "A car race through a glowing valley at dusk, against bots on one screen or with phones joining over the same Wi-Fi by QR code. Every track is new, and the car has real suspension and tyre grip, so brake before the bends",
+			"url": "/toys/trackaholic/",
+			"icons": [
+				{
+					"src": "/toys/trackaholic/icon-192.png",
 					"sizes": "192x192",
 					"type": "image/png"
 				}

@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "c8b219b4bd2f3167",
+	"version": "cfd0bf4468f443c6",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -89,6 +89,12 @@ self.PRECACHE = {
 		"/toys/engravery/icon.svg",
 		"/toys/engravery/",
 		"/toys/engravery/manifest.webmanifest",
+		"/toys/flowing-field/apple-touch-icon.png",
+		"/toys/flowing-field/icon-192.png",
+		"/toys/flowing-field/icon-512.png",
+		"/toys/flowing-field/icon.svg",
+		"/toys/flowing-field/",
+		"/toys/flowing-field/manifest.webmanifest",
 		"/toys/fractaliser/apple-touch-icon.png",
 		"/toys/fractaliser/icon-192.png",
 		"/toys/fractaliser/icon-512.png",
@@ -188,6 +194,13 @@ self.PRECACHE = {
 		"/toys/sunthesis/icon.svg",
 		"/toys/sunthesis/",
 		"/toys/sunthesis/manifest.webmanifest",
+		"/toys/trackaholic/apple-touch-icon.png",
+		"/toys/trackaholic/car-model.js",
+		"/toys/trackaholic/icon-192.png",
+		"/toys/trackaholic/icon-512.png",
+		"/toys/trackaholic/icon.svg",
+		"/toys/trackaholic/",
+		"/toys/trackaholic/manifest.webmanifest",
 		"/toys/trundle-world/apple-touch-icon.png",
 		"/toys/trundle-world/icon-192.png",
 		"/toys/trundle-world/icon-512.png",
@@ -215,6 +228,7 @@ self.PRECACHE = {
 		"/screenshots/toys/bowling-bear.webp",
 		"/screenshots/toys/catflap.webp",
 		"/screenshots/toys/engravery.webp",
+		"/screenshots/toys/flowing-field.webp",
 		"/screenshots/toys/fractaliser.webp",
 		"/screenshots/toys/jpegulator.webp",
 		"/screenshots/toys/jumbleword.webp",
@@ -230,6 +244,7 @@ self.PRECACHE = {
 		"/screenshots/toys/spotty-sphericle.webp",
 		"/screenshots/toys/sunthesis.webp",
 		"/screenshots/toys/lenticulator.webp",
+		"/screenshots/toys/trackaholic.webp",
 		"/screenshots/toys/trundle-world.webp",
 		"/screenshots/toys/tunerful.webp",
 		"/screenshots/toys/vectorious.webp"
@@ -244,6 +259,7 @@ self.PRECACHE = {
 		"https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",
+		"https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap",
@@ -253,6 +269,7 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@400;500;700&family=Cutive+Mono&display=swap",
 		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Familjen+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Chakra+Petch:wght@500;700&display=swap",
 		"https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js",
 		"https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js",
 		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
