@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "192d81548ba4517d",
+	"version": "d875679f364d5718",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -116,6 +116,12 @@ self.PRECACHE = {
 		"/toys/knottery/icon.svg",
 		"/toys/knottery/",
 		"/toys/knottery/manifest.webmanifest",
+		"/toys/lala-yala/apple-touch-icon.png",
+		"/toys/lala-yala/icon-192.png",
+		"/toys/lala-yala/icon-512.png",
+		"/toys/lala-yala/icon.svg",
+		"/toys/lala-yala/",
+		"/toys/lala-yala/manifest.webmanifest",
 		"/toys/lenticulator/app.js",
 		"/toys/lenticulator/apple-touch-icon.png",
 		"/toys/lenticulator/icon-192.png",
@@ -125,12 +131,6 @@ self.PRECACHE = {
 		"/toys/lenticulator/manifest.webmanifest",
 		"/toys/lenticulator/pico.min.css",
 		"/toys/lenticulator/styles.css",
-		"/toys/loujain-yahya/apple-touch-icon.png",
-		"/toys/loujain-yahya/icon-192.png",
-		"/toys/loujain-yahya/icon-512.png",
-		"/toys/loujain-yahya/icon.svg",
-		"/toys/loujain-yahya/",
-		"/toys/loujain-yahya/manifest.webmanifest",
 		"/toys/manifest.webmanifest",
 		"/toys/marble-flick/apple-touch-icon.png",
 		"/toys/marble-flick/icon-192.png",
@@ -219,7 +219,7 @@ self.PRECACHE = {
 		"/screenshots/toys/jpegulator.webp",
 		"/screenshots/toys/jumbleword.webp",
 		"/screenshots/toys/knottery.webp",
-		"/screenshots/toys/loujain-yahya.webp",
+		"/screenshots/toys/lala-yala.webp",
 		"/screenshots/toys/marble-flick.webp",
 		"/screenshots/toys/marblelous.webp",
 		"/screenshots/toys/meadow-games.webp",
