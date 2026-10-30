@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "6a826ce5dbddd406",
+	"version": "192d81548ba4517d",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
