@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "220a1502a0b3c098",
+	"version": "520eedefe05b6a7b",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -49,7 +49,6 @@ self.PRECACHE = {
 		"/toys/blobbles/",
 		"/toys/blobbles/manifest.webmanifest",
 		"/toys/bowling-bear/apple-touch-icon.png",
-		"/toys/bowling-bear/bear-model.js",
 		"/toys/bowling-bear/icon-192.png",
 		"/toys/bowling-bear/icon-512.png",
 		"/toys/bowling-bear/icon.svg",
@@ -195,7 +194,6 @@ self.PRECACHE = {
 		"/toys/sunthesis/",
 		"/toys/sunthesis/manifest.webmanifest",
 		"/toys/trackaholic/apple-touch-icon.png",
-		"/toys/trackaholic/car-model.js",
 		"/toys/trackaholic/icon-192.png",
 		"/toys/trackaholic/icon-512.png",
 		"/toys/trackaholic/icon.svg",
@@ -255,8 +253,6 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Monoton&family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap",
-		"https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js",
-		"https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",
 		"https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap",
