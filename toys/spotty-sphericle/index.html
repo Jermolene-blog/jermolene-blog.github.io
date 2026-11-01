@@ -38,7 +38,7 @@
 [hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:13px;overflow:hidden}
-.app{display:grid;grid-template-columns:minmax(0,1fr) 350px;height:100%;
+.app{display:grid;grid-template-columns:minmax(0,1fr) 340px;height:100%;
   padding-left:max(0px, env(safe-area-inset-left,0px));padding-right:max(0px, env(safe-area-inset-right,0px))}
 .stage{position:relative;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;
   padding-block:16px;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:16px}
@@ -72,8 +72,9 @@ details{border-bottom:1px solid var(--line)}
 summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:11px 16px;
   font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);user-select:none}
 summary::-webkit-details-marker{display:none}
-summary::before{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
-details[open] summary::before{transform:rotate(45deg)}
+summary::after{content:"+";margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:400;letter-spacing:0;color:var(--muted)}
+summary:has(.dice)::after{margin-left:2px}
+details[open] summary::after{content:"–"}
 details[open] summary{color:var(--fg)}
 summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 summary .dice{margin-left:auto;all:unset;margin-left:auto;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--muted);padding:2px 6px;border:1px solid var(--line);border-radius:4px}
@@ -94,6 +95,8 @@ summary .dice:hover{color:var(--accent);border-color:var(--accent)}
 .row input[type=color]{width:34px;height:22px;padding:0;border:1px solid var(--line);border-radius:4px;background:none;cursor:pointer}
 input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .strip{height:14px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.xbox{display:grid;gap:10px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--bg)}
+.fps{position:absolute;top:10px;right:10px;margin:0;padding:5px 8px;border-radius:5px;background:rgba(0,0,0,.6);color:#fff;font:11px/1.45 var(--mono);font-variant-numeric:tabular-nums;white-space:pre;pointer-events:none;z-index:2}
 .exsecs{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
 .exsecs label{display:flex;align-items:center;gap:7px;font-size:12.5px}
 .exsecs input{accent-color:var(--accent);margin:0;width:15px;height:15px}
@@ -107,13 +110,12 @@ textarea{width:100%;box-sizing:border-box;min-height:70px;resize:vertical;backgr
 .ov p{margin:0;color:var(--fg);text-align:center}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent);color:#141005;padding:7px 12px;border-radius:6px;font-weight:600;font-size:12px;z-index:11}
 
-@media (max-width:760px){
+@media (max-width:820px){
   body{overflow:auto}
-  .app{grid-template-columns:1fr;grid-template-rows:minmax(300px,56%) auto;height:auto;min-height:100%}
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;min-height:100%}
   .stage{height:56vh;min-height:300px;padding-right:max(16px, env(safe-area-inset-right,0px))}
   .panel{border-left:0;border-top:1px solid var(--line);overflow:visible}
 }
-@media (prefers-reduced-motion:reduce){summary::before{transition:none}}
 /* Keep iOS from selecting the page on taps and long presses */
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -129,30 +131,28 @@ input,textarea{-webkit-user-select:text;user-select:text}
       <span class="seg"><button id="play" aria-pressed="true">pause</button><button id="exploreBtn" aria-pressed="false">explore</button></span>
       <span id="stat">—</span>
     </div>
+    <pre class="fps" id="fps" hidden></pre>
   </div>
   <aside class="panel" id="panel">
     <div class="head">
       <h1>Spotty Sphericle</h1>
       <p>Dots on a sphere, or a cube, a doughnut, a rippling water drop or a cloud, sized by Lambert light. Flick the image to send it spinning, or switch to light mode and drag to move the light.</p>
       <div class="actions">
-        <button class="btn primary" id="rand">Randomise all</button>
+        <button class="btn primary" id="exploreHead">Explore 8 ways</button>
+        <button class="btn" id="rand">Randomise</button>
         <button class="btn" id="reset">Reset</button>
         <button class="btn" id="png">Download PNG</button>
         <button class="btn" id="svg">Copy SVG</button>
-        <button class="btn" id="exploreHead">Explore</button>
       </div>
-      <div class="presets" id="presets"></div>
-    </div>
-    <details id="exploreSec">
-      <summary>Explore</summary>
-      <div class="rows">
-        <p class="note">Shows the current image in the centre with eight nearby variations around it. Click a variation to make it the new centre and breed again, or click the centre to leave explore. Sliders below still edit the centre, and the neighbours follow.</p>
-        <div class="row"><label for="exStrength">Step size</label><input type="number" id="exStrength_n" min="0.02" max="1" step="0.01" aria-label="Step size value"><input type="range" id="exStrength" min="0.02" max="1" step="0.01"></div>
+      <div class="xbox" id="exploreBox" hidden>
+        <div class="row"><label for="exStrength">Variation</label><input type="number" id="exStrength_n" min="0.02" max="1" step="0.01" aria-label="Variation value"><input type="range" id="exStrength" min="0.02" max="1" step="0.01"></div>
         <div class="note">Parameters allowed to change:</div>
         <div class="exsecs" id="exSecs"></div>
         <div class="actions"><button class="btn" id="exReroll">New neighbours</button><button class="btn" id="exBack">Back a step</button></div>
+        <p class="note">Tap a neighbour to adopt it and breed eight more. Tap the centre to leave explore with it. Sliders still edit the centre, and the neighbours follow.</p>
       </div>
-    </details>
+      <div class="presets" id="presets"></div>
+    </div>
     <div id="controls"></div>
     <details>
       <summary>Settings</summary>
@@ -160,9 +160,10 @@ input,textarea{-webkit-user-select:text;user-select:text}
         <p class="note">Copy the current settings as JSON, or paste a saved set and apply it.</p>
         <textarea id="json" spellcheck="false" aria-label="Settings JSON"></textarea>
         <div class="actions"><button class="btn" id="copyJson">Copy settings</button><button class="btn" id="applyJson">Apply pasted</button></div>
+        <div class="row chk"><label for="fpsChk">Show frame rate</label><input type="checkbox" id="fpsChk"></div>
       </div>
     </details>
-    <div class="foot">Double-click a control's name to reset it.</div>
+    <div class="foot">Double-click a control or heading to reset it.</div>
   </aside>
 </div>
 
@@ -210,7 +211,7 @@ const SCHEMA = [
   {k:'jiggle', label:'Jiggle', min:0, max:0.3, step:0.005, rr:[0,0], tip:'The whole form wobbles like a drop of water'},
   {k:'jiggleRate', label:'Jiggles per second', min:0.1, max:4, step:0.01, rr:[0.5,2], show:s=>s.jiggle>0},
  ]},
- {sec:'Structure', open:true, items:[
+ {sec:'Structure', items:[
   {k:'dist', type:'select', label:'Distribution', opts:{rings:'Latitude rings',fib:'Fibonacci spiral',latlong:'Lat–long grid (globe)',cube:'Cube-sphere grid',random:'Random scatter'}},
   {k:'count', label:'Dot count (whole sphere)', min:100, max:40000, step:50, rr:[1500,16000]},
   {k:'stagger', label:'Ring stagger', min:0, max:1, step:0.01, show:s=>s.dist==='rings'||s.dist==='latlong', tip:'Offsets alternate rings by half a step'},
@@ -218,12 +219,12 @@ const SCHEMA = [
   {k:'jitter', label:'Jitter', min:0, max:1, step:0.01, rr:[0,0.3]},
   {k:'seed', label:'Seed', min:1, max:9999, step:1, show:s=>s.jitter>0||s.dist==='random'},
  ]},
- {sec:'Orientation', open:true, items:[
+ {sec:'Orientation', items:[
   {k:'tiltX', label:'Pole tilt X °', min:-180, max:180, step:0.5},
   {k:'tiltZ', label:'Pole tilt Z °', min:-180, max:180, step:0.5},
   {k:'yaw', label:'Yaw °', min:-180, max:180, step:0.5},
  ]},
- {sec:'Animation', open:true, items:[
+ {sec:'Animation', items:[
   {k:'spin', label:'Spin °/s', min:-120, max:120, step:0.5, rr:[-15,15], tip:'Rotates the sphere about its own pole'},
   {k:'friction', label:'Drag momentum friction', min:0, max:6, step:0.05, norand:true, tip:'After a flick the sphere coasts and slows at this rate. 0 = coasts forever'},
   {k:'breathe', label:'Breathing depth', min:0, max:0.25, step:0.005, rr:[0,0.06], tip:'How much the radius swells and shrinks'},
@@ -241,7 +242,7 @@ const SCHEMA = [
   {k:'radius', label:'Radius', min:0.05, max:0.8, step:0.005, rr:[0.25,0.46]},
   {k:'persp', label:'Perspective', min:0, max:0.8, step:0.01, rr:[0,0.4]},
  ]},
- {sec:'Lighting', open:true, items:[
+ {sec:'Lighting', items:[
   {k:'lightAz', label:'Light direction °', min:0, max:360, step:1, tip:'0 = right, 90 = top'},
   {k:'lightEl', label:'Light elevation °', min:-90, max:90, step:1, rr:[-20,70], tip:'Positive = towards the viewer'},
   {k:'ambient', label:'Ambient', min:0, max:1, step:0.01, rr:[0,0.25]},
@@ -252,7 +253,7 @@ const SCHEMA = [
   {k:'rim', label:'Rim light', min:0, max:1.5, step:0.01, rr:[0,0.6]},
   {k:'rimPow', label:'Rim falloff', min:0.5, max:8, step:0.1, show:s=>s.rim>0},
  ]},
- {sec:'Dots', open:true, items:[
+ {sec:'Dots', items:[
   {k:'shape', type:'select', label:'Shape', opts:{circle:'Circle',ring:'Ring',square:'Square',diamond:'Diamond',line:'Dash (along latitude)',cross:'Cross'}},
   {k:'mode', type:'select', label:'Brightness drives', opts:{size:'Dot size',opacity:'Opacity',both:'Size and opacity'}},
   {k:'size', label:'Max size (× spacing)', min:0.05, max:2, step:0.01, rr:[0.5,1.1]},
@@ -260,7 +261,7 @@ const SCHEMA = [
   {k:'cutoff', label:'Cutoff', min:0, max:0.6, step:0.005, rr:[0,0.15], tip:'Dots darker than this are dropped'},
   {k:'fore', label:'Foreshortening', min:0, max:1, step:0.01, rr:[0.6,1], tip:'Squash dots near the edge as if printed on the surface'},
  ]},
- {sec:'Colour', items:[
+ {sec:'Colour', open:true, items:[
   {k:'colorMode', type:'select', label:'Colouring', opts:{solid:'Single colour',shade:'Lit → shadow blend',palette:'Palette / rainbow'}},
   {k:'bg', type:'color', label:'Background'},
   {k:'lit', type:'color', label:'Dot colour (lit)', show:s=>s.colorMode!=='palette'},
@@ -793,7 +794,8 @@ function adoptChild(k){
 function setExplore(on){
   explore=on; hover=-1; trans=null; mom=null;
   document.getElementById('exploreBtn').setAttribute('aria-pressed', String(on));
-  document.getElementById('exploreHead').textContent = on ? 'Leave explore' : 'Explore';
+  document.getElementById('exploreHead').textContent = on ? 'Leave explore' : 'Explore 8 ways';
+  document.getElementById('exploreBox').hidden = !on;
   document.querySelector('.hud .seg').hidden = on;
   if (on && !kids.length) breed();
   layout(); ensureAnim();
@@ -802,8 +804,15 @@ new ResizeObserver(layout).observe(stage);
 
 /* ---------- animation ---------- */
 let raf=0, lastT=0;
+// frame rate readout: gaps between frames, refreshed and reset every 500 ms
+const fpsEl=document.getElementById('fps'); let fpsPrev=0, fpsSum=0, fpsN=0, fpsMax=0, fpsIv=0;
+function fpsShow(){ if (!fpsN){ fpsEl.textContent=`0 fps\nidle\n${cv.width}×${cv.height} px`; return; }
+  const a=fpsSum/fpsN; fpsEl.textContent=`${Math.round(1000/a)} fps\n${a.toFixed(1)} ms avg · ${fpsMax.toFixed(1)} ms worst\n${cv.width}×${cv.height} px`; fpsSum=fpsN=fpsMax=0; }
+function setFps(on){ fpsEl.hidden=!on; clearInterval(fpsIv); fpsPrev=fpsSum=fpsN=fpsMax=0; if (on){ fpsShow(); fpsIv=setInterval(fpsShow,500); } }
+document.getElementById('fpsChk').addEventListener('change',e=>setFps(e.target.checked));
 function tick(t){
   raf=0;
+  if (!fpsEl.hidden){ const n=performance.now(); if (fpsPrev){ const g=n-fpsPrev; fpsSum+=g; fpsN++; fpsMax=Math.max(fpsMax,g); } fpsPrev=n; }
   if (animating()){ const dt = lastT? Math.min(0.1,(t-lastT)/1000):0; lastT=t;
     if (!paused){
       animT += dt; spinAng = (spinAng + rad(S.spin)*dt) % (Math.PI*2);
@@ -817,7 +826,7 @@ function tick(t){
       syncNums(['yaw','tiltX']);
     }
     draw(); raf=requestAnimationFrame(tick); }
-  else { lastT=0; if (explore) draw(); }
+  else { lastT=0; fpsPrev=0; if (explore) draw(); }
 }
 let paused = matchMedia('(prefers-reduced-motion: reduce)').matches, mom = null;
 const hasMotion=()=>formMoves(S) || S.spin!==0 || S.breathe>0 || S.orbit!==0 || S.wobble>0 || (S.pulseType!=='none' && S.pulse>0 && S.pulseRate!==0) || (S.colorMode==='palette' && S.drift!==0);
@@ -838,6 +847,8 @@ SCHEMA.forEach(sec=>{
   dice.setAttribute('aria-label','Randomise '+sec.sec);
   dice.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();randomise([sec]);});
   sum.appendChild(dice); det.appendChild(sum);
+  // double-click a heading: reset the whole group (the two clicks toggle it back as it was)
+  sum.addEventListener('dblclick',e=>{ if(e.target!==dice) set(Object.fromEntries(sec.items.filter(it=>it.type!=='strip').map(it=>[it.k,DEF[it.k]]))); });
   const rows=document.createElement('div'); rows.className='rows'; det.appendChild(rows);
   sec.items.forEach(it=>{
     const row=document.createElement('div'); row.className='row'; const id='p_'+it.k;
@@ -848,6 +859,7 @@ SCHEMA.forEach(sec=>{
       input=document.createElement('input'); input.type='range'; input.id=id; input.min=it.min; input.max=it.max; input.step=it.step;
       num=document.createElement('input'); num.type='number'; num.min=it.min; num.max=it.max; num.step=it.step; num.setAttribute('aria-label',it.label+' value'); num.id=id+'_n';
       input.addEventListener('input',()=>set({[it.k]:+input.value}));
+      input.addEventListener('dblclick',()=>set({[it.k]:DEF[it.k]}));
       num.addEventListener('change',()=>{ let v=+num.value; if(isNaN(v))v=DEF[it.k]; set({[it.k]:v}); });
       row.append(lab,num,input);
     } else if (it.type==='select'){
@@ -994,6 +1006,8 @@ const exR=document.getElementById('exStrength'), exN=document.getElementById('ex
 const syncEX=()=>{ exR.value=EX.strength; exN.value=EX.strength.toFixed(2); };
 exR.addEventListener('input',()=>{ EX.strength=+exR.value; syncEX(); saveEX(); });
 exR.addEventListener('change',()=>{ if(explore) breed(); });
+const resetEX=()=>{ EX.strength=0.35; syncEX(); saveEX(); if(explore) breed(); };
+exR.addEventListener('dblclick',resetEX); exR.parentNode.querySelector('label').addEventListener('dblclick',resetEX);
 exN.addEventListener('change',()=>{ EX.strength=Math.min(1,Math.max(0.02,+exN.value||0.35)); syncEX(); saveEX(); if(explore) breed(); });
 const exSecs=document.getElementById('exSecs');
 Object.keys(EX.secs).forEach(name=>{ const l=document.createElement('label'), c=document.createElement('input'); c.type='checkbox'; c.id='ex_'+name; c.checked=EX.secs[name];
@@ -1002,10 +1016,13 @@ syncEX();
 document.getElementById('exReroll').addEventListener('click',()=>{ if(!explore) setExplore(true); else breed(); });
 document.getElementById('exBack').addEventListener('click',()=>{ const h=history.pop(); if(!h){ toast('Already at the start'); return; }
   S=h.S; kids=h.kids; gen=Math.max(1,gen-1); fadeT0=performance.now(); syncUI(); persist(); if(!explore) setExplore(true); else { ensureAnim(); draw(); } });
-const toggleExplore=()=>{ setExplore(!explore); if(explore) document.getElementById('exploreSec').open=true; };
+const toggleExplore=()=>setExplore(!explore);
 document.getElementById('exploreBtn').addEventListener('click',toggleExplore);
 document.getElementById('exploreHead').addEventListener('click',toggleExplore);
 
+// a group keeps its height for a moment after closing, so the panel doesn't shift and steal the second click of a double-click
+document.querySelectorAll('.panel summary').forEach(sm=>sm.addEventListener('click',()=>{const d=sm.parentNode;if(!d.open)return;
+  d.style.minHeight=d.offsetHeight+'px';clearTimeout(d.hold);d.hold=setTimeout(()=>d.style.minHeight='',450)}));
 syncUI(); layout(); ensureAnim();
 })();
 </script>

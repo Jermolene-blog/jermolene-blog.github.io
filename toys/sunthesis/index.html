@@ -48,6 +48,7 @@ body{background:var(--ink);color:var(--text);font-family:var(--f-body);font-size
 #hdrCv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #frame.hdr #cv{opacity:0}
 #stage.exploring #cv{cursor:pointer}
+#fps{position:absolute;top:max(10px,env(safe-area-inset-top,0px));right:10px;z-index:3;pointer-events:none;white-space:pre;font:11px/1.4 var(--f-mono);color:#e6e8ef;background:rgba(10,12,18,.6);border-radius:6px;padding:5px 8px}
 .hud{position:absolute;display:flex;gap:6px;z-index:2}
 .hud.tl{top:max(10px,env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px))}
 .hud.tr{top:max(10px,env(safe-area-inset-top,0px));right:10px}
@@ -63,7 +64,7 @@ h1{font:400 34px/1 var(--f-display);margin:0;letter-spacing:.005em}
 h1 i{color:var(--ember)}
 .lede{color:var(--muted);margin:8px 0 16px;line-height:1.45;font-size:13px}
 .row{display:flex;flex-wrap:wrap;gap:6px}
-.dl{position:relative;display:inline-block}
+.dl{position:relative;display:inline-block;border-top:0;padding:0;margin:0}
 .dl>summary{list-style:none;font:500 13px var(--f-body);color:var(--text);background:#1a1e2b;border:1px solid var(--line);border-radius:8px;padding:8px 11px;cursor:pointer;letter-spacing:normal;text-transform:none;display:block}
 details.dl>summary::after,details.dl[open]>summary::after{content:none}
 .dl>summary::-webkit-details-marker{display:none}
@@ -132,19 +133,20 @@ input,textarea{-webkit-user-select:text;user-select:text}
       <button class="chip" id="animBtn" aria-pressed="false" title="Drift the clouds, move the water and sway the trees">animate</button>
       <button class="chip ex" id="exploreChip" aria-pressed="false">explore</button>
     </div>
+    <div id="fps" hidden></div>
     <div id="hint">Drag the picture to move the sun. Pinch or scroll to zoom</div>
   </div>
   <aside id="panel">
     <h1>Sun<i>thesis</i></h1>
     <p class="lede">A physically based sky: real Rayleigh, aerosol and ozone scattering, earth's shadow, three cloud layers and the sea, land or desert beneath. Drag the picture to move the sun.</p>
     <div class="row">
-      <button class="b primary" id="randBtn">Randomise all</button>
+      <button class="b violet" id="exploreBtn">Explore 8 ways</button>
+      <button class="b" id="randBtn">Randomise</button>
       <button class="b" id="resetBtn">Reset</button>
       <details class="dl"><summary>Download ▾</summary><div class="dlmenu">
         <button class="b" id="pngBtn">PNG</button>
         <button class="b" id="hdrBtn" title="A JPEG with an HDR gain map: brighter-than-white highlights on HDR screens, an ordinary JPEG everywhere else">HDR JPEG</button>
       </div></details>
-      <button class="b violet" id="exploreBtn">Explore</button>
     </div>
     <label class="keep" for="keepSunset"><input type="checkbox" id="keepSunset" checked> Keep it sunset-like <span>Randomise and Explore skip results that read as daytime, night, a colour cast or a flat grey sky</span></label>
     <div class="sel">
@@ -153,14 +155,14 @@ input,textarea{-webkit-user-select:text;user-select:text}
     </div>
     <div class="box" id="exploreBox" hidden>
       <h2>Explore</h2>
-      <p>Shows the current sunset in the centre with eight nearby variations around it. Click a variation to make it the new centre and breed again, or click the centre to leave explore. Sliders below still edit the centre, and the neighbours follow.</p>
-      <div class="field"><label for="stepSize">Step size</label><span class="val" id="stepVal"></span><input type="range" id="stepSize" min="0.02" max="1" step="0.01" value="0.25"></div>
+      <div class="field"><label for="stepSize">Variation</label><span class="val" id="stepVal"></span><input type="range" id="stepSize" min="0.02" max="1" step="0.01" value="0.25"></div>
       <p style="margin-top:10px">Parameters allowed to change:</p>
       <div class="checks" id="groupChecks"></div>
       <div class="row">
         <button class="b" id="newNb">New neighbours</button>
         <button class="b" id="backBtn">Back a step</button>
       </div>
+      <p style="margin:10px 0 0">Tap a neighbour to adopt it and breed eight more. Tap the centre to leave explore with it.</p>
     </div>
     <div id="controls"></div>
     <details>
@@ -176,8 +178,9 @@ input,textarea{-webkit-user-select:text;user-select:text}
         <select id="quality"><option value="0.5">Draft (fast)</option><option value="0.75">Medium</option><option value="1" selected>Full</option><option value="2">Retina</option></select>
       </div>
       <p class="note" id="hdrStatus" style="margin-top:10px">HDR: checking this display…</p>
+      <label class="keep" for="showFps"><input type="checkbox" id="showFps"> Show frame rate</label>
     </details>
-    <p class="note" style="margin-top:14px">Double-click a control's name to reset it.</p>
+    <p class="note" style="margin-top:14px">Double-click a control or heading to reset it.</p>
   </aside>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -1932,6 +1935,12 @@ function render(){
   }
   if(hdr.active) hdr.present();
 }
+// frame-rate readout: gaps between animation frames, summarised every 500 ms
+const fps={on:false,prev:0,n:0,sum:0,worst:0};
+function fpsTick(){ if(!fps.on) return; const t=performance.now(); if(fps.prev){ const dt=t-fps.prev; fps.n++; fps.sum+=dt; fps.worst=Math.max(fps.worst,dt); } fps.prev=t; }
+setInterval(()=>{ if(!fps.on||!fps.n&&performance.now()-fps.prev<1500) return;
+  $('fps').textContent=(fps.n?Math.round(1000*fps.n/fps.sum)+' fps\n'+(fps.sum/fps.n).toFixed(1)+' ms avg · '+fps.worst.toFixed(1)+' ms worst':'– fps\nstill')+'\n'+cv.width+'×'+cv.height+' px';
+  fps.n=fps.sum=fps.worst=0; },500);
 let rq=0, pass=0, jit=[0,0];
 const MAXPASS=12; const maxPass=()=>((exploring?Math.max(S.blur,...deltas.map((_,i)=>neighbour(i).blur)):S.blur)>0.01?40:MAXPASS);
 function halton(i,b){let f=1,r=0;while(i>0){f/=b;r+=f*(i%b);i=Math.floor(i/b);}return r;}
@@ -1978,7 +1987,7 @@ function neighbour(i){
 }
 function setExplore(on){
   exploring=on; $('exploreBox').hidden=!on; $('stage').classList.toggle('exploring',on);
-  $('exploreChip').setAttribute('aria-pressed',on); $('exploreBtn').textContent=on?'Leave explore':'Explore';
+  $('exploreChip').setAttribute('aria-pressed',on); $('exploreBtn').textContent=on?'Leave explore':'Explore 8 ways';
   if(on){ makeDeltas(); history=[]; }
   requestRender();
 }
@@ -1994,7 +2003,10 @@ function buildUI(){
   const host=$('controls'); let det=null, lastG=null;
   for(const p of PARAMS){
     const k=p[1], m=P[k];
-    if(m.group!==lastG){ det=document.createElement('details'); if(['Scene','Sun & view'].includes(m.group)) det.open=true; det.innerHTML='<summary>'+m.group+'</summary>'; host.appendChild(det); lastG=m.group; }
+    if(m.group!==lastG){ det=document.createElement('details'); if(['Scene','Sun & view'].includes(m.group)) det.open=true; det.innerHTML='<summary>'+m.group+'</summary>'; host.appendChild(det); lastG=m.group;
+      const g=m.group; det.querySelector('summary').addEventListener('dblclick',e=>{ e.preventDefault(); for(const q of PARAMS) if(P[q[1]].group===g) S[q[1]]=P[q[1]].def; derivCache.clear(); syncUI(); requestRender(); }); 
+      // a closing group keeps its height for a moment, so the panel doesn't shift and steal the second click of a double-click
+      const sm=det.querySelector('summary'), dd=det; sm.addEventListener('click',()=>{ if(!dd.open) return; dd.style.minHeight=dd.offsetHeight+'px'; clearTimeout(dd.hold); dd.hold=setTimeout(()=>dd.style.minHeight='',450); }); }
     if(m.type==='select'){
       const d=document.createElement('div'); d.className='sel';
       d.innerHTML='<label for="c_'+k+'">'+m.label+'</label><select id="c_'+k+'">'+m.options.map((o,i)=>'<option value="'+i+'">'+o+'</option>').join('')+'</select>';
@@ -2008,7 +2020,8 @@ function buildUI(){
       det.appendChild(d); const el=d.querySelector('input'), val=d.querySelector('.val');
       el.addEventListener('input',()=>{S[k]=fromN(k,el.value/1000); val.textContent=fmt(k,S[k]); requestRender(true);});
       el.addEventListener('change',()=>requestRender(false));
-      d.querySelector('label').addEventListener('dblclick',()=>{S[k]=m.def; syncUI(); requestRender();});
+      const rs=()=>{S[k]=m.def; syncUI(); requestRender();};
+      d.querySelector('label').addEventListener('dblclick',rs); el.addEventListener('dblclick',rs);
       inputs[k]={el,val};
     }
   }
@@ -2133,15 +2146,16 @@ $('backBtn').onclick=()=>{ if(!history.length){toast('Already at the first step'
 $('stepSize').addEventListener('input',()=>{ $('stepVal').textContent=(+$('stepSize').value).toFixed(2); });
 $('stepSize').addEventListener('change',()=>{ makeDeltas(); requestRender(); });
 $('quality').addEventListener('change',()=>requestRender());
+$('showFps').addEventListener('change',e=>{ fps.on=e.target.checked; fps.prev=0; fps.n=fps.sum=fps.worst=0; $('fps').hidden=!fps.on; $('fps').textContent=''; });
 $('copyBtn').onclick=()=>{
   const t=JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,+(+S[k]).toFixed(4)])),null,1); $('json').value=t;
   const sel=()=>{ $('json').focus(); $('json').select(); toast('Settings selected: copy them with your keyboard'); };
   try{ navigator.clipboard.writeText(t).then(()=>toast('Settings copied'),sel); }catch(e){ sel(); }
 };
 $('applyBtn').onclick=()=>{ try{ applySettings(JSON.parse($('json').value)); if(exploring) makeDeltas(); requestRender(); toast('Settings applied'); }catch(e){ toast('That text is not valid settings JSON'); } };
-$('animBtn').onclick=()=>{ animating=!animating; $('animBtn').setAttribute('aria-pressed',animating); if(animating) loop(); };
+$('animBtn').onclick=()=>{ animating=!animating; $('animBtn').setAttribute('aria-pressed',animating); fps.prev=0; if(animating) loop(); };
 let last=0;
-function loop(t){ if(!animating){ requestRender(); return; } if(last&&t) time+=Math.min(0.1,(t-last)/1000); last=t||0; pass=0; render(); requestAnimationFrame(loop); }
+function loop(t){ if(!animating){ requestRender(); return; } if(last&&t) time+=Math.min(0.1,(t-last)/1000); last=t||0; pass=0; render(); fpsTick(); requestAnimationFrame(loop); }
 $('pngBtn').onclick=exportPNG;
 // the Download menu closes once a format is picked, or on a tap elsewhere
 document.querySelectorAll('details.dl button').forEach(b=>b.addEventListener('click',()=>b.closest('details').open=false));

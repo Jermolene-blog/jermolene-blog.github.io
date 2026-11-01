@@ -21,49 +21,68 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap" rel="stylesheet">
 <style>
-  :root { --paper:#ececec; --ink:#0a0a0a; --hint:#6f6f6f; color-scheme: light; }
+  :root { --paper:#ececec; --ink:#0a0a0a; --hint:#6f6f6f; --line:rgba(0,0,0,0.12); color-scheme: light; }
   html, body { margin:0; height:100%; background:var(--paper); overflow:hidden; }
-  canvas { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; }
+  [hidden] { display:none !important; }
+  /* the glass fills the stage on the left; the settings scroll in a panel on the right, or below on phones */
+  #app { display:flex; height:100%; }
+  #stage { position:relative; flex:1; min-width:0; overflow:hidden; touch-action:none; }
+  canvas { position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; }
   canvas.dragging { cursor:grabbing; }
+  #stage.exploring canvas { cursor:pointer; }
+  /* explore: a frame round the centre tile, which is the current settings */
+  #centre { position:absolute; left:33.333%; top:33.333%; width:33.333%; height:33.333%; box-sizing:border-box; border:2px solid var(--ink); pointer-events:none; }
   #hint {
-    position:fixed; left:0; right:0; bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+    position:absolute; left:0; right:0; bottom:calc(18px + env(safe-area-inset-bottom, 0px));
     text-align:center; font:500 12px/1.4 Inter, "Helvetica Neue", Arial, sans-serif;
     color:var(--hint); pointer-events:none; transition:opacity .8s;
   }
   #word {
-    position:fixed; left:0; top:50%; width:100%; box-sizing:border-box; padding:0 10vw; margin:0; transform:translateY(-50%);
+    position:absolute; left:0; top:50%; width:100%; box-sizing:border-box; padding:0 10%; margin:0; transform:translateY(-50%);
     border:0; outline:0; background:transparent; color:transparent; caret-color:var(--ink);
     font-family:Inter, "Helvetica Neue", Arial, sans-serif; font-weight:800; letter-spacing:-0.05em; line-height:1.2;
     text-align:center; display:none;
   }
   #word::selection { background:rgba(0,120,255,0.18); color:transparent; }
-  #hud { position:fixed; top:calc(12px + env(safe-area-inset-top, 0px)); right:calc(12px + env(safe-area-inset-right, 0px));
-    font:500 12px/1.4 Inter, "Helvetica Neue", Arial, sans-serif; color:var(--ink); }
-  #hud-toggle { display:block; margin-left:auto; width:36px; height:36px; padding:0; border:0; border-radius:50%;
-    background:rgba(255,255,255,0.7); color:var(--ink); font-size:18px; line-height:36px; cursor:pointer;
-    box-shadow:0 1px 4px rgba(0,0,0,0.15); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
-  /* the panel sits below the 36px button and must fit the visible viewport, which on phones is shorter than 100vh */
-  #hud-panel { display:none; margin-top:8px; padding:12px 14px; width:220px; box-sizing:border-box; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; border-radius:12px;
-    max-height:calc(100vh - 72px); max-height:calc(100dvh - 68px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    background:rgba(255,255,255,0.8); box-shadow:0 2px 12px rgba(0,0,0,0.15); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
-  #hud.open #hud-panel { display:block; }
-  #hud label { display:block; margin-bottom:10px; }
-  #hud h2 { margin:14px 0 8px; font-size:11px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--hint); }
-  #hud h2:first-child { margin-top:0; }
-  #hud label span { display:flex; justify-content:space-between; }
-  #hud output { color:var(--hint); font-variant-numeric:tabular-nums; }
-  #hud input[type=range] { width:100%; margin:4px 0 0; accent-color:var(--ink); }
-  #hud [hidden] { display:none !important; }
-  #hud select { display:block; width:100%; margin-top:4px; font:inherit; padding:4px 6px; border:1px solid rgba(0,0,0,0.2); border-radius:6px; background:rgba(255,255,255,0.6); color:var(--ink); }
-  @media (pointer:coarse) { #hud select { font-size:16px; } }
-  #hud input[type=color] { display:block; width:100%; height:28px; margin:4px 0 0; padding:0 2px; border:1px solid rgba(0,0,0,0.2); border-radius:6px; background:transparent; cursor:pointer; }
-  #hud .swatches { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px; }
-  #hud label.check { display:flex; align-items:center; gap:8px; }
-  #hud label.check input { margin:0; accent-color:var(--ink); }
-  #fps { position:fixed; top:calc(12px + env(safe-area-inset-top, 0px)); left:calc(12px + env(safe-area-inset-left, 0px)); padding:6px 9px; border-radius:8px;
+  #panel { width:320px; flex:none; box-sizing:border-box; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+    padding:18px 18px 32px; padding-right:max(18px, env(safe-area-inset-right, 0px)); padding-top:max(18px, env(safe-area-inset-top, 0px));
+    background:#f7f7f7; border-left:1px solid var(--line); font:500 12px/1.4 Inter, "Helvetica Neue", Arial, sans-serif; color:var(--ink); }
+  #panel h1 { margin:0; font-size:28px; font-weight:800; letter-spacing:-0.05em; line-height:1.1; }
+  #panel .lede { margin:4px 0 14px; color:var(--hint); }
+  #panel .row { display:flex; flex-wrap:wrap; gap:6px; }
+  #panel .b { font:inherit; padding:6px 11px; border:1px solid rgba(0,0,0,0.2); border-radius:6px; background:transparent; color:var(--ink); cursor:pointer; }
+  #panel .b.primary { background:var(--ink); border-color:var(--ink); color:#fff; }
+  #panel .box { margin-top:12px; padding:12px; border-radius:10px; background:rgba(0,0,0,0.045); }
+  #panel .box p { margin:10px 0 0; color:var(--hint); }
+  #panel .checks { display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; margin:6px 0 10px; }
+  #panel details { border-top:1px solid var(--line); margin-top:12px; padding-top:10px; }
+  #panel summary { display:flex; justify-content:space-between; margin-bottom:8px; list-style:none; cursor:pointer;
+    font-size:11px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--hint); }
+  #panel summary::-webkit-details-marker { display:none; }
+  #panel summary::after { content:"+"; font-weight:500; }
+  #panel details[open] summary::after { content:"–"; }
+  #panel label { display:block; margin-bottom:10px; }
+  #panel label span { display:flex; justify-content:space-between; }
+  #panel output { color:var(--hint); font-variant-numeric:tabular-nums; }
+  #panel input[type=range] { width:100%; margin:4px 0 0; accent-color:var(--ink); }
+  #panel select { display:block; width:100%; margin-top:4px; font:inherit; padding:4px 6px; border:1px solid rgba(0,0,0,0.2); border-radius:6px; background:rgba(255,255,255,0.6); color:var(--ink); }
+  @media (pointer:coarse) { #panel select { font-size:16px; } }
+  #panel input[type=color] { display:block; width:100%; height:28px; margin:4px 0 0; padding:0 2px; border:1px solid rgba(0,0,0,0.2); border-radius:6px; background:transparent; cursor:pointer; }
+  #panel .swatches { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px; }
+  #panel label.check { display:flex; align-items:center; gap:8px; }
+  #panel .checks label.check { margin:0; }
+  #panel label.check input { margin:0; accent-color:var(--ink); }
+  #panel .note { margin:14px 0 0; color:var(--hint); }
+  #fps { position:absolute; top:calc(12px + env(safe-area-inset-top, 0px)); right:12px; padding:6px 9px; border-radius:8px;
     background:rgba(0,0,0,0.6); color:#fff; font:500 11px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space:pre; pointer-events:none; }
-  #hud-reset { font:inherit; padding:4px 10px; border:1px solid rgba(0,0,0,0.2); border-radius:6px; background:transparent; color:var(--ink); cursor:pointer; }
   #err { position:fixed; inset:0; display:none; place-items:center; font:500 15px Inter, Arial, sans-serif; color:var(--ink); padding:24px; text-align:center; }
+  @media (max-width:820px) {
+    html, body { height:auto; overflow:visible; }
+    #app { flex-direction:column; height:auto; }
+    #stage { flex:none; height:62vh; min-height:300px; }
+    #panel { width:auto; overflow:visible; border-left:0; border-top:1px solid var(--line); padding-top:18px;
+      padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); padding-bottom:max(32px, env(safe-area-inset-bottom, 0px)); }
+  }
   /* Keep iOS from selecting the page on taps and long presses */
   body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   input,textarea{-webkit-user-select:text;user-select:text}
@@ -74,13 +93,33 @@
 <script src="../pwa.js" defer></script>
 </head>
 <body>
-<canvas id="c"></canvas>
-<input id="word" type="text" maxlength="60" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Word to set in the background">
-<div id="hint">Drag and flick the glass, with as many fingers as you like. Tap merged blobs to burst them. Double-tap to change the word.</div>
-<div id="fps" hidden></div>
-<div id="hud">
-  <button id="hud-toggle" type="button" aria-expanded="false" aria-controls="hud-panel" title="Settings">⚙︎</button>
-  <div id="hud-panel"></div>
+<div id="app">
+<div id="stage">
+  <canvas id="c"></canvas>
+  <input id="word" type="text" maxlength="60" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Word to set in the background">
+  <div id="hint">Drag and flick the glass, with as many fingers as you like. Tap merged blobs to burst them. Double-tap to change the word.</div>
+  <div id="centre" hidden></div>
+  <div id="fps" hidden></div>
+</div>
+<aside id="panel">
+  <h1>Blobbles</h1>
+  <p class="lede">Blobs of glass at your command.</p>
+  <div class="row">
+    <button class="b primary" id="explore-btn" type="button">Explore 8 ways</button>
+    <button class="b" id="random-btn" type="button">Randomise</button>
+    <button class="b" id="reset-btn" type="button">Reset</button>
+    <button class="b" id="png-btn" type="button">Download PNG</button>
+  </div>
+  <div class="box" id="explore-box" hidden>
+    <label><span>Variation<output id="variation-val"></output></span><input type="range" id="variation" min="0.05" max="1" step="0.01" value="0.3"></label>
+    <div>Parameters allowed to change:</div>
+    <div class="checks" id="group-checks"></div>
+    <button class="b" id="new-nb" type="button">New neighbours</button>
+    <p>Tap a neighbour to adopt it and breed eight more. Tap the centre to leave explore with it.</p>
+  </div>
+  <div id="controls"></div>
+  <p class="note">Double-click a control or heading to reset it.</p>
+</aside>
 </div>
 <div id="err">This effect needs WebGL, which isn't available in this browser.</div>
 <script>
@@ -165,7 +204,7 @@ const vs = `attribute vec2 a; void main(){ gl_Position = vec4(a,0.,1.); }`;
 const fs = `
 precision highp float;
 uniform sampler2D uTex;
-uniform vec2 uRes;
+uniform vec2 uRes, uOff;
 uniform float uS, uT, uMerge, uFar, uRef, uDis;
 uniform vec4 uB[N];  // centre, radius, and 1/(0.7 r^2) for the dome
 uniform vec4 uDf[N]; // squash and stretch: the stretch axis, then 1/(1+m) and 1+m for a stretch of 1+m
@@ -427,7 +466,7 @@ vec4 soap(vec2 p, float d){
 #endif
 
 void main(){
-  vec2 p = gl_FragCoord.xy;
+  vec2 p = gl_FragCoord.xy - uOff; // uOff places an explore tile within the canvas
   vec3 col = tx(p);
   // most of the screen is nowhere near the glass or its shadow, and is just the paper
   if (bound(p) < uFar){
@@ -600,34 +639,54 @@ const bufB = new Float32Array(32), bufDf = new Float32Array(32), bufSt = new Flo
 const bufE = new Float32Array(16), bufC = new Float32Array(24), bufBub = new Float32Array(8 * 16 * 3);
 const bufRot = new Float32Array(72), bufDots = new Float32Array(8), bufF = new Float32Array(32);
 
-// programs are compiled once for each combination of blob count, bubble count, tint and material, and kept
+// programs are compiled once for each combination of blob count, bubble count, tint and material, and kept.
+// The page waits for a new one; explore tiles let the GPU compile in the background where it can
+// (wait false returns null until it's ready), so breeding new neighbours never stalls the page
+const parallel = gl.getExtension('KHR_parallel_shader_compile');
 const progs = new Map();
-function program(N, NB, T, M) {
+let fresh = 0; // programs explore has taken into use this frame: the first draw with one is slow too, so one a frame
+function program(N, NB, T, M, wait = true) {
   const key = `${N} ${NB} ${T} ${M}`;
   let v = progs.get(key);
-  if (v) return v;
-  const prog = gl.createProgram();
-  try {
-    gl.attachShader(prog, vshader);
-    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, `#define N ${N}\n#define NB ${NB}\n#define TINT ${T}\n#define MAT ${M}\n${fs}`));
+  if (!v) {
+    const prog = gl.createProgram(), f = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(f, `#define N ${N}\n#define NB ${NB}\n#define TINT ${T}\n#define MAT ${M}\n${fs}`);
+    gl.compileShader(f);
+    gl.attachShader(prog, vshader); gl.attachShader(prog, f);
     gl.bindAttribLocation(prog, 0, 'a');
     gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-  } catch (e) {
-    gl.deleteProgram(prog);
+    progs.set(key, v = { prog, f, pending: true });
+  }
+  if (!v.pending) return v;
+  if (!wait && (fresh || parallel && !gl.getProgramParameter(v.prog, parallel.COMPLETION_STATUS_KHR))) return null;
+  if (!wait) fresh++;
+  const prog = v.prog;
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    const msg = gl.getShaderInfoLog(v.f) || gl.getProgramInfoLog(prog);
+    gl.deleteProgram(prog); progs.delete(key);
     // a GPU that cannot fit the bubbles does without them
     if (NB > 0) { v = program(N, 0, T, M); progs.set(key, v); return v; }
-    throw e;
+    throw new Error(msg);
   }
+  gl.deleteShader(v.f);
   const U = n => gl.getUniformLocation(prog, n);
-  v = { prog, NB,
-    uRes: U('uRes'), uS: U('uS'), uT: U('uT'), uMerge: U('uMerge'), uFar: U('uFar'), uRef: U('uRef'), uDis: U('uDis'), uCs: U('uCs'), uSw: U('uSw'),
+  Object.assign(v, { pending: false, f: null, NB,
+    uRes: U('uRes'), uOff: U('uOff'), uS: U('uS'), uT: U('uT'), uMerge: U('uMerge'), uFar: U('uFar'), uRef: U('uRef'), uDis: U('uDis'), uCs: U('uCs'), uSw: U('uSw'),
     uB: U('uB[0]'), uDf: U('uDf[0]'), uSt: U('uSt[0]'), uWb: U('uWb[0]'), uE: U('uE[0]'), uC: U('uC[0]'), uBub: U('uBub[0]'), uRot: U('uRot[0]'), uDots: U('uDots[0]'), uF: U('uF[0]'), uSheen: U('uSheen'),
     B: bufB.subarray(0, 4 * N), Df: bufDf.subarray(0, 4 * N), St: bufSt.subarray(0, 4 * N), Wb: bufWb.subarray(0, 4 * N),
-    E: bufE.subarray(0, 2 * N), C: bufC.subarray(0, 3 * N), Bub: bufBub.subarray(0, 3 * N * NB), Rot: bufRot.subarray(0, 9 * N), Dots: bufDots.subarray(0, N), F: bufF.subarray(0, 4 * N) };
-  progs.set(key, v);
+    E: bufE.subarray(0, 2 * N), C: bufC.subarray(0, 3 * N), Bub: bufBub.subarray(0, 3 * N * NB), Rot: bufRot.subarray(0, 9 * N), Dots: bufDots.subarray(0, N), F: bufF.subarray(0, 4 * N) });
   return v;
 }
+// just the paper and the word, for a tile whose program is still compiling
+const plain = (() => {
+  const prog = gl.createProgram();
+  gl.attachShader(prog, vshader);
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, `precision mediump float; uniform sampler2D uTex; uniform vec2 uRes, uOff;
+    void main(){ gl_FragColor = vec4(texture2D(uTex, (gl_FragCoord.xy - uOff)/uRes).rgb, 1.); }`));
+  gl.bindAttribLocation(prog, 0, 'a');
+  gl.linkProgram(prog);
+  return { prog, uRes: gl.getUniformLocation(prog, 'uRes'), uOff: gl.getUniformLocation(prog, 'uOff') };
+})();
 let current = null;
 
 const tex = gl.createTexture();
@@ -686,12 +745,12 @@ const SETTINGS = [
   { key: 'damping', label: 'Wall damping', min: 0, max: 40, step: 0.5, def: 6 },
   { key: 'press', label: 'Deepest squish', min: 0, max: 0.9, step: 0.05, def: 0.55, fmt: pct },
   { key: 'spread', label: 'Spread when squished', min: 0, max: 2, step: 0.05, def: 0.6 },
-  { group: 'Performance', key: 'scale', label: 'Render scale', min: 0.5, max: 1, step: 0.05, def: 1, fmt: pct },
+  { group: 'Settings', key: 'scale', label: 'Render scale', min: 0.5, max: 1, step: 0.05, def: 1, fmt: pct },
   { key: 'fps', label: 'Show frame rate', type: 'check', def: false },
 ];
 const STORE = 'blobbles-settings';
 const copy = v => Array.isArray(v) ? [...v] : v;
-const cfg = Object.fromEntries(SETTINGS.map(s => [s.key, copy(s.def)]));
+let cfg = Object.fromEntries(SETTINGS.map(s => [s.key, copy(s.def)]));
 try {
   const saved = JSON.parse(localStorage.getItem(STORE)) || {};
   // ignore anything saved that no longer fits the setting
@@ -704,15 +763,26 @@ try {
 if (bubbly()) document.getElementById('hint').textContent = 'Drag and flick the bubbles, with as many fingers as you like. Tap a bubble to pop it, or bubbles stuck together to part them. Double-tap to change the word.';
 const saveCfg = () => { try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch (_) {} };
 
-const hud = document.getElementById('hud'), hudPanel = document.getElementById('hud-panel');
-const hudToggle = document.getElementById('hud-toggle');
+const stage = document.getElementById('stage'), controls = document.getElementById('controls');
 const fpsBox = document.getElementById('fps');
+// each group is a collapsible section; double-clicking its heading resets everything in it
+const GROUPS = [], OPEN = ['Blobs', 'Surface'];
+let section;
 const rows = SETTINGS.map(s => {
   if (s.group) {
-    const h = document.createElement('h2');
-    h.textContent = s.group;
-    hudPanel.appendChild(h);
+    GROUPS.push(s.group);
+    section = document.createElement('details');
+    section.open = OPEN.includes(s.group);
+    section.innerHTML = `<summary>${s.group}</summary>`;
+    const g = s.group;
+    section.querySelector('summary').addEventListener('dblclick', e => {
+      e.preventDefault();
+      SETTINGS.forEach(t => { if (t.grp === g) cfg[t.key] = copy(t.def); });
+      changed();
+    });
+    controls.appendChild(section);
   }
+  s.grp = GROUPS[GROUPS.length - 1];
   let row = document.createElement('label'), show;
   if (s.type === 'select') {
     row.innerHTML = `<span>${s.label}</span><select>${Object.entries(optionsOf(s)).map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>`;
@@ -748,20 +818,29 @@ const rows = SETTINGS.map(s => {
     el.addEventListener('input', () => { cfg[s.key] = +el.value; changed(); });
     show = () => { el.value = cfg[s.key]; out.textContent = s.fmt ? s.fmt(cfg[s.key]) : cfg[s.key]; };
   }
-  hudPanel.appendChild(row);
+  // double-clicking a label, slider or swatch resets the setting
+  row.addEventListener('dblclick', e => { e.preventDefault(); cfg[s.key] = copy(s.def); changed(); });
+  section.appendChild(row);
   return () => { show(); row.hidden = s.when ? !s.when() : false; };
 });
 const refresh = () => { rows.forEach(f => f()); fpsBox.hidden = !cfg.fps; };
-function changed() { saveCfg(); refresh(); if (cfg.scale !== drawnScale) resize(); }
+function changed() { saveCfg(); refresh(); if (exploring) follow(); if (cfg.scale !== drawnScale) resize(); }
 refresh();
-const reset = document.createElement('button');
-reset.id = 'hud-reset'; reset.type = 'button'; reset.textContent = 'Reset';
-reset.addEventListener('click', () => { SETTINGS.forEach(s => cfg[s.key] = copy(s.def)); changed(); });
-hudPanel.appendChild(reset);
-hudToggle.addEventListener('click', () => {
-  const open = hud.classList.toggle('open');
-  hudToggle.setAttribute('aria-expanded', open);
+// Randomise picks fresh values for everything that makes the picture, leaving the settings alone
+const random = s => s.type === 'select' ? (o => o[Math.floor(Math.random() * o.length)])(Object.keys(optionsOf(s)))
+  : s.type === 'colour' ? randomColour() : s.type === 'colours' ? s.def.map(randomColour)
+  : s.min + Math.round(Math.random() * (s.max - s.min) / s.step) * s.step;
+function randomColour() {
+  const h = Math.random() * 6.2832, c = 0.5 + 0.5 * Math.random(), f = k => Math.round(255 * (0.5 + 0.5 * c * Math.cos(h - k))).toString(16).padStart(2, '0');
+  return `#${f(0)}${f(2.094)}${f(4.189)}`;
+}
+document.getElementById('random-btn').addEventListener('click', () => {
+  SETTINGS.forEach(s => { if (s.grp !== 'Settings' && s.type !== 'check') cfg[s.key] = random(s); });
+  changed(); if (exploring) makeDeltas();
 });
+document.getElementById('reset-btn').addEventListener('click', () => { SETTINGS.forEach(s => cfg[s.key] = copy(s.def)); changed(); if (exploring) makeDeltas(); });
+let snap = false;
+document.getElementById('png-btn').addEventListener('click', () => { snap = true; });
 
 /* ---------------- colours ---------------- */
 const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
@@ -785,7 +864,7 @@ function blobColour(i, n, turn) {
 
 /* ---------------- liquid bodies ---------------- */
 // path(t) returns offsets in units of text half-width (x) and S (y)
-const blobs = [
+const PATHS = [
   { r: 0.20, seed: 1.3, path: t => [Math.sin(t*0.21)*0.62 + Math.sin(t*0.53)*0.12, Math.sin(t*0.37 + 1)*0.05] },
   { r: 0.12, seed: 4.1, path: t => [Math.sin(t*0.29 + 2.2)*0.7, Math.sin(t*0.41 + 0.3)*0.07] },
   { r: 0.085, seed: 7.7, path: t => [Math.sin(t*0.17 + 4.0)*0.75, Math.cos(t*0.33)*0.08] },
@@ -794,13 +873,16 @@ const blobs = [
   { r: 0.15, seed: 3.4, path: t => [Math.sin(t*0.19 + 3.0)*0.5, Math.cos(t*0.27 + 1.7)*0.09] },
   { r: 0.06, seed: 8.8, path: t => [Math.sin(t*0.33 + 0.6)*0.85, Math.sin(t*0.39 + 4.4)*0.14] },
   { r: 0.11, seed: 6.2, path: t => [Math.sin(t*0.27 + 2.7)*0.65, Math.cos(t*0.43 + 0.9)*0.10] },
-].map(b => ({ ...b, x: 0, y: 0, vx: 0, vy: 0, init: false,
+];
+// a fresh set of blobs: one for the page, and one for each explore tile
+const newBlobs = () => PATHS.map(b => ({ ...b, x: 0, y: 0, vx: 0, vy: 0, init: false,
   da: 0, db: 0, dva: 0, dvb: 0, // squash and stretch (see uDf in the shader) and its rate of change
   fly: 0, whizz: 0, home: null, // seconds left flying free, then whizzing back to home (or its path)
   rot: [1, 0, 0, 0, 1, 0, 0, 0, 1], // how far its halftone ball has rolled, row by row
   pop: 0, wait: 0, grow: 1, hole: [0, 0], hr: 0, // as a soap bubble: seconds left popping, then gone, then how far grown back
   loose: 0, // seconds left before a parted bubble can stick to another
 }));
+let blobs = newBlobs();
 
 // roll a ball of radius r along the page by (dx, dy): it turns about the axis in the page square
 // to the movement, so the side facing us moves the same way
@@ -839,9 +921,15 @@ function target(b, t) {
 }
 
 const drags = new Map(); // pointerId -> { b, x, y, dx, dy, trail, down }
-const ptr = e => [e.clientX * DPR, H - e.clientY * DPR];
+const ptr = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * DPR, H - (e.clientY - r.top) * DPR]; };
 const held = b => { for (const d of drags.values()) if (d.b === b) return true; return false; };
 canvas.addEventListener('pointerdown', e => {
+  if (exploring) {
+    const r = canvas.getBoundingClientRect();
+    const cx = Math.min(2, Math.floor((e.clientX - r.left) / r.width * 3)), cy = Math.min(2, Math.floor((e.clientY - r.top) / r.height * 3));
+    pickTile(cy * 3 + cx);
+    return;
+  }
   if (editing) editor.blur();
   noteTapStart(e);
   const [px, py] = ptr(e);
@@ -1020,7 +1108,7 @@ function stick(dt) {
   }
 }
 // stop iOS/Android from treating multi-finger gestures as page zoom/scroll
-['gesturestart', 'gesturechange', 'touchmove'].forEach(t => document.addEventListener(t, e => { if (!hud.contains(e.target)) e.preventDefault(); }, { passive: false }));
+['gesturestart', 'gesturechange', 'touchmove'].forEach(t => document.addEventListener(t, e => { if (stage.contains(e.target)) e.preventDefault(); }, { passive: false }));
 
 /* ---------------- editing the word ---------------- */
 // Double-clicks and double-taps are detected from pointer events: the native
@@ -1071,19 +1159,117 @@ editor.addEventListener('keydown', e => {
 editor.addEventListener('blur', () => endEdit(true));
 setTimeout(() => { document.getElementById('hint').style.opacity = 0; }, 6000);
 
+/* ---------------- explore ---------------- */
+// Nine small worlds, each with its own settings, blobs, clocks and droplets, take turns through the same
+// simulation and shader, each drawn into its ninth of the canvas. Together they cover no more pixels than
+// the page does, so explore costs about what the page costs. The centre is the current settings; each
+// neighbour is them nudged by its own deltas, so the neighbours follow the sliders.
+let exploring = false, deltas = [], tiles = [], tileTex = null, tileBox = null, tileW = 0, tileH = 0;
+const exploreBtn = document.getElementById('explore-btn'), exploreBox = document.getElementById('explore-box');
+const variation = document.getElementById('variation'), variationVal = document.getElementById('variation-val');
+const allowed = new Set(GROUPS.filter(g => g !== 'Settings'));
+const gap = () => Math.max(1, Math.round(2 * DPR));
+const newWorld = () => ({ cfg, blobs: newBlobs(), clock: 0, roam: 0, drift: 0, turn: 0, drops: [] });
+const gauss = () => { let u = 0; while (!u) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2832 * Math.random()); };
+const clamp01 = x => Math.min(1, Math.max(0, x));
+const nudgeHex = (h, d) => `#${hexRgb(h).map((c, i) => Math.round(clamp01(c + d[i]) * 255).toString(16).padStart(2, '0')).join('')}`;
+function makeDeltas() {
+  const step = +variation.value, rgb = () => [0, 0, 0].map(() => gauss() * step * 0.35);
+  deltas = Array.from({ length: 8 }, () => {
+    const d = {};
+    SETTINGS.forEach(s => {
+      if (!allowed.has(s.grp) || s.type === 'check') return;
+      // choices, and whole numbers (each of which needs its own shader), change now and then, by a step
+      if (s.type === 'select') { if (Math.random() < step * 0.35) d[s.key] = { by: 1 + Math.floor(Math.random() * (Object.keys(optionsOf(s)).length - 1)) }; }
+      else if (s.step === 1) { if (Math.random() < step * 0.5) d[s.key] = { by: (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2 * step)) }; }
+      else if (Math.random() < 0.55) d[s.key] = s.type === 'colour' ? rgb() : s.type === 'colours' ? s.def.map(rgb) : gauss() * step * 0.35;
+    });
+    return d;
+  });
+  follow();
+}
+function applyDelta(base, d) {
+  const c = { ...base };
+  SETTINGS.forEach(s => {
+    const v = d[s.key];
+    if (v === undefined) return;
+    if (s.type === 'select') { const o = Object.keys(optionsOf(s)); c[s.key] = o[(o.indexOf(base[s.key]) + v.by) % o.length]; }
+    else if (s.type === 'colour') c[s.key] = nudgeHex(base[s.key], v);
+    else if (s.type === 'colours') c[s.key] = base[s.key].map((h, i) => nudgeHex(h, v[i]));
+    else if (s.step === 1) c[s.key] = Math.min(s.max, Math.max(s.min, base[s.key] + v.by));
+    else c[s.key] = +(s.min + Math.round(clamp01((base[s.key] - s.min) / (s.max - s.min) + v) * (s.max - s.min) / s.step) * s.step).toFixed(4);
+  });
+  return c;
+}
+function follow() { tiles.forEach((w, k) => { w.cfg = k === 4 ? cfg : applyDelta(cfg, deltas[k < 4 ? k : k - 1]); }); }
+// the paper and word at tile size, for every tile
+function paintTiles() {
+  const keep = [W, H, S, textBox, wordFs];
+  tileW = W = Math.floor((W - 2 * gap()) / 3); tileH = H = Math.floor((H - 2 * gap()) / 3); S = Math.min(W, H * 1.25);
+  drawPaper(); drawBackground();
+  tileBox = textBox;
+  if (!tileTex) {
+    tileTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tileTex);
+    [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR],
+     [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]
+      .forEach(([k, v]) => gl.texParameteri(gl.TEXTURE_2D, k, v));
+  }
+  gl.bindTexture(gl.TEXTURE_2D, tileTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, tex2d);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  [W, H, S, textBox, wordFs] = keep;
+  drawPaper(); // the page's paper is cached, so put it back
+}
+function setExplore(on) {
+  if (on && editing) editor.blur();
+  exploring = on;
+  exploreBox.hidden = !on; document.getElementById('centre').hidden = !on;
+  stage.classList.toggle('exploring', on);
+  exploreBtn.textContent = on ? 'Leave explore' : 'Explore 8 ways';
+  tiles = on ? Array.from({ length: 9 }, newWorld) : [];
+  if (!on) return;
+  drags.clear(); canvas.classList.remove('dragging');
+  document.getElementById('hint').style.opacity = 0;
+  paintTiles(); makeDeltas();
+}
+function pickTile(k) {
+  if (k === 4) { setExplore(false); return; }
+  Object.assign(cfg, tiles[k].cfg);
+  // the adopted tile carries on in the centre
+  [tiles[4], tiles[k]] = [tiles[k], tiles[4]];
+  saveCfg(); refresh(); makeDeltas();
+}
+exploreBtn.addEventListener('click', () => setExplore(!exploring));
+document.getElementById('new-nb').addEventListener('click', makeDeltas);
+const showVariation = () => { variationVal.textContent = pct(+variation.value); };
+variation.addEventListener('input', showVariation);
+variation.addEventListener('change', makeDeltas);
+showVariation();
+GROUPS.forEach(g => {
+  if (g === 'Settings') return;
+  const l = document.createElement('label');
+  l.className = 'check';
+  l.innerHTML = `<input type="checkbox"><span>${g}</span>`;
+  const el = l.querySelector('input');
+  el.checked = allowed.has(g);
+  el.addEventListener('change', () => { el.checked ? allowed.add(g) : allowed.delete(g); makeDeltas(); });
+  document.getElementById('group-checks').appendChild(l);
+});
+
 let drawnScale = 0;
 function resize() {
   drawnScale = cfg.scale;
   DPR = Math.min(window.devicePixelRatio || 1, 2) * cfg.scale;
-  W = Math.round(innerWidth * DPR); H = Math.round(innerHeight * DPR);
+  W = Math.round(stage.clientWidth * DPR); H = Math.round(stage.clientHeight * DPR);
   S = Math.min(W, H * 1.25);
   canvas.width = W; canvas.height = H;
   gl.viewport(0, 0, W, H);
   drawPaper();
   upload();
+  if (exploring) paintTiles();
   if (editing) syncEditor();
 }
-addEventListener('resize', resize);
 
 let last = performance.now(), clock = 0, roam = 0, drift = 0, turn = 0;
 let fpsFrames = 0, fpsTime = 0, fpsWorst = 0;
@@ -1106,7 +1292,7 @@ function limit(x, v, r, size, bounce) {
 }
 // each bubble wanders on its own: a slow orbit plus a drift at its own pace, all seeded once
 const hash = n => { const v = Math.sin(n * 127.1) * 43758.5453; return v - Math.floor(v); };
-const bubbleSeeds = blobs.map((b, i) => Array.from({ length: 16 }, (_, j) => {
+const bubbleSeeds = PATHS.map((b, i) => Array.from({ length: 16 }, (_, j) => {
   const s = i * 13 + j * 3.7 + b.seed;
   return { a0: hash(s) * 6.2831, av: (0.08 + 0.18 * hash(s + 1)) * Math.sign(hash(s + 4) - 0.5), orbit: 0.5 * Math.sqrt(hash(s + 2)),
     fx: 0.25 + 0.35 * hash(s + 5), fy: 0.25 + 0.35 * hash(s + 6), px: 6.2831 * hash(s + 7), py: 6.2831 * hash(s + 8), size: 0.010 + 0.022 * hash(s + 3) };
@@ -1115,10 +1301,49 @@ function frame(now) {
   const elapsed = now - last;
   const dt = Math.min(0.05, elapsed / 1000); last = now;
   const pace = dt * (reduceMotion ? 0.25 : 1);
+  if (exploring) {
+    // each tile swaps its world in, steps and draws it in its own corner, and swaps it out again
+    const page = { cfg, blobs, clock, roam, drift, turn, drops: spray.drops, W, H, S, textBox }, g = gap();
+    fresh = 0;
+    gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.SCISSOR_TEST); gl.bindTexture(gl.TEXTURE_2D, tileTex);
+    W = tileW; H = tileH; S = Math.min(W, H * 1.25); textBox = tileBox;
+    tiles.forEach((w, k) => {
+      ({ cfg, blobs, clock, roam, drift, turn } = w); spray.drops = w.drops;
+      const ox = (k % 3) * (W + g), oy = (2 - Math.floor(k / 3)) * (H + g);
+      gl.viewport(ox, oy, W, H); gl.scissor(ox, oy, W, H);
+      step(dt, pace, ox, oy);
+      Object.assign(w, { clock, roam, drift, turn, drops: spray.drops });
+    });
+    ({ cfg, blobs, clock, roam, drift, turn, W, H, S, textBox } = page); spray.drops = page.drops;
+    gl.disable(gl.SCISSOR_TEST); gl.viewport(0, 0, W, H); gl.bindTexture(gl.TEXTURE_2D, tex);
+  } else step(dt, pace, 0, 0);
+  if (snap) {
+    // read straight after drawing, while the picture is still in the buffer
+    snap = false;
+    canvas.toBlob(b => {
+      if (!b) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = 'blobbles.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }, 'image/png');
+  }
+  if (cfg.fps) {
+    fpsFrames++; fpsTime += elapsed; fpsWorst = Math.max(fpsWorst, elapsed);
+    if (fpsTime >= 500) {
+      fpsBox.textContent = `${Math.round(fpsFrames * 1000 / fpsTime)} fps\n${(fpsTime / fpsFrames).toFixed(1)} ms avg · ${fpsWorst.toFixed(1)} ms worst\n${canvas.width}×${canvas.height} px`;
+      fpsFrames = fpsTime = fpsWorst = 0;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+// one step of the simulation and one picture, for the page or for an explore tile at (ox, oy)
+function step(dt, pace, ox, oy) {
   clock += pace; roam += pace * cfg.roam; drift += pace * cfg.drift; turn += pace * cfg.cycle * 0.5;
   const t = roam + T0;
   const T = tinted() ? 1 : 0, M = material();
-  const v = program(cfg.count, M ? 0 : Math.min(cfg.bubbles, MAXB), T, M), NB = v.NB;
+  const v = program(cfg.count, M ? 0 : Math.min(cfg.bubbles, MAXB), T, M, !exploring), NB = v ? v.NB : 0;
   // blobs beyond the chosen number are let go, and start afresh if they come back
   blobs.slice(cfg.count).forEach(b => { b.init = false; b.vx = b.vy = b.da = b.db = b.dva = b.dvb = b.fly = b.whizz = 0; b.home = null; });
   for (const [id, d] of drags) if (!active().includes(d.b) || gone(d.b)) drags.delete(id);
@@ -1241,8 +1466,17 @@ function frame(now) {
     }
     bufE.set([scale / ((1 + m) * stMax), reach], i * 2);
   });
+  if (!v) {
+    gl.useProgram(plain.prog); current = null;
+    gl.uniform2f(plain.uRes, W, H); gl.uniform2f(plain.uOff, ox, oy);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    return;
+  }
   if (v !== current) { gl.useProgram(v.prog); current = v; }
   gl.uniform2f(v.uRes, W, H);
+  gl.uniform2f(v.uOff, ox, oy);
   gl.uniform1f(v.uS, S);
   gl.uniform1f(v.uT, clock);
   gl.uniform4fv(v.uB, v.B);
@@ -1286,20 +1520,13 @@ function frame(now) {
       gl.disable(gl.BLEND);
     }
   }
-  if (cfg.fps) {
-    fpsFrames++; fpsTime += elapsed; fpsWorst = Math.max(fpsWorst, elapsed);
-    if (fpsTime >= 500) {
-      fpsBox.textContent = `${Math.round(fpsFrames * 1000 / fpsTime)} fps\n${(fpsTime / fpsFrames).toFixed(1)} ms avg, ${Math.round(fpsWorst)} ms worst\n${W}×${H} px`;
-      fpsFrames = fpsTime = fpsWorst = 0;
-    }
-  }
-  requestAnimationFrame(frame);
 }
 
 const start = () => {
   try { program(cfg.count, glass() ? Math.min(cfg.bubbles, MAXB) : 0, tinted() ? 1 : 0, material()); }
   catch (e) { console.error(e); document.getElementById('err').style.display = 'grid'; return; }
   resize(); requestAnimationFrame(frame);
+  new ResizeObserver(resize).observe(stage);
 };
 if (document.fonts && document.fonts.load) {
   Promise.race([document.fonts.load(`800 100px Inter`), new Promise(r => setTimeout(r, 2500))]).then(start, start);

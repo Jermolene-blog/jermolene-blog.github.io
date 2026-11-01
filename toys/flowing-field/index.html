@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: full-bleed live ink flow canvas; floating lacquer toolbar bottom, collapsible control panel right (bottom sheet on phones). Single dark UI look by choice. */
+/* Layout: live ink flow stage with a floating lacquer playback bar; parameter panel docked on the right (stacked under the stage at 820px and below). Single dark UI look by choice. */
 :root{
   --ink:#0c0b10;
   --lacquer:rgba(14,12,19,.84);
@@ -41,22 +41,25 @@
 /* Keep iOS from selecting the page on taps and long presses */
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
-html,body{height:100%;overflow:hidden}
-body{background:var(--ink);color:var(--rice);font-family:var(--f-body);-webkit-font-smoothing:antialiased;touch-action:none}
-canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab}
+html,body{height:100%;overflow:hidden;margin:0}
+body{background:var(--ink);color:var(--rice);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+/* Stage on the left, docked panel on the right; at 820px and below the panel stacks under the stage */
+#app{display:flex;height:100%;min-height:0}
+#stage{position:relative;flex:1;min-width:0;overflow:hidden;touch-action:none}
+canvas#c{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
 canvas#c.stroking{cursor:grabbing}
 canvas#c.panning{cursor:move}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.mark{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));display:flex;align-items:baseline;gap:10px;pointer-events:none;background:var(--lacquer);border:1px solid var(--line);border-radius:10px;padding:6px 12px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.mark{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));display:flex;align-items:baseline;gap:10px;pointer-events:none;background:var(--lacquer);border:1px solid var(--line);border-radius:10px;padding:6px 12px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .mark h1{margin:0;font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:.02em}
 .mark span{font-family:var(--f-display);font-weight:600;font-size:12px;color:var(--accent);letter-spacing:.3em}
 
-.hint{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lacquer);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-family:var(--f-display);font-weight:600;font-size:15px;pointer-events:none;transition:opacity .8s ease;white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.hint{position:absolute;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lacquer);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-family:var(--f-display);font-weight:600;font-size:15px;pointer-events:none;transition:opacity .8s ease;white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .hint.gone{opacity:0}
 
-.bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:center;gap:4px;padding:5px;background:var(--lacquer);border:1px solid var(--line);border-radius:24px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:5;width:max-content;max-width:calc(100% - 24px)}
+.bar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:center;gap:4px;padding:5px;background:var(--lacquer);border:1px solid var(--line);border-radius:24px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:5;width:max-content;max-width:calc(100% - 24px)}
 .bar button{border:0;background:transparent;padding:9px 14px;border-radius:999px;font-size:13px;font-weight:500;letter-spacing:.02em;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px}
 .bar button:hover{background:rgba(236,230,218,.08)}
 .bar button[aria-pressed="true"]{background:var(--accent);color:#0c0b10}
@@ -64,11 +67,31 @@ button{font:inherit;color:inherit}
 .bar button[aria-pressed="true"] kbd{color:#0c0b10;border-color:rgba(0,0,0,.3)}
 @media (max-width:620px){.bar kbd{display:none}.bar button{padding:8px 9px;font-size:12px}}
 
-.panel{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));width:292px;background:var(--lacquer);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-y:auto;z-index:4;padding:14px 16px 18px;display:flex;flex-direction:column;gap:18px;overscroll-behavior:contain}
-@media (max-width:620px){.panel{top:auto;left:calc(10px + env(safe-area-inset-left,0px));right:calc(10px + env(safe-area-inset-right,0px));width:auto;max-height:52vh;bottom:calc(112px + env(safe-area-inset-bottom,0px))}}
+.panel{width:330px;flex:none;box-sizing:border-box;background:var(--lacquer);border-left:1px solid var(--line);overflow-y:auto;padding:14px 16px 24px;padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+@media (max-width:820px){
+  html,body{height:auto;overflow:visible}
+  #app{flex-direction:column;height:auto}
+  #stage{flex:none;height:62vh;min-height:300px}
+  .panel{width:auto;border-left:0;border-top:1px solid var(--line);overflow:visible;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+.acts button{border:1px solid var(--line);background:rgba(236,230,218,.06);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.acts button:hover{background:rgba(236,230,218,.12)}
+.acts button.primary{background:var(--accent);border-color:transparent;color:#0c0b10}
+.xbox{display:flex;flex-direction:column;gap:9px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:rgba(0,0,0,.25)}
+.xbox p{margin:0;font-size:12px;color:var(--dim);line-height:1.5}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.checks label,.chk{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--rice)}
+.checks input,.chk input{accent-color:var(--accent);margin:0}
+.xbox .btns button{font-size:12px;padding:5px 10px}
 .grp{display:flex;flex-direction:column;gap:9px}
-.grp h2{margin:0;font-family:var(--f-display);font-weight:600;font-size:14px;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--line);padding-bottom:5px}
-.grp h2 small{font-family:var(--f-display);font-weight:600;font-size:12px;color:var(--dim)}
+.grp:not([open]){gap:0}
+.grp summary{margin:0;font-family:var(--f-display);font-weight:600;font-size:14px;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--line);padding-bottom:5px;cursor:pointer;list-style:none}
+.grp summary::-webkit-details-marker{display:none}
+.grp summary::after{content:"+";margin-left:auto;font-family:var(--f-mono);font-weight:400;color:var(--dim)}
+.grp[open] summary::after{content:"–"}
+.grp summary small{font-family:var(--f-display);font-weight:600;font-size:12px;color:var(--dim)}
+.fps{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:6;margin:0;padding:5px 8px;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;font:11px/1.45 var(--f-mono);font-variant-numeric:tabular-nums;pointer-events:none;white-space:pre}
 .row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
 .row label,.lbl{font-size:12px;color:var(--rice)}
 .row output{font-family:var(--f-mono);font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
@@ -87,45 +110,54 @@ input[type=range]:focus-visible::-webkit-slider-thumb{background:var(--accent)}
 .foot{font-size:11px;color:var(--dim);line-height:1.6;max-width:65ch;margin:0}
 .foot kbd{font-family:var(--f-mono);font-size:10px;border:1px solid var(--line);border-radius:3px;padding:0 3px}
 
-.grid{position:fixed;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3px;z-index:3}
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3px;z-index:3}
 .grid button{border:0;background:transparent;cursor:pointer;position:relative;outline-offset:-3px}
 .grid button:hover{box-shadow:inset 0 0 0 2px var(--accent)}
 .grid button span{position:absolute;left:8px;bottom:8px;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:var(--lacquer);padding:3px 6px;border-radius:4px;color:var(--dim)}
 .grid button.centre{box-shadow:inset 0 0 0 2px var(--accent)}
 .grid button.centre span{color:var(--accent)}
-.xbar{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:10px;align-items:center;background:var(--lacquer);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 16px;font-size:12px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);max-width:calc(100% - 24px)}
-.xbar input{width:110px}
-.xbar button{border:0;background:rgba(236,230,218,.1);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:12px;white-space:nowrap}
 .nogl{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-size:15px}
-.dbg{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));z-index:6;background:var(--lacquer);border:1px solid var(--line);border-radius:10px;padding:8px 10px;pointer-events:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.dbg{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));z-index:6;background:var(--lacquer);border:1px solid var(--line);border-radius:10px;padding:8px 10px;pointer-events:none;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .dbg pre{margin:0 0 6px;font-family:var(--f-mono);font-size:11px;line-height:1.5;color:var(--rice);font-variant-numeric:tabular-nums}
 .dbg b{font-weight:500;color:var(--accent)}
 .dbg canvas{display:block;width:160px;height:36px}
-.hideui .mark,.hideui .bar,.hideui .panel,.hideui .xbar,.hideui .hint{display:none}
+.hideui .mark,.hideui .bar,.hideui .panel,.hideui .hint{display:none}
 </style>
 
+<div id="app">
+<div id="stage">
 <canvas id="c" aria-label="Animated field of feathered ink strokes. Drag to draw through it."></canvas>
 <div class="mark"><h1>Flowing Field</h1><span>流</span></div>
 <div class="hint" id="hint">Drag to draw through the ink</div>
 <div class="dbg" id="dbg" hidden><pre id="dbgt"></pre><canvas id="dbgc" width="320" height="72" aria-label="Frame time graph"></canvas></div>
 
 <div class="grid" id="grid" hidden></div>
-<div class="xbar" id="xbar" hidden>
-  <label for="mut">Mutation</label><input id="mut" type="range" min="0.05" max="1" step="0.01" value="0.35">
-  <button id="reroll" type="button">New neighbours</button>
-  <button id="xdone" type="button">Done</button>
+<pre class="fps" id="fps" hidden></pre>
+
+<nav class="bar" aria-label="Playback">
+  <button id="bPause" type="button" aria-pressed="false">Pause <kbd>␣</kbd></button>
+  <button id="bPurr" type="button" aria-pressed="true">Nib sound</button>
+</nav>
 </div>
 
-<aside class="panel" id="panel" aria-label="Controls"></aside>
-
-<nav class="bar" aria-label="Actions">
-  <button id="bRand" type="button">Randomise <kbd>R</kbd></button>
-  <button id="bExp" type="button" aria-pressed="false">Explore <kbd>E</kbd></button>
-  <button id="bPause" type="button" aria-pressed="false">Pause <kbd>␣</kbd></button>
-  <button id="bReset" type="button">Reset</button>
-  <button id="bPurr" type="button" aria-pressed="true">Nib sound</button>
-  <button id="bPanel" type="button" aria-pressed="true">Controls</button>
-</nav>
+<aside class="panel" id="panel" aria-label="Controls">
+  <div class="acts">
+    <button id="bExp" class="primary" type="button" aria-pressed="false">Explore 8 ways</button>
+    <button id="bRand" type="button">Randomise</button>
+    <button id="bReset" type="button">Reset</button>
+    <button id="bDl" type="button">Download PNG</button>
+  </div>
+  <div class="xbox" id="xbox" hidden>
+    <div class="row"><label for="mut">Variation</label><output id="mutv"></output><input id="mut" type="range" min="0.05" max="1" step="0.01" value="0.35"></div>
+    <p>Parameters allowed to change:</p>
+    <div class="checks" id="groupChecks"></div>
+    <div class="btns"><button id="reroll" type="button">New neighbours</button></div>
+    <p>Tap a neighbour to adopt it and breed eight more. Tap the centre to leave explore with it.</p>
+  </div>
+  <div id="groups" style="display:contents"></div>
+  <p class="foot">Double-click a control or heading to reset it.</p>
+</aside>
+</div>
 
 <script>
 (()=>{
@@ -169,6 +201,7 @@ const SPEC=[
   {k:'grain',l:'Grain',min:0,max:1,step:.01,d:.25},
  ]},
 ];
+SPEC.forEach(g=>g.items.forEach(s=>s.g=g.g));
 const ALL=SPEC.flatMap(g=>g.items);
 const DEF=Object.fromEntries(ALL.map(s=>[s.k,s.d]));DEF.seed=1729;
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -410,7 +443,8 @@ let buckets=[],groomActive=false;
 const MAXS=Math.min(devicePixelRatio||1,2);let scale=MAXS,W=0,H=0,cssW=0,cssH=0,nSeeds=0,seedKey='';
 const FDIV=1.5;
 
-function resize(){cssW=innerWidth;cssH=innerHeight;const w=Math.round(cssW*scale),h=Math.round(cssH*scale);
+const stage=document.getElementById('stage');
+function resize(){cssW=Math.max(1,stage.clientWidth);cssH=Math.max(1,stage.clientHeight);const w=Math.round(cssW*scale),h=Math.round(cssH*scale);
   if(w!==W||h!==H){W=cv.width=w;H=cv.height=h;dirty=true}
   allocField(Math.max(8,Math.ceil(cssW/FDIV)),Math.max(8,Math.ceil(cssH/FDIV)));
   allocGroom(Math.max(8,Math.ceil(cssW/GDIV)),Math.max(8,Math.ceil(cssH/GDIV)));seeds()}
@@ -431,6 +465,7 @@ let ctxLost=0;
 cv.addEventListener('webglcontextlost',e=>{e.preventDefault();ctxLost++;location.reload()});
 let needResize=false,rescales=0,ceil=1e9;
 addEventListener('resize',()=>{needResize=true});
+if(window.ResizeObserver)new ResizeObserver(()=>{needResize=true}).observe(stage);
 
 const STEP=3.5;
 function stepsFor(P,k=1){const base=Math.max(3,Math.round(P.len*k/STEP));let S=Math.min(200,Math.round(base*1.5));if(FAST)S=Math.min(S,Math.floor(MAXTEX/R)-1);return S}
@@ -535,6 +570,7 @@ let last=performance.now(),frameN=0,perfAcc=0,perfN=0,goodWin=0;var lastStrokeT=
 function step(st,dt){if(!paused){st.T+=dt*st.P.drift;st.F+=dt*st.P.flow;st.ph+=dt*st.P.cycle}}
 function frame(now){
   const rawDt=(now-last)/1000;const dt=Math.min(.05,rawDt);last=now;
+  if(!fpsBox.hidden)fpsFrame();
   // apply any size/scale change here, before drawing, so a cleared canvas is never presented
   if(needResize){needResize=false;resize();dirty=true}
   ST.verts=ST.passes=ST.tiles=ST.draws=0;const t0=performance.now();
@@ -550,9 +586,7 @@ function frame(now){
       for(let j=0;j<9&&drew<tpf;j++){const i=(tileCursor+j)%9;if(paused&&!tileDirty[i])continue;
         const r=Math.floor(i/3),c=i%3;draw(tiles[i],c*(tw+g),aH-(r+1)*th-r*g,tw,th,nSeeds,false,k,aFbo,aScale);
         tileDirty[i]=false;drew++;tileCursor=(i+1)%9}
-      gl.disable(gl.SCISSOR_TEST);gl.disable(gl.BLEND);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
-      gl.useProgram(pC.p);gl.activeTexture(gl.TEXTURE5);gl.bindTexture(gl.TEXTURE_2D,aTex);gl.uniform1i(pC.u.uTex,5);gl.uniform2f(pC.u.uSize,W,H);
-      gl.bindVertexArray(triVAO);gl.drawArrays(gl.TRIANGLES,0,3);gl.bindVertexArray(null);
+      blitAtlas();
       dirty=tileDirty.some(Boolean);
       fdt=fdt*.9+dt*.1;if(frameN%15===0){if(fdt>.03&&tpf>1)tpf--;else if(fdt<.02&&tpf<9)tpf++}
     }else{draw(main,0,0,W,H,nSeeds,true);dirty=false;
@@ -560,14 +594,24 @@ function frame(now){
       perfAcc+=dt;if(++perfN>=30){const a=perfAcc/perfN;perfAcc=perfN=0;
         if(a>.021&&scale>1){ceil=scale;scale=Math.max(1,scale*.85);goodWin=0;needResize=true;rescales++}
         else if(a<.0175){const top=Math.min(MAXS,ceil*.97);if(++goodWin>=10&&scale<top-.01){scale=Math.min(top,scale*1.08);goodWin=0;needResize=true;rescales++}}else goodWin=0}}
-    if(snapCb){const c=snapCb;snapCb=null;c(cv.toDataURL('image/png'))}
+    // Download while exploring saves the centre picture, not the grid (the test hook's snap() takes the canvas as shown)
+    if(snapCb){const c=snapCb,m=exploring&&snapMain;snapCb=null;snapMain=false;if(m)draw(main,0,0,W,H,nSeeds,true);c(cv.toDataURL('image/png'));if(m)blitAtlas()}
   }
   updatePurr(dt);
   if(!dbg.hidden)dbgFrame(rawDt,performance.now()-t0);
   if(++frameN%12===0)setAccent();
   if(!halted)requestAnimationFrame(frame);
 }
-let halted=false,snapCb=null;
+let halted=false,snapCb=null,snapMain=false;
+function blitAtlas(){gl.disable(gl.SCISSOR_TEST);gl.disable(gl.BLEND);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
+  gl.useProgram(pC.p);gl.activeTexture(gl.TEXTURE5);gl.bindTexture(gl.TEXTURE_2D,aTex);gl.uniform1i(pC.u.uTex,5);gl.uniform2f(pC.u.uSize,W,H);
+  gl.bindVertexArray(triVAO);gl.drawArrays(gl.TRIANGLES,0,3);gl.bindVertexArray(null)}
+// frame rate readout: gaps between frames, refreshed and reset every 500 ms
+const fpsBox=document.getElementById('fps');let fpsT0=0,fpsPrev=0,fpsSum=0,fpsN=0,fpsMax=0;
+function fpsFrame(){const t=performance.now();if(fpsPrev){const g=t-fpsPrev;fpsSum+=g;fpsN++;fpsMax=Math.max(fpsMax,g)}fpsPrev=t;
+  if(t-fpsT0<500||!fpsN)return;fpsT0=t;const a=fpsSum/fpsN;
+  fpsBox.textContent=`${Math.round(1000/a)} fps\n${a.toFixed(1)} ms avg · ${fpsMax.toFixed(1)} ms worst\n${W}×${H} px`;fpsSum=fpsN=fpsMax=0}
+function setFps(v){fpsBox.hidden=!v;fpsPrev=fpsT0=fpsSum=fpsN=fpsMax=0;fpsBox.textContent=''}
 function setAccent(){const P=main.P;const h=((P.hue+main.ph)%1+1)%1;document.documentElement.style.setProperty('--accent',`hsl(${(h*360).toFixed(0)} ${Math.max(45,P.sat*100).toFixed(0)}% 66%)`)}
 
 // ---------- debug ----------
@@ -603,13 +647,17 @@ ${gpuName}`;
 function setDbg(v){dbg.hidden=!v;document.getElementById('dbgb').setAttribute('aria-pressed',v);try{localStorage.setItem(LS+'-dbg',v?'1':'0')}catch(e){}}
 
 // ---------- panel ----------
-const panel=document.getElementById('panel');const inputs={};
+const panel=document.getElementById('panel'),groups=document.getElementById('groups');const inputs={};
+const OPEN=['Field','Colour'];
 SPEC.forEach(g=>{
-  const sec=document.createElement('section');sec.className='grp';
-  sec.innerHTML=`<h2>${g.g}<small>${g.jp}</small></h2>`;
+  const sec=document.createElement('details');sec.className='grp';sec.open=OPEN.includes(g.g);
+  sec.innerHTML=`<summary>${g.g}<small>${g.jp}</small></summary>`;
+  // double-click a heading: reset the whole group (the two clicks toggle it back as it was)
+  sec.firstChild.addEventListener('dblclick',()=>setMany(Object.fromEntries(g.items.map(s=>[s.k,s.d]))));
   g.items.forEach(s=>{
     if(s.type==='seg'){
       const lab=document.createElement('div');lab.className='lbl';lab.textContent=s.l;sec.appendChild(lab);
+      lab.addEventListener('dblclick',()=>set(s.k,s.d));
       const d=document.createElement('div');d.className='seg';d.setAttribute('role','group');d.setAttribute('aria-label',s.l);
       s.opts.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.textContent=o;b.onclick=()=>set(s.k,i);d.appendChild(b)});
       inputs[s.k]={seg:d};sec.appendChild(d);return;
@@ -618,22 +666,30 @@ SPEC.forEach(g=>{
     r.innerHTML=`<label for="${id}">${s.l}</label><output for="${id}"></output><input id="${id}" type="range" min="${s.min}" max="${s.max}" step="${s.step}">`;
     const inp=r.querySelector('input'),out=r.querySelector('output');
     inp.addEventListener('input',()=>set(s.k,parseFloat(inp.value)));
+    r.querySelector('label').addEventListener('dblclick',()=>set(s.k,s.d));inp.addEventListener('dblclick',()=>set(s.k,s.d));
     inputs[s.k]={inp,out,s};sec.appendChild(r);
   });
-  panel.appendChild(sec);
+  groups.appendChild(sec);
 });
-const misc=document.createElement('section');misc.className='grp';
-misc.innerHTML=`<h2>View<small>見</small></h2>
+const misc=document.createElement('details');misc.className='grp';
+misc.innerHTML=`<summary>Display<small>見</small></summary>
+<label class="chk"><input type="checkbox" id="fpsb"> Show frame rate</label>
 <div class="btns">Seed <span id="seedv"></span><button type="button" id="newseed">New seed</button></div>
 <div class="btns"><button type="button" id="ruffle">Clear pen marks</button><button type="button" id="recentre">Recentre</button><button type="button" id="dbgb" aria-pressed="false">Debug panel</button></div>
-<p class="foot">Drag to rake the feathering into line. Marks relax over the persistence time; 120 keeps them permanently. Two-finger drag, right-drag or Shift-drag pans; pinch or scroll zooms. <kbd>H</kbd> hides the interface, <kbd>D</kbd> toggles the debug panel.</p>`;
-panel.appendChild(misc);
+<p class="foot">Drag to rake the feathering into line. Marks relax over the persistence time; 120 keeps them permanently. Two-finger drag, right-drag or Shift-drag pans; pinch or scroll zooms. <kbd>R</kbd> randomises, <kbd>E</kbd> explores, <kbd>Space</kbd> pauses, <kbd>H</kbd> hides the interface, <kbd>D</kbd> toggles the debug panel.</p>`;
+groups.appendChild(misc);
+// a group keeps its height for a moment after closing, so the panel doesn't shift and steal the second click of a double-click
+document.querySelectorAll('.panel summary').forEach(sm=>sm.addEventListener('click',()=>{const d=sm.parentNode;if(!d.open)return;
+  d.style.minHeight=d.offsetHeight+'px';clearTimeout(d.hold);d.hold=setTimeout(()=>d.style.minHeight='',450)}));
+document.getElementById('fpsb').onchange=e=>setFps(e.target.checked);
 const fmt=(s,v)=>s.step>=1?String(v):v.toFixed(s.step<.01?3:2);
 function sync(){
   ALL.forEach(s=>{const I=inputs[s.k];if(I.seg)[...I.seg.children].forEach((b,i)=>b.setAttribute('aria-pressed',i===P[s.k]));else{I.inp.value=P[s.k];I.out.textContent=s.k==='memory'&&P[s.k]>=120?'∞':fmt(s,P[s.k])}});
   document.getElementById('seedv').textContent=P.seed;
 }
-function set(k,v){P[k]=v;if(k==='spacing'||k==='seed')seeds();dirty=true;sync();save();if(exploring&&!ALL.find(s=>s.k===k)?.keep)makeTiles()}
+// every change goes through here, so explore's neighbours follow the centre
+function setMany(o){Object.assign(P,o);seeds();dirty=true;sync();save();if(exploring)refreshTiles()}
+function set(k,v){setMany({[k]:v})}
 document.getElementById('newseed').onclick=()=>set('seed',Math.floor(Math.random()*1e6));
 document.getElementById('ruffle').onclick=()=>{clearGroom();dirty=true};
 document.getElementById('dbgb').onclick=()=>setDbg(dbg.hidden);
@@ -646,17 +702,30 @@ function randomP(){const n={};ALL.forEach(s=>{if(s.keep){n[s.k]=P[s.k];return}if
   n.paper=Math.random()<.55?.82+Math.random()*.16:Math.random()*.1;n.drift=.03+Math.random()*.25;n.flow=(Math.random()-.5)*2.4;n.cycle=(Math.random()-.5)*.2;
   n.oct=1+Math.floor(Math.random()*3);n.ink=.3+Math.random()*.5;n.crease=.6+Math.random()*.4;return n}
 function adopt(n){Object.keys(P).forEach(k=>delete P[k]);Object.assign(P,n);main.P=P;seeds();dirty=true;sync();save()}
-function mutate(base,amt){const n=clone(base);
-  ALL.forEach(s=>{if(s.keep)return;if(s.type==='seg'){if(Math.random()<amt*.3)n[s.k]=Math.floor(Math.random()*s.opts.length);return}
-    let v=n[s.k]+(Math.random()-.5)*2*amt*(s.max-s.min)*.4;v=Math.min(s.max,Math.max(s.min,v));n[s.k]=s.step>=1?Math.round(v):v});
+// explore: each neighbour is a delta from the centre, only in the ticked groups (keep:1 params never change)
+const XG=SPEC.filter(g=>g.items.some(s=>!s.keep)).map(g=>g.g),allowed=new Set(XG);
+function mutate(amt){const d={};
+  ALL.forEach(s=>{if(s.keep||!allowed.has(s.g))return;if(s.type==='seg'){if(Math.random()<amt*.3)d[s.k]={set:Math.floor(Math.random()*s.opts.length)};return}
+    d[s.k]=(Math.random()-.5)*2*amt*(s.max-s.min)*.4});
+  return d}
+function applyDelta(base,d){const n=clone(base);
+  ALL.forEach(s=>{const x=d[s.k];if(x===undefined)return;if(typeof x==='object'){n[s.k]=x.set;return}
+    let v=Math.min(s.max,Math.max(s.min,base[s.k]+x));n[s.k]=s.step>=1?Math.round(v):v});
   return n}
-function makeTiles(){tiles=[];for(let i=0;i<9;i++){if(i===4){tiles.push(main);continue}const p=mutate(P,mut);tiles.push({P:p,T:main.T+(i===6||i===8?37+i*11:0),F:main.F,ph:main.ph})}tileDirty.fill(true);dirty=true}
-const grid=document.getElementById('grid'),xbar=document.getElementById('xbar'),bExp=document.getElementById('bExp');
+let deltas=[];
+function refreshTiles(){tiles.forEach((t,i)=>{if(i!==4)t.P=applyDelta(P,deltas[i])});tileDirty.fill(true);dirty=true}
+function makeTiles(){tiles=[];deltas=[];for(let i=0;i<9;i++){if(i===4){tiles.push(main);deltas.push({});continue}deltas.push(mutate(mut));tiles.push({P:null,T:main.T+(i===6||i===8?37+i*11:0),F:main.F,ph:main.ph})}refreshTiles()}
+const grid=document.getElementById('grid'),xbox=document.getElementById('xbox'),bExp=document.getElementById('bExp');
+const gchk=document.getElementById('groupChecks');
+XG.forEach(g=>{const l=document.createElement('label');l.innerHTML=`<input type="checkbox"> ${g}`;const c=l.firstChild;c.checked=allowed.has(g);
+  c.onchange=()=>{c.checked?allowed.add(g):allowed.delete(g);if(exploring)makeTiles()};gchk.appendChild(l)});
 for(let i=0;i<9;i++){const b=document.createElement('button');b.type='button';if(i===4){b.className='centre';b.innerHTML='<span>Current · keep</span>'}else b.innerHTML=`<span>Variant ${i<4?i+1:i}</span>`;
   b.onclick=()=>{if(i===4){setExplore(false);return}const t=tiles[i];main.T=t.T;main.F=t.F;main.ph=t.ph;adopt(t.P);makeTiles()};grid.appendChild(b)}
-function setExplore(on){exploring=on;grid.hidden=xbar.hidden=!on;bExp.setAttribute('aria-pressed',on);dirty=true;if(on){makeTiles();setPanel(false)}}
-document.getElementById('mut').oninput=e=>{mut=parseFloat(e.target.value);makeTiles()};
-document.getElementById('reroll').onclick=makeTiles;document.getElementById('xdone').onclick=()=>setExplore(false);
+function setExplore(on){exploring=on;grid.hidden=xbox.hidden=!on;bExp.setAttribute('aria-pressed',on);bExp.textContent=on?'Leave explore':'Explore 8 ways';dirty=true;if(on)makeTiles()}
+const mutI=document.getElementById('mut'),mutV=document.getElementById('mutv');
+const setMut=v=>{mut=v;mutI.value=v;mutV.textContent=v.toFixed(2);if(exploring)makeTiles()};
+mutI.oninput=()=>setMut(parseFloat(mutI.value));mutI.addEventListener('dblclick',()=>setMut(.35));mutI.parentNode.querySelector('label').addEventListener('dblclick',()=>setMut(.35));mutV.textContent=mut.toFixed(2);
+document.getElementById('reroll').onclick=makeTiles;
 bExp.onclick=()=>setExplore(!exploring);
 document.getElementById('bRand').onclick=()=>{adopt(randomP());if(exploring)makeTiles()};
 document.getElementById('bReset').onclick=()=>{adopt(clone(DEF));clearGroom();view.x=view.y=0;view.z=1;main.T=main.F=main.ph=0;if(exploring)makeTiles()};
@@ -664,15 +733,14 @@ const bPause=document.getElementById('bPause');const setPause=v=>{paused=v;dirty
 bPause.onclick=()=>setPause(!paused);
 const bPurr=document.getElementById('bPurr');const setPurr=v=>{purrOn=v;bPurr.setAttribute('aria-pressed',v);try{localStorage.setItem(LS+'-purr',v?'1':'0')}catch(e){}};
 bPurr.onclick=()=>{initAudio();setPurr(!purrOn)};
-const bPanel=document.getElementById('bPanel');function setPanel(v){panel.hidden=!v;bPanel.setAttribute('aria-pressed',v)}
-bPanel.onclick=()=>setPanel(panel.hidden);
-if(innerWidth<620)setPanel(false);
+document.getElementById('bDl').onclick=()=>new Promise(r=>{snapCb=r;snapMain=true;dirty=true}).then(url=>{const a=document.createElement('a');a.href=url;a.download='flowing-field.png';document.body.appendChild(a);a.click();a.remove()});
 addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.key!==' ')return;const k=e.key.toLowerCase();
   if(k==='r')document.getElementById('bRand').click();else if(k==='e')bExp.click();else if(k===' '){e.preventDefault();setPause(!paused)}else if(k==='h')document.body.classList.toggle('hideui');else if(k==='d')setDbg(dbg.hidden);else if(k==='escape'&&exploring)setExplore(false)});
 
 // ---------- pointer: drag rakes the strokes; two fingers / right / shift pan and pinch ----------
 const ptrs=new Map();let mode=null,pinch=null;
 const hint=document.getElementById('hint');
+const loc=(e,r)=>({x:e.clientX-r.left,y:e.clientY-r.top});
 const toW=(x,y)=>{const m=Math.min(cssW,cssH);return{x:(x-cssW/2)/m*2/view.z+view.x,y:-(y-cssH/2)/m*2/view.z+view.y}};
 function setMode(m){mode=m;cv.classList.toggle('stroking',m==='stroke');cv.classList.toggle('panning',m==='pan'||m==='pinch');handDown=m==='stroke'}
 cv.addEventListener('contextmenu',e=>e.preventDefault());
@@ -680,7 +748,7 @@ cv.addEventListener('pointerdown',e=>{
   // a trackpad or mouse press would otherwise start a text selection that tints the canvas on iPad
   e.preventDefault();
   initAudio();cv.setPointerCapture(e.pointerId);
-  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,t:e.timeStamp});
+  const q=loc(e,cv.getBoundingClientRect());ptrs.set(e.pointerId,{x:q.x,y:q.y,t:e.timeStamp});
   if(ptrs.size===1)setMode(e.button!==0||e.shiftKey?'pan':'stroke');
   else{const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};setMode('pinch')}
 });
@@ -694,9 +762,9 @@ function addSeg(x0,y0,x1,y1,speed,pressure){
 }
 cv.addEventListener('pointermove',e=>{
   const p=ptrs.get(e.pointerId);if(!p)return;
-  const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+  const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e],rc=cv.getBoundingClientRect();
   for(const ev of (evs.length?evs:[e])){
-    const x=ev.clientX,y=ev.clientY,dx=x-p.x,dy=y-p.y;const dtm=Math.max(1,ev.timeStamp-p.t);
+    const {x,y}=loc(ev,rc),dx=x-p.x,dy=y-p.y;const dtm=Math.max(1,ev.timeStamp-p.t);
     if(mode==='stroke'){
       const sp=Math.hypot(dx,dy)/dtm*1000;
       addSeg(p.x,p.y,x,y,sp,ev.pointerType==='pen'?.35+.9*(ev.pressure||.5):1);
@@ -713,7 +781,7 @@ cv.addEventListener('pointermove',e=>{
 const up=e=>{if(!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);
   if(ptrs.size===0)setMode(null);else if(mode==='pinch'&&ptrs.size===1){mode='after-pinch';handDown=false}};
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
-cv.addEventListener('wheel',e=>{e.preventDefault();const b=toW(e.clientX,e.clientY);view.z=Math.min(8,Math.max(.25,view.z*Math.exp(-e.deltaY*.0015)));const a=toW(e.clientX,e.clientY);view.x+=b.x-a.x;view.y+=b.y-a.y;dirty=true},{passive:false});
+cv.addEventListener('wheel',e=>{e.preventDefault();const q=loc(e,cv.getBoundingClientRect()),b=toW(q.x,q.y);view.z=Math.min(8,Math.max(.25,view.z*Math.exp(-e.deltaY*.0015)));const a=toW(q.x,q.y);view.x+=b.x-a.x;view.y+=b.y-a.y;dirty=true},{passive:false});
 
 resize();sync();setPause(paused);setPurr(purrOn);setAccent();requestAnimationFrame(frame);
 window.__sumi={get fast(){return FAST},halt(){halted=true},snap(){return new Promise(r=>{snapCb=r;dirty=true})},frames(){return frameN}};

@@ -24,49 +24,44 @@
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #161310; color: #e8e2d4;
     font: 14px/1.3 -apple-system, system-ui, sans-serif; -webkit-user-select: none; user-select: none; }
-  canvas#bath { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; touch-action: none;
+  #app { display: flex; height: 100dvh; }
+  #stage { position: relative; flex: 1; min-width: 0; overflow: hidden; }
+  canvas#bath { position: absolute; top: 0; left: 0; width: 100%; height: 100%; touch-action: none;
     transform-origin: 50% 50%; transition: transform .7s cubic-bezier(.3, 1.06, .45, 1); }
   body.explore canvas#bath { transform: scale(var(--k, .5)); cursor: zoom-in; }
-  #ring { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+  #ring { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
   .thumb { position: absolute; pointer-events: auto; cursor: pointer; border-radius: 6px;
     box-shadow: 0 8px 28px rgba(0,0,0,.55); will-change: transform, opacity;
     transition: opacity .45s, border-radius .5s; }
   .thumb:hover { outline: 2px solid rgba(255,255,255,.7); }
   .thumb.chosen { z-index: 6; border-radius: 0; outline: none; }
-  #panel { transition: bottom .28s ease, transform .5s cubic-bezier(.4, 0, .2, 1); }
-  body.explore #panel { transform: translate(var(--dx, 0px), calc(var(--dy, 0px) + 140%)); pointer-events: none; }
   .bar { position: fixed; display: flex; gap: 8px; align-items: center;
-    transition: top .28s ease, bottom .28s ease;
-    transform: translate(var(--dx, 0px), var(--dy, 0px));
     background: rgba(22,19,16,.78); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
     border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 8px 10px; z-index: 10; }
-  #top { top: max(10px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left));
-    max-width: calc(100vw - 20px); box-sizing: border-box; flex-wrap: wrap; }
-  #top .title { font-weight: 600; letter-spacing: .04em; margin-right: 4px;
-    cursor: grab; touch-action: none; white-space: nowrap; }
-  .handle { flex: none; align-self: stretch; min-height: 30px; width: 18px;
-    border-radius: 9px; cursor: grab; touch-action: none;
-    background-color: rgba(255,255,255,.05);
-    background-image: radial-gradient(rgba(255,255,255,.5) 1.3px, transparent 1.6px);
-    background-size: 6px 6px; background-position: center; }
-  .handle:active, .title:active { cursor: grabbing; }
-  #status { opacity: .55; font-size: 12px; }
-  .bar.dragging { transition: none; }
-  #panel { bottom: calc(var(--vvb, 0px) + max(12px, env(safe-area-inset-bottom)));
-    left: 0; right: 0; margin: 0 auto; width: fit-content; max-width: 96vw; box-sizing: border-box;
-    flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 6px 14px; padding: 8px 12px; }
-  #panel section { display: flex; flex-direction: column; gap: 3px; }
-  #panel h4 { margin: 0; font-size: 10px; font-weight: 600; letter-spacing: .09em;
-    text-transform: uppercase; opacity: .5; cursor: pointer; touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent; display: flex; align-items: center; gap: 4px; }
-  #panel h4::before { content: "\25BE"; font-size: 11px; width: 9px; }
-  #panel section.collapsed h4::before { content: "\25B8"; }
-  #panel section.collapsed > .row, #panel section.collapsed > #fatal { display: none; }
-  #panel .row { display: flex; align-items: center; gap: 6px; min-height: 34px; }
-  #s-hist { flex: 1 1 auto; min-width: 260px; }
-  #s-hist input { flex: 1; min-width: 0; }
-  #s-errors { flex-basis: 100%; order: 10; }
+  #panel { width: 330px; flex: none; box-sizing: border-box; overflow-y: auto; background: #1b1814;
+    border-left: 1px solid rgba(255,255,255,.09); padding: max(14px, env(safe-area-inset-top)) 16px 18px; }
+  #panel h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: .04em; }
+  #panel .lede, #panel .note, .box p { margin: 6px 0 0; font-size: 12px; line-height: 1.4; opacity: .6; }
+  #panel .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  button.pri { background: #d9c9a0; color: #161310; border-color: transparent; font-weight: 600; }
+  .box { margin-top: 12px; padding: 10px 12px; border: 1px solid rgba(217,201,160,.35);
+    background: rgba(217,201,160,.06); border-radius: 12px; }
+  .box p:first-of-type { margin-top: 8px; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin: 6px 0 10px; }
+  .checks label { display: flex; gap: 6px; align-items: center; font-size: 12.5px; }
+  .checks input { accent-color: #d9c9a0; }
+  #panel details { border-top: 1px solid rgba(255,255,255,.09); margin-top: 12px; padding-top: 10px; }
+  #panel summary { font-size: 10px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase;
+    opacity: .6; cursor: pointer; list-style: none; display: flex; justify-content: space-between;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  #panel summary::-webkit-details-marker { display: none; }
+  #panel summary::after { content: "+"; font-weight: 400; }
+  #panel details[open] summary::after { content: "\2013"; }
+  #panel .row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 34px; margin-top: 4px; }
+  #panel .row input[type=range] { flex: 1; min-width: 0; }
   #panel .lbl { font-size: 11px; opacity: .6; }
+  #panel label.lbl { min-width: 58px; }
+  #status { font-size: 12px; opacity: .55; }
   button { background: rgba(255,255,255,.07); color: inherit; border: 1px solid rgba(255,255,255,.1);
     border-radius: 10px; padding: 7px 11px; font: inherit; cursor: pointer; }
   button:active { background: rgba(255,255,255,.18); }
@@ -75,12 +70,10 @@
   .swatch { width: 27px; height: 27px; border-radius: 50%; padding: 0;
     border: 2px solid rgba(255,255,255,.25); }
   .swatch.sel { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
-  .vsep { width: 1px; height: 24px; background: rgba(255,255,255,.14); }
   input[type=range] { accent-color: #d9c9a0; }
-  #size, #freq { width: 90px; }
-  #palsat { width: 80px; }
-  #top label { display: flex; align-items: center; gap: 4px; font-size: 12px; opacity: .75; }
-  #help { top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 30; }
+  #panel .row > label:not(.lbl) { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+  #help { top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 30; max-width: calc(100vw - 32px);
+    box-sizing: border-box; overflow: auto; }
   #help pre { margin: 0; font: 13px/1.7 ui-monospace, monospace; }
   dialog { background: #211d18; color: inherit; border: 1px solid rgba(255,255,255,.12);
     border-radius: 16px; padding: 18px; max-width: 92vw; }
@@ -95,55 +88,110 @@
   #pbar { width: 240px; height: 6px; background: rgba(255,255,255,.12); border-radius: 3px;
     margin-top: 10px; overflow: hidden; }
   #pbar div { height: 100%; width: 0%; background: #d9c9a0; border-radius: 3px; }
-  #fatal { margin: 0; background: #5c1f1f; color: #fff; cursor: pointer;
+  #fatal { margin: 8px 0 0; background: #5c1f1f; color: #fff; cursor: pointer;
     padding: 8px 10px; border-radius: 8px; white-space: pre-wrap;
     font: 12px ui-monospace, monospace; max-height: 30dvh; overflow: auto; }
-  #hud { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  #hud { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     background: rgba(22,19,16,.82); border: 1px solid rgba(255,255,255,.12);
     border-radius: 12px; padding: 8px 14px; font-size: 13px; pointer-events: none;
     z-index: 20; opacity: 0; transition: opacity .25s; }
   #hud.on { opacity: 1; transition: none; }
   [hidden] { display: none !important; }
-  /* compact: phones, and anything short enough that the bars would eat the bath */
-  @media (max-width: 640px), (max-height: 520px) {
-    #top .t, #status, #panel .lbl.end { display: none; }
-    button { padding: 6px 9px; }
-    .swatch { width: 25px; height: 25px; }
-    #panel { gap: 3px 10px; padding: 6px 8px; }
-    #panel h4 { font-size: 9px; }
-    #panel .row { min-height: 30px; gap: 5px; }
-    #size, #freq { width: 64px; }
-    #palsat { width: 64px; }
-    #s-hist { min-width: 150px; }
-  }
-  @media (max-width: 640px) {   /* phone: one section per row, grip along the top */
-    #panel { flex-direction: column; align-items: stretch; flex-wrap: nowrap;
-      width: calc(100vw - 16px); max-width: none; gap: 5px; }
-    #panel .handle { width: 64px; height: 12px; min-height: 12px; align-self: center;
-      border-radius: 6px; }
-    #panel h4 { padding: 3px 0; }
-    #panel .row { flex-wrap: wrap; }
-    #s-hist { min-width: 0; }
+  @media (max-width: 820px) {   /* panel stacks under the bath */
+    html, body { height: auto; overflow: auto; }
+    #app { flex-direction: column; height: auto; }
+    #stage { flex: none; height: 62vh; min-height: 300px; }
+    #panel { width: auto; overflow: visible; border-left: 0; border-top: 1px solid rgba(255,255,255,.09);
+      padding: 14px max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left)); }
   }
   /* Keep iOS from selecting the page on taps and long presses */
   body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   input,textarea{-webkit-user-select:text;user-select:text}
 </style>
 <body>
-<canvas id="bath"></canvas>
-<div id="ring"></div>
+<div id="app">
+<div id="stage">
+  <canvas id="bath"></canvas>
+  <div id="ring"></div>
+  <div id="hud"></div>
+</div>
 
-<div id="top" class="bar">
-  <div class="handle"></div>
-  <span class="title">&#10084;&#65039; <span class="t">Marblelous</span></span>
-  <button id="undo" title="Undo (Z)">&#8630;</button>
-  <button id="redo" title="Redo (Y)">&#8631;</button>
-  <button id="shuffle" title="New random marbling (N)">&#127922;</button>
-  <button id="explore" title="Explore neighbours (E)">&#129517;</button>
-  <button id="save" title="Download PNG (S)">Download</button>
-  <button id="helpbtn" title="Keyboard shortcuts (?)">?</button>
-  <label title="Show error banner"><input type="checkbox" id="debugchk"> <span class="t">Debug</span></label>
-  <span id="status"></span>
+<aside id="panel">
+  <h1>&#10084;&#65039; Marblelous</h1>
+  <p class="lede">Drop inks onto a marbling bath and comb them into Florentine swirls. Draw on the bath with the tools below.</p>
+  <div class="acts">
+    <button id="explore" class="pri" title="Explore neighbours (E)">Explore 8 ways</button>
+    <button id="shuffle" title="New random marbling (N)">Randomise</button>
+    <button id="undo" title="Undo (Z)">Undo</button>
+    <button id="redo" title="Redo (Y)">Redo</button>
+    <button id="reset" title="A fresh bath with the default palette">Reset</button>
+    <button id="save" title="Download PNG (S)">Download PNG</button>
+  </div>
+  <div class="box" id="explorebox" hidden>
+    <div class="row">
+      <label class="lbl" for="variation">Variation</label>
+      <input id="variation" type="range" min="0.2" max="2" step="0.05" value="1">
+    </div>
+    <p>Parameters allowed to change:</p>
+    <div class="checks" id="groupchecks"></div>
+    <button id="newnb">New neighbours</button>
+    <p>Tap a neighbour to adopt it and breed eight more. Tap the centre to leave explore with it.</p>
+  </div>
+  <details id="s-mode" open>
+    <summary>Drawing mode</summary>
+    <div class="row">
+      <button id="t-rod" class="sel">Rod</button>
+      <button id="t-drop">Drop</button>
+      <button id="t-comb">Comb</button>
+      <button id="t-swirl">Swirl</button>
+    </div>
+    <div class="row">
+      <label class="lbl" for="size">Tool size</label>
+      <input id="size" type="range" min="0.02" max="0.28" step="0.005" value="0.09" title="Tool size">
+    </div>
+  </details>
+  <details id="s-palette" open>
+    <summary>Palette</summary>
+    <div class="row">
+      <span id="swatches" style="display:flex;flex-wrap:wrap;gap:6px"></span>
+      <button id="paldice" title="Random harmonious palette (P)">&#127922;</button>
+    </div>
+    <div class="row">
+      <label class="lbl" for="palsat">Saturation</label>
+      <input id="palsat" type="range" min="0.3" max="1.7" step="0.01" value="1" title="Palette saturation">
+    </div>
+  </details>
+  <details id="s-paint">
+    <summary>Paint</summary>
+    <div class="row">
+      <label class="lbl" for="freq">Density</label>
+      <span class="lbl">sparse</span>
+      <input id="freq" type="range" min="0.4" max="2.4" step="0.05" value="1"
+        title="Paint deployment frequency">
+      <span class="lbl">dense</span>
+    </div>
+  </details>
+  <details id="s-hist">
+    <summary>History</summary>
+    <div class="row">
+      <input id="history" type="range" min="0" max="0" value="0" step="1" title="History">
+    </div>
+  </details>
+  <details id="s-errors" hidden>
+    <summary>Errors</summary>
+    <pre id="fatal"></pre>
+  </details>
+  <details id="s-settings">
+    <summary>Settings</summary>
+    <div class="row">
+      <button id="helpbtn" title="Keyboard shortcuts (?)">Keyboard shortcuts</button>
+      <label title="Show error banner"><input type="checkbox" id="debugchk"> Debug</label>
+    </div>
+    <div class="row"><span id="status"></span></div>
+  </details>
+  <p class="note" style="margin-top:14px">Double-click a control or heading to reset it.</p>
+</aside>
 </div>
 
 <div id="help" class="bar" hidden><pre>
@@ -159,55 +207,9 @@ Download   S  (also &#8984;S)
 Debug      B &middot; Help  ?
 
 Comb spacing  pinch with two fingers (or trackpad pinch)
-Bars move by their stippled handles (or the title).
 Palette    P  random harmonious hues (saturation slider is kept)
 Tap a selected swatch again to edit its colour.
 </pre></div>
-
-<div id="panel" class="bar">
-  <div class="handle"></div>
-  <section id="s-paint">
-    <h4>Paint</h4>
-    <div class="row">
-      <span class="lbl end">sparse</span>
-      <input id="freq" type="range" min="0.4" max="2.4" step="0.05" value="1"
-        title="Paint deployment frequency">
-      <span class="lbl end">dense</span>
-    </div>
-  </section>
-  <section id="s-mode">
-    <h4>Drawing mode</h4>
-    <div class="row">
-      <button id="t-rod" class="sel">Rod</button>
-      <button id="t-drop">Drop</button>
-      <button id="t-comb">Comb</button>
-      <button id="t-swirl">Swirl</button>
-      <span class="lbl">size</span>
-      <input id="size" type="range" min="0.02" max="0.28" step="0.005" value="0.09" title="Tool size">
-    </div>
-  </section>
-  <section id="s-palette">
-    <h4>Palette</h4>
-    <div class="row">
-      <span id="swatches" style="display:flex;gap:6px"></span>
-      <button id="paldice" title="Random harmonious palette (P)">&#127922;</button>
-      <span class="lbl">sat</span>
-      <input id="palsat" type="range" min="0.3" max="1.7" step="0.01" value="1" title="Palette saturation">
-    </div>
-  </section>
-  <section id="s-hist">
-    <h4>History</h4>
-    <div class="row">
-      <input id="history" type="range" min="0" max="0" value="0" step="1" title="History">
-    </div>
-  </section>
-  <section id="s-errors" hidden>
-    <h4>Errors</h4>
-    <pre id="fatal"></pre>
-  </section>
-</div>
-
-<div id="hud"></div>
 
 <dialog id="pickdlg">
   <h3 id="picktitle">Ink colour</h3>
@@ -268,7 +270,7 @@ const fatal = (msg) => {
   if (!debugOn) return;
   fatalEl.textContent = msg + "\n(tap to dismiss)";
   errorsSec.hidden = false;
-  errorsSec.classList.remove("collapsed");
+  errorsSec.open = true;
 };
 function dismissFatal() { errorsSec.hidden = true; }
 fatalEl.onclick = dismissFatal;
@@ -355,6 +357,7 @@ function pushSnapshot(kind) {
     presetCount, seedP, seedR, freq: parseFloat(freqEl.value) });
   cursor = snapshots.length - 1;
   histEl.max = cursor; histEl.value = cursor;
+  if (exploring && !ringBusy) scheduleRegrow();   // panel edits: the neighbours follow
 }
 function applySnapshot(i) {
   const s = snapshots[i]; if (!s) return;
@@ -1266,6 +1269,14 @@ freqEl.addEventListener("change", () => {
 document.getElementById("undo").onclick = undo;
 document.getElementById("redo").onclick = redo;
 document.getElementById("shuffle").onclick = shuffle;
+function resetAll() {              // a fresh bath: default palette, paint and tool
+  beginAction();
+  freqEl.value = 1; sizeEl.value = 0.09; setTool("rod");
+  generatePreset(1);
+  pushSnapshot("action");
+  bakeNow(); requestRender();
+}
+document.getElementById("reset").onclick = resetAll;
 
 // ---------------------------------------------------- debug + help + keys
 const debugChk = document.getElementById("debugchk");
@@ -1451,49 +1462,43 @@ async function exportPNG(wpx, hpx, label, download = true) {
   prog.hidden = true;
 }
 
-// draggable bars: each bar moves freely via its stippled handle (and the
-// app title); position is a translate offset on top of the anchored layout,
-// so viewport / banner avoidance keeps composing with a user-chosen spot
-function makeDraggable(el, grips) {
-  let sx = null, sy = 0, ox = 0, oy = 0;
-  for (const g of grips) {
-    g.addEventListener("pointerdown", (e) => {
-      sx = e.clientX; sy = e.clientY;
-      ox = parseFloat(el.style.getPropertyValue("--dx")) || 0;
-      oy = parseFloat(el.style.getPropertyValue("--dy")) || 0;
-      el.classList.add("dragging");
-      g.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-    g.addEventListener("pointermove", (e) => {
-      if (sx === null) return;
-      const lim = (v, m) => Math.max(-m, Math.min(m, v));
-      el.style.setProperty("--dx", lim(ox + e.clientX - sx, innerWidth * 0.92) + "px");
-      el.style.setProperty("--dy", lim(oy + e.clientY - sy, innerHeight * 0.92) + "px");
-    });
-    const end = () => { sx = null; el.classList.remove("dragging"); };
-    g.addEventListener("pointerup", end);
-    g.addEventListener("pointercancel", end);
-  }
-}
-for (const id of ["panel", "top"]) {
-  const el = document.getElementById(id);
-  makeDraggable(el, [...el.querySelectorAll(".handle, .title")]);
+// collapsible panel groups: remembered. Drawing mode and palette start open
+const folded = new Set((getPref("folded") ?? "s-paint,s-hist,s-settings").split(",").filter(Boolean));
+for (const det of document.querySelectorAll("#panel details")) {
+  if (det.id === "s-errors") continue;
+  det.open = !folded.has(det.id);
+  det.addEventListener("toggle", () => {
+    if (det.open) folded.delete(det.id); else folded.add(det.id);
+    setPref("folded", [...folded].join(","));
+  });
 }
 
-// collapsible panel sections: tap a heading; remembered. On phones the panel
-// stacks one section per row, so paint and history start folded to leave room
-const compact = matchMedia("(max-width: 640px), (max-height: 520px)").matches;
-const collapsed = new Set((getPref("collapsed") ||
-  (compact ? "s-paint,s-hist" : "")).split(",").filter(Boolean));
-for (const sec of document.querySelectorAll("#panel section")) {
-  sec.classList.toggle("collapsed", collapsed.has(sec.id));
-  sec.querySelector("h4").onclick = () => {
-    const on = sec.classList.toggle("collapsed");
-    if (on) collapsed.add(sec.id); else collapsed.delete(sec.id);
-    setPref("collapsed", [...collapsed].join(","));
-  };
+// double-click a control's label or slider to reset it, or a group heading to
+// reset the whole group; resets go through the controls' own input/change path
+function resetSlider(el, v) {
+  el.value = v;
+  el.dispatchEvent(new Event("input")); el.dispatchEvent(new Event("change"));
 }
+const DEFAULTS = { freq: 1, size: 0.09, palsat: 1, variation: 1 };
+for (const id in DEFAULTS) {
+  const el = document.getElementById(id), reset = () => resetSlider(el, DEFAULTS[id]);
+  el.addEventListener("dblclick", reset);
+  const lab = document.querySelector(`label[for="${id}"]`);
+  if (lab) lab.addEventListener("dblclick", reset);
+}
+function defaultPalette() {
+  beginAction();
+  ground = DEFAULT_GROUND.slice(); inks = DEFAULT_INKS.map(c => c.slice());
+  palFromInks(); paletteToUI(); bakeValid = false; requestRender();
+  pushSnapshot("action");
+}
+const GROUP_RESET = {
+  "s-mode": () => { setTool("rod"); resetSlider(sizeEl, DEFAULTS.size); },
+  "s-palette": defaultPalette,
+  "s-paint": () => resetSlider(freqEl, DEFAULTS.freq),
+};
+for (const id in GROUP_RESET)
+  document.querySelector(`#${id} summary`).addEventListener("dblclick", GROUP_RESET[id]);
 
 // ---------------------------------------------------------- hyperspace
 // The current marbling is a point in genome space. Exploring shrinks the
@@ -1528,7 +1533,8 @@ const jitter = (sd) => Math.exp(gauss() * sd);
 // a copy of the user's ops with their character nudged: one size factor and
 // one strength factor for the whole set, so the piece stays coherent
 function perturbOps(rs) {
-  const fSize = jitter(0.22), fStr = jitter(0.28);
+  const v = variation();
+  const fSize = jitter(0.22 * v), fStr = jitter(0.28 * v);
   const save = ranges; ranges = [];
   for (const [s, e] of rs) for (let i = s; i < e; i++) {
     const v = Array.from(master.data.subarray(i * OP_STRIDE, (i + 1) * OP_STRIDE));
@@ -1545,12 +1551,12 @@ function perturbOps(rs) {
 }
 // a neighbour: the genome moved a little way along some dimension groups
 function mutate(g, kind) {
-  const m = Object.assign({}, g);
+  const m = Object.assign({}, g), v = variation();
   const user = dropLeadingOps(g.ranges, g.presetCount);
   let pre = takeLeadingOps(g.ranges, g.presetCount);
   if (kind.paint) m.seedP = rand32();
   if (kind.rods) m.seedR = rand32();
-  if (kind.freq) m.freq = Math.min(2.4, Math.max(0.4, g.freq * jitter(0.25)));
+  if (kind.freq) m.freq = Math.min(2.4, Math.max(0.4, g.freq * jitter(0.25 * v)));
   if (kind.paint || kind.rods || kind.freq) {
     pre = buildPreset(m.seedP, m.seedR, m.freq);
     m.presetCount = countOps(pre);
@@ -1558,11 +1564,11 @@ function mutate(g, kind) {
   m.ranges = pre.concat(kind.strokes && user.length ? perturbOps(user) : user);
   if (kind.palette) {
     const r = Math.random();
-    if (r < 0.4) m.pal = rollPal(g.pal.sat, g.ground);
+    if (r < 0.4 * Math.min(1, v)) m.pal = rollPal(g.pal.sat, g.ground);
     else if (r < 0.8) {                                     // hue rotation
-      const d = gauss() * 25;
+      const d = gauss() * 25 * v;
       m.pal = { base: g.pal.base.map(([h, L, C]) => [(h + d + 720) % 360, L, C]), sat: g.pal.sat };
-    } else m.pal = { base: g.pal.base, sat: Math.min(1.7, Math.max(0.3, g.pal.sat * jitter(0.25))) };
+    } else m.pal = { base: g.pal.base, sat: Math.min(1.7, Math.max(0.3, g.pal.sat * jitter(0.25 * v))) };
     m.inks = palInks(m.pal);
   }
   return m;
@@ -1572,6 +1578,28 @@ const KINDS = [
   { palette: 1, paint: 1 }, { rods: 1, strokes: 1 }, { paint: 1, freq: 1 },
   { palette: 1, rods: 1, strokes: 1 },
 ];
+// the explore box: which panel groups the neighbours may change, and how far
+const variationEl = document.getElementById("variation");
+const variation = () => parseFloat(variationEl.value);
+const GROUPS = [["s-palette", "Palette", ["palette"]], ["s-paint", "Paint", ["paint", "rods", "freq"]],
+  ["s-mode", "Drawing mode", ["strokes"]]];
+const allowed = new Set(GROUPS.map(g => g[0]));
+function allowedKind(k) {          // a mix of dimensions, cut down to the ticked groups
+  const dims = GROUPS.filter(g => allowed.has(g[0])).flatMap(g => g[2]), out = {};
+  for (const d in k) if (dims.includes(d)) out[d] = 1;
+  if (!Object.keys(out).length && dims.length) out[dims[(Math.random() * dims.length) | 0]] = 1;
+  return out;
+}
+for (const [id, name] of GROUPS) {
+  const l = document.createElement("label");
+  l.innerHTML = `<input type="checkbox" id="g-${id}" checked> ${name}`;
+  l.querySelector("input").onchange = (e) => {
+    if (e.target.checked) allowed.add(id); else allowed.delete(id);
+    if (exploring) scheduleRegrow();
+  };
+  document.getElementById("groupchecks").appendChild(l);
+}
+variationEl.addEventListener("change", () => { if (exploring) scheduleRegrow(); });
 
 // render a genome through the same shader into a thumbnail-sized ImageData
 function renderGenome(g, w, h) {
@@ -1606,8 +1634,7 @@ function bathCss() {
 function ringLayout() {
   const W = canvas.offsetWidth, H = canvas.offsetHeight;
   const b = bathCss();
-  const tr = document.getElementById("top").getBoundingClientRect();
-  const topLim = tr.top < H / 4 ? tr.bottom + 6 : 6;
+  const topLim = 6;
   const botLim = H - 14, m = 10;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const box = (k) => { const B = { w: b.w * k, h: b.h * k };
@@ -1730,7 +1757,7 @@ function placeThumbs() {
 function growRing() {
   ringBusy = true;
   const cur = currentGenome();
-  const kinds = KINDS.slice();
+  const kinds = KINDS.map(allowedKind);
   for (let i = kinds.length - 1; i > 0; i--) {
     const j = (Math.random() * (i + 1)) | 0; [kinds[i], kinds[j]] = [kinds[j], kinds[i]];
   }
@@ -1776,6 +1803,7 @@ function enterExplorer() {
   if (exploring || pointers.size) return;
   exploring = true;
   document.body.classList.add("explore");
+  exploreBtn.textContent = "Leave explore"; exploreBox.hidden = false;
   growRing();
 }
 function exitExplorer() {
@@ -1785,6 +1813,7 @@ function exitExplorer() {
   if (pendingPick) { const g = pendingPick; pendingPick = null; applyGenome(g); }
   ringBusy = false; exitAt = performance.now(); view.rect = null;
   document.body.classList.remove("explore");
+  exploreBtn.textContent = "Explore 8 ways"; exploreBox.hidden = true;
   clearRing(true);
 }
 function scheduleRegrow() {        // history moved under the ring: refresh it
@@ -1838,7 +1867,12 @@ function pickThumb(t) {
     }));
   } });
 }
-document.getElementById("explore").onclick = () => exploring ? exitExplorer() : enterExplorer();
+const exploreBtn = document.getElementById("explore"), exploreBox = document.getElementById("explorebox");
+exploreBtn.onclick = () => exploring ? exitExplorer() : enterExplorer();
+document.getElementById("newnb").onclick = () => {
+  if (!exploring || ringBusy) return;
+  clearTimeout(regrowTimer); clearRing(true); growRing();
+};
 
 // -------------------------------------------------------------------- boot
 generatePreset(1);
