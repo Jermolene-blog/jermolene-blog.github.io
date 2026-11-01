@@ -392,6 +392,16 @@ async function start(){
   try{
     ensureCtx();
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    // A context made before the mic opened (or by a reference tone) can run at a
+    // different rate from the mic, and Safari on iOS then hands it the samples
+    // unconverted, so every note reads about a semitone and a half flat. So the
+    // context is made afresh once the mic is open, at the mic's own rate
+    const rate=stream.getAudioTracks()[0]?.getSettings?.().sampleRate;
+    if(!rate||rate!==ctx.sampleRate){
+      const old=ctx;ctx=null;
+      try{ctx=rate?new (window.AudioContext||window.webkitAudioContext)({sampleRate:rate}):null}catch(e){}
+      ensureCtx();old.close?.().catch(()=>{});
+    }
     // the permission prompt can leave the context suspended or interrupted (Safari, iOS)
     if(ctx.state!=='running')await ctx.resume();
     src=ctx.createMediaStreamSource(stream);
@@ -402,7 +412,7 @@ async function start(){
     sheetKey=null;floor=MIN_GATE/3;candN=0;
     running=true;analyse();$('level').classList.add('on');
     $('go').textContent='Stop listening';$('go').classList.add('on');
-    $('status').innerHTML=`A4 = <b id="a4s">${a4}</b> Hz · listening`;
+    $('status').innerHTML=`A4 = <b id="a4s">${a4}</b> Hz · listening at ${(ctx.sampleRate/1000).toFixed(1).replace(/\.0$/,'')} kHz`;
     $('hint').className='hint';$('hint').textContent='Listening… pluck a string';
     try{wake=await navigator.wakeLock?.request('screen')}catch(e){}
   }catch(e){
