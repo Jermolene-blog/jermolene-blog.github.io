@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
 <style>
-/* Layout: one narrow column — word tray, the dial of balls flanked by Clear and Enter, then the word board. Single committed look: a 70s bingo hall at night. */
+/* Layout: one narrow column — the word you are spelling, the dial of balls with Enter in its hub, then the word card. Single committed look: a 70s bingo hall at night. */
 :root {
   color-scheme: dark;
   --bg: #24160f;
@@ -60,8 +60,8 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 .seg button:focus-visible, .btn:focus-visible, .ball:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .play { container-type: inline-size; display: flex; flex-direction: column; gap: 14px; min-width: 0;
-  --d: min(250px, 50cqi); }
-/* The rack is a dial: a ring cut into one segment per ball, each letter on a cream disc in its segment, Shuffle in the hub.
+  --d: min(320px, 62cqi); }
+/* The rack is a dial: a ring cut into one segment per ball, each letter on a cream disc in its segment, Enter in the hub.
    Every slot and ball covers the whole dial and is clipped to its own segment, so the shading can be centred on the hub. */
 .dial { position: relative; width: var(--d); aspect-ratio: 1; justify-self: center; }
 .rack { position: absolute; inset: 0; border-radius: 50%; background: var(--panel); border: 1px solid var(--line); box-shadow: inset 0 3px 8px #0006; }
@@ -70,13 +70,13 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 .rack .ball { position: absolute; inset: 0; width: auto; height: auto; border-radius: 0; clip-path: var(--clip); pointer-events: auto; box-shadow: none;
   background: radial-gradient(circle at 32% 22%, #ffffff38 0, transparent 26%),
     radial-gradient(circle closest-side, color-mix(in srgb, var(--c) 55%, #000) 40%, var(--c) 58%, var(--c) 82%, color-mix(in srgb, var(--c) 60%, #000) 100%); }
-.rack .ball span { position: absolute; left: var(--x); top: var(--y); width: 23%; translate: -50% -50%; font-size: calc((var(--d) - 10px) * .145); box-shadow: 0 1px 2px #0006; }
+.rack .ball span { position: absolute; left: var(--x); top: var(--y); width: 23%; translate: -50% -50%; font-size: calc((var(--d) - 10px) * .13); box-shadow: 0 1px 2px #0006; }
 .rack .ball:focus-visible { outline: none; }
 .rack .ball:focus-visible span { outline: 3px solid var(--ink); outline-offset: 2px; }
 .rack .ball.used { transform: scale(.94); }
 .rack .ball:not(.used):active { transform: scale(.97); }
-.dial .shuffle { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: calc((var(--d) - 10px) * .37); aspect-ratio: 1; padding: 0; border-radius: 50%;
-  font-size: clamp(12px, calc(var(--d) * .065), 15px); background: var(--bg); }
+.dial .hub { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: calc((var(--d) - 10px) * .37); aspect-ratio: 1; padding: 0; border-radius: 50%;
+  font-size: clamp(14px, calc(var(--d) * .06), 20px); box-shadow: 0 0 0 4px var(--bg); }
 
 .ball { --c: var(--tomato); width: var(--b); height: var(--b); border-radius: 50%; border: 0; padding: 0; cursor: pointer; position: relative;
   background: radial-gradient(circle at 34% 28%, #ffffff70 0 7%, transparent 18%), radial-gradient(circle at 50% 50%, var(--c) 0 55%, color-mix(in srgb, var(--c) 55%, #000) 100%);
@@ -90,18 +90,23 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 .roam { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
 .roam .ball { position: absolute; left: 0; top: 0; transition: none; box-shadow: 0 8px 10px #0006; will-change: transform; }
 
-.tray { min-height: 54px; display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
+.tray { min-height: 54px; grid-area: 1 / 1; display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
 .tray .ball { --b: 40px; }
 .tray.bad { animation: shake .35s; }
 @keyframes shake { 20%, 60% { transform: translateX(-7px) } 40%, 80% { transform: translateX(7px) } }
 
-.controls { display: grid; grid-template-columns: 1fr var(--d) 1fr; align-items: center; gap: 10px; }
-.controls > .btn { padding-block: 14px; }
+/* The word being spelt and the last message share one row: the message gives way as soon as a ball is picked */
+.spell { display: grid; place-items: center; }
+.spell:has(.tray .ball) .msg { visibility: hidden; }
+/* Clear and Whirl sit in the top corners, outside the ring */
+.controls { position: relative; display: grid; justify-items: center; width: min(100%, calc(var(--d) + 150px)); align-self: center; }
+.controls > .btn { position: absolute; top: 0; z-index: 1; min-width: 76px; padding: 8px 12px; }
+#clear { left: 0; } #shuffle { right: 0; }
 .btn { font: 600 15px var(--body); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 11px 10px; cursor: pointer; }
 .btn.primary { background: var(--tomato); border-color: var(--tomato); color: #fff8ea; font-weight: 800; }
 .btn:disabled { opacity: .45; cursor: default; }
 
-.msg { text-align: center; min-height: 22px; font-weight: 600; color: var(--muted); }
+.msg { grid-area: 1 / 1; text-align: center; min-height: 22px; font-weight: 600; color: var(--muted); }
 .msg.good { color: var(--mustard); }
 .msg.big { font-family: var(--display); font-weight: 400; font-size: 22px; color: var(--mustard); }
 
@@ -112,14 +117,13 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 .bonus h3 { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: .875rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); font-weight: 800; }
 .bonus h3 span { font-weight: 600; letter-spacing: .02em; text-transform: none; color: var(--muted); font-variant-numeric: tabular-nums; }
 /* The word card: one row of words per length, longest first, split by faint rules. Unfound letters are small dots. */
-.words { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 0; padding: 12px 0; }
-.words:first-child { padding-top: 0; }
-.words:last-child { padding-bottom: 0; }
-.words + .words { border-top: 1px solid color-mix(in srgb, var(--ink) 11%, transparent); }
-.w { display: inline-flex; align-items: center; height: 1.5em; font: 800 1.125rem / 1 var(--body); text-transform: uppercase; letter-spacing: .04em; }
-.w .dot { width: .7em; height: 100%; display: grid; place-items: center; }
-.w .dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--slot); }
-.w .ch { display: inline-block; }
+/* The word card: columns of words, shortest first, filled top to bottom. Every letter, found or not, takes one cell,
+   so a found word fills exactly the space its dots did and the columns never shift. JS sets --rows to fit the card. */
+.words { display: grid; grid-auto-flow: column; grid-template-rows: repeat(var(--rows, 8), auto); grid-auto-columns: max-content;
+  gap: 2px 14px; list-style: none; margin: 0; padding: 0; }
+.w { display: flex; align-items: center; height: 1.25em; font: 800 1.125rem / 1 var(--body); text-transform: uppercase; }
+.w > span { width: .74em; height: 100%; display: grid; place-items: center; }
+.w .dot::before { content: ""; width: .48em; height: .48em; border-radius: 50%; background: color-mix(in srgb, var(--ink) 72%, var(--panel)); }
 .w.found { color: var(--mustard); }
 .w.missed { color: color-mix(in srgb, var(--ink) 48%, var(--panel)); }
 .w.fresh .ch { animation: flip .45s backwards; }
@@ -127,13 +131,13 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8125rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .legend .lf { color: var(--mustard); } .legend .lm { color: color-mix(in srgb, var(--ink) 48%, var(--panel)); }
 
-.bonus { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--mint) 9%, var(--panel)); border: 2px solid color-mix(in srgb, var(--mint) 35%, var(--panel)); }
+.bonus { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--mint) 9%, var(--panel)); border: 2px solid color-mix(in srgb, var(--mint) 35%, var(--panel)); }
 .other-box { background: transparent; border: 0; border-top: 2px solid var(--line); border-radius: 0; padding: 14px 0 0; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
-.chip { font: 800 1.125rem / 1 var(--body); letter-spacing: .08em; text-transform: uppercase; padding: 8px 12px 7px; border-radius: 999px;
-  background: var(--mint); color: var(--mint-ink); }
+/* Words off the card, in balanced columns as wide as the longest word (JS sets --len), so the box is as short as it can be */
+.chips { columns: auto calc(var(--len, 5) * .78em); column-gap: 16px; list-style: none; margin: 0; padding: 0; font: 800 1.0625rem / 1.3 var(--body); }
+.chip { letter-spacing: .04em; text-transform: uppercase; color: var(--mint); break-inside: avoid; }
 .chip.fresh { animation: pop .4s; }
-.chip.other { background: color-mix(in srgb, var(--ink) 16%, var(--panel)); color: var(--ink); font-size: 1rem; padding: 7px 11px 6px; }
+.chip.other { color: var(--ink); }
 @keyframes pop { 0% { transform: scale(.4); } 70% { transform: scale(1.12); } 100% { transform: none; } }
 .giveup { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
 .giveup .btn { padding: 7px 12px; font-size: 13px; }
@@ -174,22 +178,18 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
   html, body { height: 100%; }
   .wrap { height: 100%; padding-block: 10px 12px; gap: 10px; }
   header { order: 1; } .board { order: 2; } .play { order: 3; }
-  .play { gap: 6px; }
-  .msg { order: 1; min-height: 20px; } .tray { order: 2; min-height: 44px; } .controls { order: 3; }
-  .play { --d: min(190px, 48cqi); }
+  .play { gap: 4px; --d: min(90cqi, 38dvh); }
+  .tray { min-height: 44px; }
   .board { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px; gap: 4px; }
   /* Readable at arm's length: the card's words grow with the screen (about 23px on the largest iPhones) and sit tight together */
   .wrap { padding-inline: max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-right, 0px)); }
-  .w { font-size: clamp(1.25rem, 5.4vw, 1.5rem); height: 1.12em; letter-spacing: .02em; }
-  .w .dot { width: .62em; }
-  .w .dot::before { width: max(6px, .26em); height: max(6px, .26em); }
-  .words { gap: 2px 14px; padding-block: 5px; }
-  .chip { font-size: 1.25rem; padding: 7px 12px 6px; }
-  .chip.other { font-size: 1.125rem; }
-  .chips { gap: 6px; }
-  .bonus { padding: 8px 10px; gap: 6px; }
+  .w { font-size: clamp(1rem, 4.4vw, 1.25rem); }
+  .words { column-gap: 12px; }
+  .chips { font-size: clamp(1.0625rem, 4.4vw, 1.25rem); }
+  .bonus { padding: 6px 10px; gap: 4px; }
   .count { font-size: 1.6rem; }
-  .bonus h3, .legend { font-size: .9375rem; }
+  .legend { font-size: .9375rem; }
+  .bonus h3 { font-size: .75rem; }
 }
 
 /* Tablet / desktop landscape: play column on the left, word board on the right, board scrolls on its own. */
@@ -215,15 +215,16 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
   .tools .btn { padding: 4px 10px; font-size: 12px; }
   .tools .icon-btn { width: 28px; height: 28px; padding: 0; }
   .icon-btn svg { width: 16px; height: 16px; }
-  .play { grid-column: 1; grid-row: 2; align-self: center; gap: 6px; --d: min(48cqi, 100dvh - 136px); }
+  .play { grid-column: 1; grid-row: 2; align-self: center; gap: 6px; --d: min(64cqi, 100dvh - 110px); }
   .board { grid-column: 2; grid-row: 2; min-height: 0; overflow-y: auto; padding: 10px; gap: 10px; }
   .tray { min-height: 44px; }
   .tray .ball { --b: 34px; }
   .btn, .controls > .btn { padding: 8px 10px; }
+  .controls > .btn { min-width: 0; padding: 6px 10px; }
   .count { font-size: 17px; }
   .w { font-size: 1rem; }
-  .words { padding-block: 5px; gap: 2px 14px; }
-  .chip { font-size: 1rem; padding: 6px 10px 5px; }
+  .words { gap: 2px 14px; }
+  .chips { font-size: 1rem; }
   .intro { padding: 16px; }
   .demo, .intro h2 { display: none; }
   .rules { gap: 5px; margin-bottom: 12px; font-size: 14px; }
@@ -248,16 +249,18 @@ input,textarea{-webkit-user-select:text;user-select:text}
   </header>
 
   <div class="play">
-  <div class="tray" id="tray" aria-live="polite" aria-label="Your word"></div>
+  <div class="spell">
+    <div class="tray" id="tray" aria-live="polite" aria-label="Your word"></div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+  </div>
   <div class="controls">
     <button class="btn" id="clear" disabled>Clear</button>
     <div class="dial">
       <div class="rack" id="rack" aria-label="Your letters"></div>
-      <button class="btn shuffle" id="shuffle" disabled>Shuffle</button>
+      <button class="btn primary hub" id="enter" disabled>Enter</button>
     </div>
-    <button class="btn primary" id="enter" disabled>Enter</button>
+    <button class="btn" id="shuffle" disabled>Whirl</button>
   </div>
-  <div class="msg" id="msg" aria-live="polite"></div>
   </div>
 
   <section class="board">
@@ -266,8 +269,8 @@ input,textarea{-webkit-user-select:text;user-select:text}
       <div class="giveup" id="giveup"></div>
     </div>
     <div class="legend" id="legend" aria-hidden="true" hidden></div>
-    <div class="bonus" id="bonus" aria-live="polite" hidden></div>
     <div id="groups"></div>
+    <div class="bonus" id="bonus" aria-live="polite" hidden></div>
     <div class="bonus other-box" id="bonusOther" hidden></div>
   </section>
 </div>
@@ -280,8 +283,8 @@ input,textarea{-webkit-user-select:text;user-select:text}
     <li style="--c: var(--mustard)">Find every word hidden in the balls to <b>fill the card</b>. Each one is a row of dots until you find it.</li>
     <li style="--c: var(--teal)">A word that uses every ball is a <b>House!</b></li>
     <li style="--c: var(--mint)"><b>Bonus words</b> are real words too unusual for the card, like <b>QI</b> or <b>ROTA</b>. They score too.</li>
-    <li style="--c: var(--plum)"><b>Shuffle</b> sends the balls flying to help you see new words.</li>
-    <li style="--c: var(--blue)" class="keys">On a keyboard, type letters, <b>Enter</b> to submit, <b>Backspace</b> to undo and <b>Space</b> to shuffle.</li>
+    <li style="--c: var(--plum)"><b>Whirl</b> sends the balls flying to help you see new words.</li>
+    <li style="--c: var(--blue)" class="keys">On a keyboard, type letters, <b>Enter</b> to submit, <b>Backspace</b> to undo and <b>Space</b> to whirl.</li>
   </ul>
   <h3 id="ballsLabel">How many balls?</h3>
   <div class="seg" id="lengths" role="group" aria-labelledby="ballsLabel">
@@ -436,10 +439,11 @@ function newGame(n, restore) {
   const used = S && S.used ? S.used : new Set(); used.add(p.l);
   const letters = shuffleArr([...p.l]).map((ch, i) => ({ ch, ci: i % COLORS.length, id: i }));
   S = { n, key: p.l, used, letters, order: letters.map((_, i) => i), sel: [],
-        targets: p.t.split(','), bonus: new Set(p.b ? p.b.split(',') : []),
+        targets: p.t.split(','), bonus: new Set(p.b ? p.b.split(',') : []), rows: 8,
         found: new Set(restore ? restore.found : []), bonusFound: restore ? restore.bonusFound : [], gaveUp: !!(restore && restore.gaveUp), confirming: false };
+  if (restore && restore.targets) { S.targets.filter(w => !restore.targets.includes(w)).forEach(w => S.bonus.add(w)); S.targets = restore.targets; }
   buildRack();
-  renderBoard(); renderTray(); say(''); setControls();
+  fitCard(!(restore && restore.targets)); renderTray(); say(''); setControls();
   if (!restore) dropIn();
 }
 // One segment of the dial, as a polygon in percentages of the slot so that it scales with the dial.
@@ -607,24 +611,49 @@ function submit() {
   bad(`${w.toUpperCase()} isn't in the word list`);
 }
 
+// The card has to fit the screen without scrolling, in as few rows as will go across. The word lists carry no
+// frequency information, so when the words will not fit, they come off in this order as a stand-in for the least
+// common: an -s or -es form of another word on the card, then the longest words. Words already found and House
+// words always stay. A dropped word becomes a bonus word, so playing it still counts. Only a new card drops words;
+// a resize just reflows the columns.
+const byLength = ws => ws.slice().sort((a, b) => a.length - b.length || (a < b ? -1 : 1));
+function fitCard(mayDrop) {
+  S.rows = 99; renderBoard();
+  const board = document.querySelector('.board'), g = $('groups'), ul = g.querySelector('.words'), li = ul && ul.firstElementChild;
+  if (!li || !board.clientHeight) return;
+  const bs = getComputedStyle(board), us = getComputedStyle(ul), px = v => parseFloat(v) || 0;
+  const cell = li.firstElementChild.getBoundingClientRect().width, rowH = li.getBoundingClientRect().height;
+  const rg = px(us.rowGap), cg = px(us.columnGap);
+  // Leave room under the words for a line or two of bonus words
+  const reserve = Math.min(64, board.clientHeight * .2);
+  const availH = board.clientHeight - px(bs.paddingTop) - px(bs.paddingBottom) - document.querySelector('.board-head').offsetHeight - px(bs.rowGap) - reserve;
+  const availW = g.clientWidth, maxRows = Math.max(3, Math.floor((availH + rg) / (rowH + rg)));
+  const width = (ws, rows) => { let w = -cg; for (let i = 0; i < ws.length; i += rows) w += cg + Math.max(...ws.slice(i, i + rows).map(x => x.length)) * cell; return w; };
+  const all = new Set(S.targets);
+  const inflected = w => /s$/.test(w) && (all.has(w.slice(0, -1)) || (/es$/.test(w) && all.has(w.slice(0, -2))));
+  const longest = ws => ws.sort((a, b) => b.length - a.length || (a < b ? 1 : -1));
+  const queue = mayDrop ? [...new Set([...longest(S.targets.filter(inflected)), ...longest(S.targets.slice())])].filter(w => w.length < S.n && !S.found.has(w)) : [];
+  for (;;) {
+    const ws = byLength(S.targets);
+    for (let rows = 1; rows <= maxRows; rows++) if (width(ws, rows) <= availW) { S.rows = rows; return renderBoard(); }
+    if (!queue.length) { S.rows = maxRows; return renderBoard(); }
+    const w = queue.shift(); S.targets = S.targets.filter(x => x !== w); S.bonus.add(w);
+  }
+}
+addEventListener('resize', () => { if (S) fitCard(false); });
 function renderBoard(fresh) {
   const g = $('groups'); g.innerHTML = '';
-  const byLen = {};
-  S.targets.forEach(w => (byLen[w.length] ||= []).push(w));
-  Object.keys(byLen).sort((a, b) => b - a).forEach(len => {
-    const box = document.createElement('ul'); box.className = 'words';
-    const ws = byLen[len];
-    box.setAttribute('aria-label', `${len}-letter words, ${ws.filter(w => S.found.has(w)).length} of ${ws.length} found`);
-    ws.forEach(w => {
-      const el = document.createElement('li');
-      const found = S.found.has(w), missed = S.gaveUp && !found, shown = found || missed;
-      el.className = 'w' + (found ? ' found' : '') + (missed ? ' missed' : '') + (w === fresh ? ' fresh' : '');
-      el.setAttribute('aria-label', found ? w : missed ? `${w}, not found` : `hidden ${len}-letter word`);
-      [...w].forEach((ch, i) => { const c = document.createElement('span'); c.className = shown ? 'ch' : 'dot'; c.setAttribute('aria-hidden', 'true');
-        if (shown) c.textContent = ch; if (w === fresh) c.style.animationDelay = i * 60 + 'ms'; el.appendChild(c); });
-      box.appendChild(el);
-    });
-    g.appendChild(box);
+  const box = document.createElement('ul'); box.className = 'words'; box.style.setProperty('--rows', S.rows);
+  box.setAttribute('aria-label', `Hidden words, ${S.found.size} of ${S.targets.length} found`);
+  g.appendChild(box);
+  byLength(S.targets).forEach(w => {
+    const el = document.createElement('li');
+    const found = S.found.has(w), missed = S.gaveUp && !found, shown = found || missed;
+    el.className = 'w' + (found ? ' found' : '') + (missed ? ' missed' : '') + (w === fresh ? ' fresh' : '');
+    el.setAttribute('aria-label', found ? w : missed ? `${w}, not found` : `hidden ${w.length}-letter word`);
+    [...w].forEach((ch, i) => { const c = document.createElement('span'); c.className = shown ? 'ch' : 'dot'; c.setAttribute('aria-hidden', 'true');
+      if (shown) c.textContent = ch; if (w === fresh) c.style.animationDelay = i * 60 + 'ms'; el.appendChild(c); });
+    box.appendChild(el);
   });
   $('count').innerHTML = `${S.found.size} / ${S.targets.length}<small>words found</small>`;
   const legend = $('legend'); legend.hidden = !S.gaveUp;
@@ -635,11 +664,12 @@ function renderBoard(fresh) {
 function renderBonus(fresh) {
   const n = S.bonusFound.length, total = S.bonus.size;
   const chips = S.bonusFound.slice().reverse().map(w => `<li class="chip${w === fresh ? ' fresh' : ''}">${w}</li>`).join('');
+  const len = ws => Math.max(2, ...ws.map(w => w.length));
   $('bonus').hidden = !n && !S.gaveUp;
-  $('bonus').innerHTML = `<h3>Bonus words <span>${n} found${S.gaveUp ? ` of ${total}` : ''}</span></h3>` + (n ? `<ul class="chips" aria-label="Bonus words found">${chips}</ul>` : '');
+  $('bonus').innerHTML = `<h3>Bonus words <span>${n} found${S.gaveUp ? ` of ${total}` : ''}</span></h3>` + (n ? `<ul class="chips" style="--len: ${len(S.bonusFound)}" aria-label="Bonus words found">${chips}</ul>` : '');
   const rest = S.gaveUp ? [...S.bonus].filter(w => !S.bonusFound.includes(w)) : [];
   const o = $('bonusOther'); o.hidden = !rest.length;
-  o.innerHTML = rest.length ? `<h3>Other valid words <span>${rest.length} you could have played</span></h3><ul class="chips">${rest.map(w => `<li class="chip other">${w}</li>`).join('')}</ul>` : '';
+  o.innerHTML = rest.length ? `<h3>Other valid words <span>${rest.length} you could have played</span></h3><ul class="chips" style="--len: ${len(rest)}">${rest.map(w => `<li class="chip other">${w}</li>`).join('')}</ul>` : '';
 }
 function renderGiveUp() {
   const el = $('giveup');
@@ -861,7 +891,7 @@ addEventListener('keydown', e => {
 function start(data) {
   if (data && data.key && PUZ[data.n]) newGame(data.n, data); else openIntro();
 }
-window.claude?.hot?.snapshot?.(() => S && { n: S.n, key: S.key, found: [...S.found], bonusFound: S.bonusFound, gaveUp: S.gaveUp });
+window.claude?.hot?.snapshot?.(() => S && { n: S.n, key: S.key, found: [...S.found], bonusFound: S.bonusFound, gaveUp: S.gaveUp, targets: S.targets });
 const go = () => window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(go);
 })();
