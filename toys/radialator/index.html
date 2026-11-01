@@ -115,6 +115,9 @@ input[type=checkbox]{accent-color:var(--accent);margin:0}
       <div class="sel"><label for="invert">Colours</label><select id="invert"><option value="0">Odd = ink</option><option value="1">Odd = paper</option></select></div>
       <div class="sel"><label for="palette">Palette</label><select id="palette"></select></div>
     </div></details>
+    <details data-g="D"><summary class="lbl">Dots</summary><div class="ctrls" id="ctrlsD">
+      <div class="sel"><label for="dots">Dot layout</label><select id="dots"><option value="0">Off: solid</option><option value="1">Grid</option><option value="2">Hex</option><option value="3">Rings</option></select></div>
+    </div></details>
     <details><summary class="lbl">Display</summary><div class="ctrls">
       <label class="tick" for="showFps"><input type="checkbox" id="showFps"> Show frame rate</label>
     </div></details>
@@ -142,6 +145,10 @@ const SPEC=[
  {k:'notch',l:'Rim notch',min:0,max:.3,step:.0005,d:.0242,g:'B'},
  {k:'hub',l:'Hub',min:0,max:.3,step:.001,d:.042,g:'B'},
  {k:'speed',l:'Spin speed',min:-1,max:1,step:.01,d:0,g:'B'},
+ {k:'dotN',l:'Dots across',min:16,max:240,step:1,d:90,g:'D'},
+ {k:'dotSize',l:'Dot size',min:.3,max:1.1,step:.01,d:.9,g:'D'},
+ {k:'light',l:'Light',min:0,max:1,step:.01,d:0,g:'D'},
+ {k:'lightAng',l:'Light from',min:0,max:6.2832,step:.01,d:2.36,g:'D'},
 ];
 const PALETTES=[
  ['Ink on white','#111111','#ffffff'],
@@ -152,10 +159,10 @@ const PALETTES=[
  ['Sea and coral','#0f5257','#f6a38f'],
  ['Violet','#3a1a6b','#d9f0e4'],
 ];
-const DEFAULTS=Object.fromEntries(SPEC.map(s=>[s.k,s.d]));DEFAULTS.clip=3;DEFAULTS.invert=1;DEFAULTS.palette=0;
-// panel groups: sliders carry theirs in SPEC; the three selects make up group C
-const GROUPS={A:'Shapes',B:'Overlays & motion',C:'Colour & clip'},SELECTS=['clip','invert','palette'];
-const groupKeys=g=>g==='C'?SELECTS:SPEC.filter(s=>s.g===g).map(s=>s.k);
+const DEFAULTS=Object.fromEntries(SPEC.map(s=>[s.k,s.d]));DEFAULTS.clip=3;DEFAULTS.invert=1;DEFAULTS.palette=0;DEFAULTS.dots=0;
+// panel groups: sliders carry theirs in SPEC; the selects carry theirs here
+const GROUPS={A:'Shapes',B:'Overlays & motion',C:'Colour & clip',D:'Dots'},SELG={clip:'C',invert:'C',palette:'C',dots:'D'},SELECTS=Object.keys(SELG);
+const groupKeys=g=>[...SPEC.filter(s=>s.g===g).map(s=>s.k),...SELECTS.filter(k=>SELG[k]===g)];
 const allowed=new Set(Object.keys(GROUPS));
 let P={...DEFAULTS};const history=[];
 
@@ -165,6 +172,7 @@ const gl=glc.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
 const FS=`precision highp float;
 uniform vec2 uRes;uniform float uHub,uInv,uWarp,uRim,uNotch,uPx,uLine,uN,uD,uR,uP,uAsp,uSpin,uTilt,uTwist,uRings,uSectors,uLayers,uLS,uPhase,uExtent,uClip;
 uniform vec3 uInk,uPaper;uniform vec2 uPan;uniform float uZoom;
+uniform float uDots,uDotN,uDotSize,uLight,uLightAng;
 mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);}
 float sampleAt(vec2 p){
   vec2 p0=p;float rad0=length(p);
@@ -206,9 +214,30 @@ float sampleAt(vec2 p){
   if(uClip==2.&&rad0>uExtent)return 0.;
   return par;
 }
+// Dots: the nearest dot centre on a grid, a hex lattice, or rings that keep the pattern's N-fold symmetry (dotCentres() in JS matches)
+vec2 dotCentre(vec2 p,float h){
+  if(uDots<1.5)return (floor(p/h)+.5)*h;
+  if(uDots<2.5){vec2 s=vec2(h,h*1.7320508);vec2 a=(floor(p/s)+.5)*s;vec2 b=(floor((p-s*.5)/s)+.5)*s+s*.5;return dot(p-a,p-a)<dot(p-b,p-b)?a:b;}
+  float i=floor(length(p)/h+.5);if(i<.5)return vec2(0.);float rho=i*h;
+  float n=uN*max(1.,floor(6.2831853*rho/(h*uN)+.5));float st=6.2831853/n;float a=floor(atan(p.y,p.x)/st+.5)*st;
+  return rho*vec2(cos(a),sin(a));
+}
+// a dot's ink: the pattern's coverage around its centre, optionally lit like a dome (dotInk() in JS matches)
+float dotInk(vec2 c,float h){
+  float cov=0.;for(int i=-1;i<=1;i++)for(int j=-1;j<=1;j++)cov+=sampleAt(c+vec2(float(i),float(j))*h/3.);cov/=9.;
+  if(uLight>0.){vec2 q=c/uExtent;float z2=1.-dot(q,q);vec3 L=normalize(vec3(cos(uLightAng),sin(uLightAng),1.));
+    float lam=z2>0.?max(dot(vec3(q,sqrt(z2)),L),0.):0.;cov*=mix(1.,.15+.85*lam,uLight);}
+  return cov;
+}
 void main(){
   float m=min(uRes.x,uRes.y)*.5;float k=uExtent*1.0089/m/uZoom;
   vec2 f=gl_FragCoord.xy-uRes*.5;
+  if(uDots>.5){
+    float h=2.*uExtent/uDotN;vec2 w=f*k+uPan;vec2 c=dotCentre(w,h);
+    float r=.5*h*uDotSize*sqrt(dotInk(c,h));
+    float v=r>0.?1.-smoothstep(-.5*k,.5*k,length(w-c)-r):0.;
+    gl_FragColor=vec4(mix(uPaper,uInk,v),1.);return;
+  }
   float v=sampleAt((f+vec2(.125,.375))*k+uPan)+sampleAt((f+vec2(-.375,.125))*k+uPan)
          +sampleAt((f+vec2(-.125,-.375))*k+uPan)+sampleAt((f+vec2(.375,-.125))*k+uPan);
   gl_FragColor=vec4(mix(uPaper,uInk,v*.25),1.);
@@ -222,7 +251,7 @@ function initGL(){
   prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.useProgram(prog);
   const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uInk uPaper uPan uZoom'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+  'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uInk uPaper uPan uZoom uDots uDotN uDotSize uLight uLightAng'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
 }
 function extent(p){
   if(p.clip==3)return p.rim;
@@ -238,6 +267,7 @@ function render(p,target,size,phase=0,view=null){
   gl.uniform1f(U.uN,p.count);gl.uniform1f(U.uD,p.offset);gl.uniform1f(U.uR,p.radius);gl.uniform1f(U.uP,p.shape);
   gl.uniform1f(U.uAsp,p.aspect);gl.uniform1f(U.uSpin,p.spin);gl.uniform1f(U.uTilt,p.tilt);gl.uniform1f(U.uTwist,p.twist);
   gl.uniform1f(U.uRings,p.rings);gl.uniform1f(U.uSectors,2*Math.round(p.spokes*p.count/2));gl.uniform1f(U.uLine,p.outline);gl.uniform1f(U.uRim,p.rim);gl.uniform1f(U.uWarp,p.dome);gl.uniform1f(U.uInv,p.invert);gl.uniform1f(U.uHub,p.hub);gl.uniform1f(U.uNotch,p.notch);gl.uniform1f(U.uPx,extent(p)*1.0089/(size*.5)*(size/1000));gl.uniform1f(U.uLayers,p.layers);gl.uniform1f(U.uLS,p.layerScale);
+  gl.uniform1f(U.uDots,p.dots);gl.uniform1f(U.uDotN,p.dotN);gl.uniform1f(U.uDotSize,p.dotSize);gl.uniform1f(U.uLight,p.light);gl.uniform1f(U.uLightAng,p.lightAng);
   gl.uniform1f(U.uPhase,phase);gl.uniform1f(U.uExtent,extent(p));gl.uniform1f(U.uClip,p.clip);
   const pal=PALETTES[p.palette];gl.uniform3fv(U.uInk,hex(pal[1]));gl.uniform3fv(U.uPaper,hex(pal[2]));
   gl.drawArrays(gl.TRIANGLES,0,3);
@@ -272,8 +302,9 @@ PALETTES.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.te
 $('clip').addEventListener('change',e=>{push();P.clip=+e.target.value;changed()});
 $('invert').addEventListener('change',e=>{push();P.invert=+e.target.value;changed()});
 $('palette').addEventListener('change',e=>{push();P.palette=+e.target.value;changed()});
+$('dots').addEventListener('change',e=>{push();P.dots=+e.target.value;changed()});
 function fmt(s){const v=P[s.k];$('o_'+s.k).textContent=s.step>=1?v:(Math.abs(v)>=10?v.toFixed(1):v.toFixed(2))}
-function syncUI(){SPEC.forEach(s=>{$('p_'+s.k).value=P[s.k];fmt(s)});$('clip').value=P.clip;$('invert').value=P.invert;$('palette').value=P.palette;$('undo').disabled=!history.length}
+function syncUI(){SPEC.forEach(s=>{$('p_'+s.k).value=P[s.k];fmt(s)});$('clip').value=P.clip;$('invert').value=P.invert;$('palette').value=P.palette;$('dots').value=P.dots;$('undo').disabled=!history.length}
 let lastPush=0;
 function push(){const now=performance.now();if(now-lastPush<400)return;lastPush=now;history.push({...P});if(history.length>100)history.shift();$('undo').disabled=false}
 
@@ -304,7 +335,7 @@ for(let i=0;i<9;i++){const c=document.createElement('div');c.className='cell';c.
   grid.appendChild(c);cells.push(c)}
 const snap=(s,v)=>{v=Math.min(s.max,Math.max(s.min,v));return s.step>=1?Math.round((v-s.min)/s.step)*s.step+s.min:+v.toFixed(4)};
 function mutate(p,str){
-  const q={...p};const keys=SPEC.filter(s=>s.k!=='speed'&&allowed.has(s.g)),col=allowed.has('C');
+  const q={...p};const keys=SPEC.filter(s=>s.k!=='speed'&&allowed.has(s.g)&&(s.g!=='D'||p.dots)),col=allowed.has('C');
   const n=keys.length?1+Math.floor(Math.random()*3):0;
   for(let j=0;j<n;j++){const s=keys[Math.floor(Math.random()*keys.length)];
     const span=s.max-s.min;let dv=(Math.random()*2-1)*str*span;
@@ -385,7 +416,32 @@ $('reset').addEventListener('click',()=>{lastPush=0;push();P={...DEFAULTS};phase
 $('undo').addEventListener('click',()=>{if(!history.length)return;P=history.pop();syncUI();changed()});
 
 // --- SVG export: same geometry as the shader, as one even-odd path ---
+// Dots: the same centres and ink as the shader's dotCentre()/dotInk(), with coverage read back from a solid render
+function buildDotsSVG(p,ph){
+  const E=extent(p),V=E*1.0089,K=1000/V,f=v=>(v*K).toFixed(2),h=2*E/p.dotN,S=2048,kp=V/(S/2);
+  render({...p,dots:0},null,S,ph);const px=new Uint8Array(S*S*4);gl.readPixels(0,0,S,S,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  const pal=PALETTES[p.palette],ink=hex(pal[1]),paper=hex(pal[2]);
+  let ch=0;for(let c=1;c<3;c++)if(Math.abs(ink[c]-paper[c])>Math.abs(ink[ch]-paper[ch]))ch=c;
+  const at=(x,y)=>{const i=Math.min(S-1,Math.max(0,Math.floor(x/kp+S/2))),j=Math.min(S-1,Math.max(0,Math.floor(y/kp+S/2)));
+    return Math.min(1,Math.max(0,(px[(j*S+i)*4+ch]/255-paper[ch])/(ink[ch]-paper[ch])))};
+  const L=[Math.cos(p.lightAng),Math.sin(p.lightAng),1],ln=Math.hypot(...L);
+  const dotInk=(x,y)=>{let cov=0;for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)cov+=at(x+i*h/3,y+j*h/3);cov/=9;
+    if(p.light>0){const qx=x/E,qy=y/E,z2=1-qx*qx-qy*qy,lam=z2>0?Math.max((qx*L[0]+qy*L[1]+Math.sqrt(z2))/ln,0):0;cov*=1+(.15+.85*lam-1)*p.light}
+    return cov};
+  const cs=[];
+  if(p.dots==1){const n=Math.ceil(V/h);for(let i=-n;i<n;i++)for(let j=-n;j<n;j++)cs.push([(i+.5)*h,(j+.5)*h])}
+  else if(p.dots==2){const sy=h*Math.sqrt(3),n=Math.ceil(V/h)+1,m=Math.ceil(V/sy)+1;
+    for(let i=-n;i<n;i++)for(let j=-m;j<m;j++){cs.push([(i+.5)*h,(j+.5)*sy]);cs.push([(i+1)*h,(j+1)*sy])}}
+  else{cs.push([0,0]);for(let i=1;i*h<V*1.42;i++){const rho=i*h,n=p.count*Math.max(1,Math.round(2*Math.PI*rho/(h*p.count)));
+    for(let j=0;j<n;j++)cs.push([rho*Math.cos(2*Math.PI*j/n),rho*Math.sin(2*Math.PI*j/n)])}}
+  let d='';
+  for(const [x,y] of cs){if(Math.abs(x)>V+h||Math.abs(y)>V+h)continue;const r=.5*h*p.dotSize*Math.sqrt(dotInk(x,y));
+    if(r*K<.05)continue;d+=`M${f(x-r)} ${f(-y)}a${f(r)} ${f(r)} 0 1 0 ${f(2*r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2*r)} 0`}
+  drawMain();
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000" width="2000" height="2000">\n<rect x="-1000" y="-1000" width="2000" height="2000" fill="${pal[2]}"/>\n<path fill="${pal[1]}" d="${d}"/>\n</svg>\n`;
+}
 function buildSVG(p,ph){
+  if(p.dots)return buildDotsSVG(p,ph);
   const E=extent(p),V=E*1.0089,K=1000/V,w=p.dome,useW=w>.001,aw=useW?Math.asin(w):1;
   const f=v=>(v*K).toFixed(2);
   const rhoMax=useW?E*(Math.PI/2)/aw:V*1.5;

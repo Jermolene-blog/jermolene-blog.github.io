@@ -188,10 +188,11 @@ const DEF = {
   shape:'circle', size:0.82, sizeCurve:0.8, cutoff:0.03, fore:1, mode:'size', exportPx:'2048',
   bg:'#000000', colorMode:'solid', lit:'#ffffff', shade:'#000000', palette:'rainbow', hueSat:0.9, hueLight:0.6,
   c1:'#ff3e8a', c2:'#ffb347', c3:'#3ddcff', c4:'#7a4dff', custStops:3,
-  colorBy:'longitude', arms:21, repeats:1, offset:0, mirror:false, bands:0, drift:0, shadeMix:0.5, invert:false
+  colorBy:'longitude', arms:21, repeats:1, offset:0, mirror:false, bands:0, drift:0, shadeMix:0.5, invert:false,
+  pat:'none', patN:16, patOff:0.67, patR:0.69, patSq:2, patTurn:1, patTwist:0, patCover:0.6, patMix:1, patInv:false
 };
 
-const isCloud = s => s.form==='cloud', hasRipple = s => s.ripple!=='none';
+const isCloud = s => s.form==='cloud', hasRipple = s => s.ripple!=='none', hasPat = s => s.pat!=='none';
 const SCHEMA = [
  {sec:'Form', open:true, items:[
   {k:'form', type:'select', label:'Form', opts:{sphere:'Sphere',egg:'Egg',cube:'Cube',tetra:'Tetrahedron',octa:'Octahedron',dodeca:'Dodecahedron',icosa:'Icosahedron',cylinder:'Cylinder',cone:'Cone',torus:'Torus (doughnut)',drop:'Water drop',cloud:'Cloud'}},
@@ -285,6 +286,18 @@ const SCHEMA = [
   {k:'shadeMix', label:'Shade by light', min:0, max:1, step:0.01, rr:[0,0.9], show:s=>s.colorMode==='palette', tip:'Blends palette colours towards the shadow colour on the dark side'},
   {k:'invert', type:'check', label:'Invert light (shadows get big dots)'},
  ]},
+ {sec:'Pattern', items:[
+  {k:'pat', type:'select', label:'Surface pattern', opts:{none:'None',radialator:'Radialator ring'}, norand:true, tip:'Overlapping shapes on a ring, centred on the pole: dots are kept where an odd number of them overlap, as in Radialator'},
+  {k:'patN', label:'Shapes', min:3, max:60, step:1, rr:[5,30], show:hasPat},
+  {k:'patOff', label:'Ring offset', min:0, max:1.2, step:0.005, rr:[0.2,0.9], show:hasPat},
+  {k:'patR', label:'Shape size', min:0.05, max:1.2, step:0.005, rr:[0.3,0.9], show:hasPat},
+  {k:'patSq', label:'Squareness', min:0.5, max:8, step:0.05, rr:[1,4], show:hasPat},
+  {k:'patTurn', label:'Turn with ring', min:0, max:4, step:0.01, rr:[0,2], show:hasPat},
+  {k:'patTwist', label:'Twist', min:-6, max:6, step:0.05, rr:[0,0], show:hasPat},
+  {k:'patCover', label:'Reach (pole to pole)', min:0.1, max:1, step:0.01, rr:[0.4,1], show:hasPat, tip:'How far from the pole the ring reaches; 1 wraps it right round to the other pole'},
+  {k:'patMix', label:'Strength', min:0, max:1, step:0.01, rr:[0.7,1], show:hasPat, tip:'At 1 dots outside the pattern vanish; lower keeps them, smaller'},
+  {k:'patInv', type:'check', label:'Invert pattern', show:hasPat},
+ ]},
  {sec:'Download', items:[
   {k:'exportPx', type:'select', label:'PNG long edge', opts:{'1024':'1024 px','2048':'2048 px','4096':'4096 px'}, norand:true},
  ]},
@@ -303,6 +316,7 @@ const PRESETS = {
   'Disco': {dist:'latlong', count:5000, shape:'square', spec:1.3, shin:60, ambient:0.06, size:0.92, sizeCurve:0.45, lightAz:120, lightEl:40, tiltX:18, tiltZ:-12, yaw:20, bg:'#0a0b10', lit:'#eef1f8', colorMode:'shade', shade:'#33405c', cutoff:0.02, fore:1, radius:0.4},
   'Newsprint': {dist:'fib', count:11000, invert:true, bg:'#f1ece1', lit:'#17130e', ambient:0.04, cutoff:0.05, gamma:0.9, lightAz:140, lightEl:35, radius:0.4, tiltX:60, tiltZ:-20},
   'Crescent': {dist:'fib', count:16000, shade:'#465068', lit:'#f3efe4', bg:'#04050a', colorMode:'shade', wrap:0.15, lightAz:200, lightEl:-5, size:0.85, cutoff:0.02, radius:0.42, tiltX:90, tiltZ:0},
+  'Op art sphere': {pat:'radialator', patN:12, patOff:0.6, patR:0.62, patCover:0.85, count:16000, size:0.95, sizeCurve:0.5, ambient:0.15, tiltX:70, tiltZ:15, spin:4, bg:'#f4f1ea', lit:'#141414'},
   'Hatching': {dist:'rings', count:5200, shape:'line', size:1.25, sizeCurve:0.8, bg:'#121211', lit:'#e9e3d4', stagger:0.5, tiltX:70, tiltZ:20, radius:0.4},
   'Rim': {lightEl:-35, lightAz:90, rim:0.9, rimPow:2.4, ambient:0, spin:12, orbit:20, lit:'#a7dcff', bg:'#000000', radius:0.4, cutoff:0.03},
   'Dice': {form:'cube', sharp:14, dist:'cube', count:6000, shape:'square', size:0.9, colorMode:'shade', lit:'#f4f1ea', shade:'#3a3d4a', bg:'#0b0c10', ambient:0.2, wrap:0.3, lightAz:150, lightEl:50, spec:0.5, shin:40, tiltX:30, tiltZ:35, yaw:20, spin:6, radius:0.4},
@@ -539,6 +553,29 @@ function makePen(svg){
 /* ---------- renderer ---------- */
 const LEVELS = 48;
 let spinAng = 0, colourPhase = 0, animT = 0, lightOff = 0, lastStat = '';
+// Surface pattern: Radialator's parity (odd = 1) at each dot's place on the unit sphere, mapped out from the pole; cached per point set
+let PATC = {P:null, key:'', v:null};
+function patternValues(s, P){
+  const key = [s.patN,s.patOff,s.patR,s.patSq,s.patTurn,s.patTwist,s.patCover].join('|');
+  if (PATC.P===P && PATC.key===key) return PATC.v;
+  const N=Math.max(3,s.patN|0), reach=s.patSq>2?Math.pow(2,.5-1/s.patSq):1, E=Math.max(.05, s.patOff+s.patR*reach);
+  const ca=[],sa=[],cr=[],sr=[];
+  for (let k=0;k<N;k++){ const a=2*Math.PI*k/N; ca.push(Math.cos(a)); sa.push(Math.sin(a)); cr.push(Math.cos(a*s.patTurn)); sr.push(Math.sin(a*s.patTurn)); }
+  const v = new Uint8Array(P.n);
+  for (let i=0;i<P.n;i++){
+    const rho = Math.acos(Math.max(-1,Math.min(1,P.y[i])))/Math.PI/s.patCover*E;
+    if (rho>E) continue;
+    const th = Math.atan2(P.z[i],P.x[i]) + s.patTwist*rho;
+    const x=rho*Math.cos(th), y=rho*Math.sin(th);
+    let c=0;
+    for (let k=0;k<N;k++){
+      const dx=x-s.patOff*ca[k], dy=y-s.patOff*sa[k], u=Math.abs(dx*cr[k]+dy*sr[k])/s.patR, w=Math.abs(dy*cr[k]-dx*sr[k])/s.patR;
+      if (Math.pow(u,s.patSq)+Math.pow(w,s.patSq)<1) c++;
+    }
+    v[i]=c&1;
+  }
+  PATC = {P, key, v}; return v;
+}
 function render(ctx, W, H, svgMode, st, an){
   st = st || S;
   const TAU = Math.PI*2, s=st, P=genPoints(st), G=genGeom(st,P,animT), A = an || {spin:spinAng, light:lightOff, colour:colourPhase};
@@ -558,6 +595,7 @@ function render(ctx, W, H, svgMode, st, an){
   const pens = []; const penFor = k => pens[k] || (pens[k]=makePen(svgMode));
   let drawn = 0;
   const shape = s.shape, fore = s.fore;
+  const PV = s.pat!=='none' && s.patMix>0 ? patternValues(s,P) : null, pinv = s.patInv?1:0;
   const GX=G?G.px:P.x, GY=G?G.py:P.y, GZ=G?G.pz:P.z, NX=G?G.nx:P.x, NY=G?G.ny:P.y, NZ=G?G.nz:P.z, TX=G?G.tx:P.tx, TY=G?G.ty:P.ty, TZ=G?G.tz:P.tz, GJ=G?G.j:null;
   // rotate dot i into view: position q, normal n, perspective scale and screen position; false if it faces away
   let qx,qy,qz,nx,ny,nz,sc,sx,sy;
@@ -602,6 +640,7 @@ function render(ctx, W, H, svgMode, st, an){
     if (b < s.cutoff || b<=0) continue;
     let r = base*P.w[i]*sc*(GJ?GJ[i]:1);
     if (s.mode!=='opacity') r *= Math.pow(b, s.sizeCurve);
+    if (PV && (PV[i]^pinv)===0) r *= 1-s.patMix;
     if (pt!=='none' && s.pulse>0){
       let ph;
       if (pt==='latitude') ph = TAU*pw*Math.acos(py<-1?-1:py>1?1:py)/Math.PI;
