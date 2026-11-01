@@ -1,0 +1,99 @@
+{
+	"name": "Jermolene's Tools",
+	"short_name": "Tools",
+	"description": "Tools from jermolene.com, all in one app",
+	"id": "/tools/",
+	"start_url": "/tools/",
+	"scope": "/tools/",
+	"display": "standalone",
+	"theme_color": "#5c59a7",
+	"background_color": "#ffffff",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Jpegulator",
+			"description": "Turn PNG, WebP, TIFF and other images into JPEGs, cropped and resized alike, one at a time or a whole folder into a ZIP",
+			"url": "/tools/jpegulator/",
+			"icons": [
+				{
+					"src": "/tools/jpegulator/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Over-Underiser",
+			"description": "Open an SVG and weave it: wherever closed shapes overlap, a click cycles which one passes over the top",
+			"url": "/tools/over-underiser/",
+			"icons": [
+				{
+					"src": "/tools/over-underiser/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "The Lenticulator",
+			"description": "Print and fold lenticular pictures that change as the observer moves",
+			"url": "/tools/lenticulator/",
+			"icons": [
+				{
+					"src": "/tools/lenticulator/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Tunerful",
+			"description": "A guitar tuner built like a chart recorder: it listens through the microphone, spots the string you play, and plots its pitch on paper that scrolls up from the pen, with reference tones for eight tunings",
+			"url": "/tools/tunerful/",
+			"icons": [
+				{
+					"src": "/tools/tunerful/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Vectorious",
+			"description": "Quantise a photo to black and white and trace it into a vector drawing, downloadable as SVG or PDF",
+			"url": "/tools/vectorious/",
+			"icons": [
+				{
+					"src": "/tools/vectorious/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		}
+	]
+}

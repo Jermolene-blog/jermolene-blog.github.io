@@ -1,10 +1,12 @@
 /*
-Shared by the toys index at /toys/ and by every toy beneath it, which include
-it with `<script src="../pwa.js" defer></script>`.
+Shared by the indexes of the toys at /toys/, the games at /games/ and the
+tools at /tools/, and by every toy beneath them, which include it with
+`<script src="../pwa.js" defer></script>`. build-pwa.js copies it from
+static-assets/toys into the other sections.
 
 It registers the service worker `sw.js` next to this script, whose scope
-covers the index and all of the toys, so that whichever page is visited first
-makes the whole collection available offline and installable.
+covers the section's index and all of its toys, so that whichever page is visited first
+makes the whole section available offline and installable.
 
 When the index has been installed as an app, each toy opened from it shows a
 small button in the bottom-left corner that returns to the index. The button
@@ -143,8 +145,8 @@ function addHomeButton() {
 	].join("");
 	link.className = "jermolene-toys-home";
 	link.href = toysUrl.href;
-	link.title = "Back to the toys";
-	link.setAttribute("aria-label","Back to the toys");
+	link.title = "Back to the " + (hubPath.split("/").filter(Boolean)[0] || "toys");
+	link.setAttribute("aria-label",link.title);
 	link.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
 		'<rect x="2.5" y="2.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.2"/>' +
 		'<rect x="2.5" y="11.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.2"/></svg>';

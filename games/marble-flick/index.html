@@ -1,0 +1,1840 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jermolene">
+<meta property="og:title" content="Marble Flick">
+<meta property="og:description" content="Flick marbles into the rings and knock your rivals into the hole, watched over by some very opinionated cats. For up to four players and computer opponents around one screen">
+<meta property="og:url" content="https://jermolene.com/games/marble-flick/">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://jermolene.com/social/games/marble-flick.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Marble Flick: Flick marbles into the rings, watched by some very opinionated cats">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marble Flick</title>
+<meta name="description" content="Flick marbles into the rings and knock your rivals into the hole, watched over by some very opinionated cats. For up to four players and computer opponents around one screen">
+<meta name="toy-tagline" content="Flick marbles into the rings, watched by some very opinionated cats">
+<meta name="toy-category" content="games">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#244a3d; --felt-deep:#173229; --ink:#f5eedd; --ink-dim:#c2cbbd;
+  --panel:rgba(18,38,31,.9); --line:rgba(245,238,221,.2); --accent:#f2c14e;
+  --p0:#3a6fd8; --p1:#c23a2e; --p2:#2fa274; --p3:#e7a91f;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  font-family:Fredoka,"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --felt:#1b3a30; --felt-deep:#0f231c; --panel:rgba(12,28,22,.92); } }
+:root[data-theme="dark"]{ --felt:#1b3a30; --felt-deep:#0f231c; --panel:rgba(12,28,22,.92); }
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--felt-deep);color:var(--ink);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#stage{position:relative;width:100%;height:100%;overflow:hidden;touch-action:none}
+#stage canvas{display:block;width:100%;height:100%}
+
+.badge{position:absolute;width:180px;transform-origin:50% 50%;padding:10px 14px 11px;border-radius:18px;background:var(--panel);
+  border:2px solid var(--line);transition:border-color .25s, box-shadow .25s, opacity .25s;opacity:.78;pointer-events:none}
+.badge.on{opacity:1;border-color:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 30%,transparent),0 8px 24px rgba(0,0,0,.35)}
+.badge .row{display:flex;align-items:center;gap:10px}
+.badge .dot{width:22px;height:22px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#fff 0 8%,var(--c) 30%,color-mix(in srgb,var(--c) 55%,#000) 100%)}
+.badge .name{font-weight:600;font-size:17px;letter-spacing:.01em}
+.badge .score{margin-left:auto;font-weight:700;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.badge .pips{display:flex;gap:4px;margin-top:6px}
+.badge .pip{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.badge .pips{align-items:center}
+.badge .pip.big{width:14px;height:14px}
+.badge .pip.used{background:transparent;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--c) 60%,transparent)}
+.badge .msg{font-size:14px;color:var(--ink-dim);margin-top:6px;line-height:1.3;min-height:0}
+.badge .msg:empty{display:none}
+/* badges sit diagonally across each corner; position and angle are set in resize() */
+
+.pop{position:absolute;font-weight:700;font-size:26px;pointer-events:none;text-shadow:0 2px 6px rgba(0,0,0,.6);
+  transform:translate(-50%,-50%);animation:rise 1.3s ease-out forwards}
+@keyframes rise{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-60px}}
+@media (prefers-reduced-motion: reduce){.pop{animation:fade 1.3s forwards}@keyframes fade{from{opacity:1}to{opacity:0}}}
+
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at center,rgba(10,22,18,.55),rgba(10,22,18,.85));z-index:5}
+.overlay[hidden]{display:none}
+.card{width:min(460px,100%);max-height:100%;overflow:auto;background:var(--panel);border:2px solid var(--line);border-radius:28px;padding:26px 26px 24px}
+h1{font-weight:700;font-size:44px;line-height:1;margin:0 0 8px;letter-spacing:-.01em}
+h1 .m{display:inline-block;width:.62em;height:.62em;border-radius:50%;vertical-align:.02em;margin:0 .02em;
+  background:radial-gradient(circle at 35% 30%,#fff 0 9%,var(--p3) 32%,#8a5a07 100%)}
+.lede{color:var(--ink-dim);margin:0 0 20px;font-size:16px;line-height:1.45}
+.seats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.seat{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;border:2px solid var(--line);background:transparent;
+  color:var(--ink);font:inherit;cursor:pointer;text-align:left}
+.seat .dot{width:24px;height:24px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#fff 0 8%,var(--c) 30%,color-mix(in srgb,var(--c) 55%,#000) 100%)}
+.seat b{display:block;font-weight:600;font-size:16px}
+.seat span{display:block;font-size:13px;color:var(--ink-dim)}
+.seat[data-mode="off"]{opacity:.5}
+.seat[data-mode="off"] .dot{filter:grayscale(1)}
+.seat:not([data-mode="off"]){border-color:var(--c)}
+.optrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 18px;font-size:15px;color:var(--ink-dim)}
+.seg{display:flex;border:2px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:inherit;color:var(--ink);background:none;border:0;padding:6px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--felt-deep);font-weight:600}
+.how{font-size:14px;color:var(--ink-dim);line-height:1.5;margin:0 0 20px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.18)}
+.how strong{color:var(--ink);font-weight:600}
+.go{width:100%;font:inherit;font-weight:600;font-size:19px;padding:14px;border-radius:999px;border:0;cursor:pointer;background:var(--accent);color:#2a1d00}
+.go:disabled{opacity:.4;cursor:default}
+.ghost{width:100%;font:inherit;font-size:16px;padding:11px;margin-top:10px;border-radius:999px;border:2px solid var(--line);background:none;color:var(--ink);cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.results{list-style:none;padding:0;margin:0 0 20px}
+.results li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:18px}
+.results li .dot{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0 8%,var(--c) 30%,color-mix(in srgb,var(--c) 55%,#000) 100%)}
+.results li .pts{margin-left:auto;font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
+.results li.win{font-weight:600}
+/* a cat at the head of a card: a point for a CatActor to stand on, centred, or against the card's right-hand edge */
+.catspot{position:relative;width:0;height:var(--h,84px);margin:-6px auto 8px}
+.catspot.side{position:absolute;right:0;top:0;height:0;margin:0}
+.card{position:relative}
+#over{background:radial-gradient(ellipse at center,rgba(10,22,18,.2),rgba(10,22,18,.45))}
+@media (max-width:479px){#setup .catspot{display:none}}
+@media (max-height:639px){#over .catspot{display:none}}
+.banner{position:absolute;left:50%;top:50%;z-index:4;pointer-events:none;font-weight:700;font-size:clamp(32px,7vmin,64px);
+  color:#fff8ec;text-shadow:0 3px 0 var(--c),0 6px 18px rgba(0,0,0,.55);white-space:nowrap;text-align:center;transform:translate(-50%,-50%) scale(.4);opacity:0}
+.banner.go{animation:bannerIn 1.6s cubic-bezier(.3,1.4,.5,1) forwards}
+.banner.win{font-size:clamp(40px,11vmin,104px);animation-duration:3.4s}
+@keyframes bannerIn{0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scale(.4)}18%{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scale(1)}80%{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--rot,0deg)) scale(1.15)}}
+/* debug panel: a button for every animation, switched on from the opening screen */
+.optrow input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--accent);cursor:pointer}
+.debug{position:absolute;left:8px;top:50%;transform:translateY(-50%);z-index:7;width:204px;max-height:calc(100% - 120px);overflow:auto;touch-action:pan-y;
+  padding:6px 10px 10px;border-radius:14px;background:var(--panel);border:2px solid var(--line);font-size:12px;color:var(--ink-dim)}
+.debug[hidden],.debug [hidden]{display:none}
+.debug button,.debug select{font:inherit;color:var(--ink);background:none;border:1.5px solid var(--line);border-radius:999px;padding:3px 9px;cursor:pointer}
+.debug select{border-radius:8px;padding:3px 4px;max-width:100%}
+.debug select option{color:#000}
+.debug input[type=range]{flex:0 0 100%;width:100%;margin:2px 0;accent-color:var(--accent)}
+.debug button:hover{border-color:var(--ink-dim)}
+.debug .head{display:block;width:100%;border:0;padding:2px 0;text-align:left;font-weight:600;font-size:13px}
+.debug h2{margin:9px 0 5px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.debug .set{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.debug .seatdot{width:22px;height:22px;padding:0;border:2px solid transparent;background:radial-gradient(circle at 35% 30%,#fff 0 8%,var(--c) 30%,color-mix(in srgb,var(--c) 55%,#000) 100%)}
+.debug .seatdot[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--felt-deep) inset}
+#menuBtn{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:4;
+  font:inherit;font-size:14px;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:var(--panel);color:var(--ink-dim);cursor:pointer}
+  /* Keep iOS from selecting the page on taps and long presses */
+  body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  input,textarea{-webkit-user-select:text;user-select:text}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#244a3d">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../pwa.js" defer></script>
+</head>
+<body>
+<div id="stage">
+  <div class="badge bl" id="b0"></div>
+  <div class="badge br" id="b1"></div>
+  <div class="badge tr" id="b2"></div>
+  <div class="badge tl" id="b3"></div>
+  <button id="menuBtn" hidden>Menu</button>
+  <div class="banner" id="banner"></div>
+  <div class="debug" id="debug" hidden>
+    <button class="head" id="debugHead" aria-expanded="true">Debug ▾</button>
+    <div id="debugBody"></div>
+  </div>
+
+  <div class="overlay" id="setup">
+    <div class="card">
+      <div class="catspot side" id="setupCat"></div>
+      <h1>Marble Flick <span class="m"></span></h1>
+      <p class="lede">Gather round the board. Flick marbles into the rings, knock rivals into the hole, and impress the cats.</p>
+      <div class="seats" id="seats"></div>
+      <div class="optrow">Marbles each
+        <div class="seg" id="perSeg">
+          <button data-n="3">3</button><button data-n="5" aria-pressed="true">5</button><button data-n="7">7</button>
+        </div>
+      </div>
+      <div class="optrow">Play
+        <div class="seg" id="playSeg"><button data-p="turns" aria-pressed="true">Take turns</button><button data-p="rapid">Rapid fire</button></div>
+      </div>
+      <div class="optrow">Marble finish
+        <div class="seg finishSeg"><button data-f="swirl">Swirl</button><button data-f="glass" aria-pressed="true">Glass</button></div>
+      </div>
+      <div class="optrow">Sound
+        <div class="seg soundSeg"><button data-s="on" aria-pressed="true">On</button><button data-s="off">Off</button></div>
+      </div>
+      <label class="optrow" for="debugChk">Debug panel<input type="checkbox" id="debugChk"></label>
+      <p class="how"><strong>Drag back</strong> from your marble and let go to flick it. When everything stops, marbles in the rings score <strong>1, 3 and 5</strong>. Sinking a rival's marble in the centre hole earns <strong>+3</strong>. Anything that rolls off the edge is gone, and a marble left sitting on a launch pad is swatted off the board by an irritated paw, costing the shooter <strong>2</strong>. The four <strong>hotspots</strong> on the edges swallow any marble that rolls slowly across them and set something off: a catquake, a fit of the zoomies, a paw that reaches out of the hole and helps itself, or a cat who strolls on and bats a marble away. Handy when you're losing. Each one needs a full round to recharge, and after every event the hotspots shuffle places. Every third marble is a <strong>giant</strong>: heavy enough to bulldoze, too big for the hole, and it shrinks back once everything stops. In <strong>rapid fire</strong> nobody waits their turn: everyone flicks whenever they like, a fresh marble appears on your pad a moment after each flick, and there are no giants or pad swats. Tap a seat to switch it between player, computer and empty.</p>
+      <button class="go" id="startBtn">Start game</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="over" hidden>
+    <div class="card">
+      <div class="catspot" id="overCat" style="--h:112px"></div>
+      <h1 id="winTitle">Game over</h1>
+      <p class="lede" id="winSub"></p>
+      <ol class="results" id="results"></ol>
+      <button class="go" id="againBtn">Play again</button>
+      <button class="ghost" id="changeBtn">Change players</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="pause" hidden>
+    <div class="card">
+      <div class="catspot side" id="pauseCat"></div>
+      <h1>Paused</h1>
+      <p class="lede">The marbles will wait.<br>The cats might not.</p>
+      <div class="optrow">Marble finish
+        <div class="seg finishSeg"><button data-f="swirl">Swirl</button><button data-f="glass" aria-pressed="true">Glass</button></div>
+      </div>
+      <div class="optrow">Sound
+        <div class="seg soundSeg"><button data-s="on" aria-pressed="true">On</button><button data-s="off">Off</button></div>
+      </div>
+      <button class="go" id="resumeBtn">Resume</button>
+      <button class="ghost" id="quitBtn">End game and change players</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="../cat/cat-actor.js"></script>
+<script src="../cat/cat-puppet.js"></script>
+<script src="../cat/cat-voice.js"></script>
+<script>
+/* ===== PHYSICS (pure, deterministic; shared by game and computer players) ===== */
+const R = 0.525, HALF = 10, CORNER_R = 0.7, HOLE_R = 0.75, FUNNEL_R = 1.9, PAD = 8.3;
+const ZONES = [{ r: 2.6, pts: 5 }, { r: 5, pts: 3 }, { r: 7.6, pts: 1 }];
+const PHYS = { a0: 1.1, k: 0.32, e: 0.9, funnel: 5.5, vmax: 15, holeCatch: 4.6, rest: 0.04, settle: 0.3, dt: 1 / 120 };
+
+function offBoard(x, z) {
+  const ax = Math.abs(x), az = Math.abs(z), c = HALF - CORNER_R;
+  if (ax > HALF || az > HALF) return true;
+  if (ax > c && az > c && Math.hypot(ax - c, az - c) > CORNER_R) return true;
+  return false;
+}
+function zonePts(m) {
+  const d = Math.hypot(m.x, m.z);
+  for (const z of ZONES) if (d < z.r) return z.pts;
+  return 0;
+}
+// inner rings turn (same direction), faster towards the centre: rad/s for ZONES[0..2]
+const RING_W = [0.32, 0.15, 0.06];
+const GIANT = 1.8;   // radius multiple for a giant shot; mass scales with volume
+function omegaAt(d, mul = 1) {
+  if (d <= HOLE_R) return 0;
+  for (let i = 0; i < ZONES.length; i++) if (d < ZONES[i].r) return RING_W[i] * mul;
+  return 0;
+}
+// returns true while any marble moves across its surface faster than a slow ring-boundary jostle
+function stepWorld(W, dt, ev) {
+  const ms = W.marbles;
+  let maxRel = 0;
+  for (const m of ms) {
+    if (!m.alive || m.ghost) continue;
+    const d = Math.hypot(m.x, m.z), w = omegaAt(d, W.spinMul || 1);
+    const ux = -w * m.z, uz = w * m.x;            // surface velocity under the marble
+    const g = (m.r < HOLE_R && d < FUNNEL_R && d > 1e-5) ? PHYS.funnel * (1 - d / FUNNEL_R) : 0;   // giants bridge the hole
+    let rx = m.vx - ux, rz = m.vz - uz, s = Math.hypot(rx, rz);
+    if (s < PHYS.rest && g <= PHYS.a0 && w * w * d <= PHYS.a0) {   // at rest on the ring: carried round with it (unless spinning fast enough to fling it)
+      if (w) { const c = Math.cos(w * dt), sn = Math.sin(w * dt), x = m.x; m.x = x * c - m.z * sn; m.z = x * sn + m.z * c; }
+      m.vx = -w * m.z; m.vz = w * m.x;
+      continue;
+    }
+    if (g > 0) { rx -= m.x / d * g * dt; rz -= m.z / d * g * dt; s = Math.hypot(rx, rz); }
+    if (s > 0) { const ns = Math.max(0, s - (PHYS.a0 + PHYS.k * s) * dt), f = ns / s; rx *= f; rz *= f; }
+    m.vx = ux + rx; m.vz = uz + rz;
+    m.x += m.vx * dt; m.z += m.vz * dt;
+    maxRel = Math.max(maxRel, Math.hypot(rx, rz));
+  }
+  for (let i = 0; i < ms.length; i++) {
+    const a = ms[i]; if (!a.alive || a.ghost) continue;
+    for (let j = i + 1; j < ms.length; j++) {
+      const b = ms[j]; if (!b.alive || b.ghost) continue;
+      const D = a.r + b.r, dx = b.x - a.x, dz = b.z - a.z, d2 = dx * dx + dz * dz;
+      if (d2 >= D * D || d2 < 1e-10) continue;
+      const ia = 1 / a.mass, ib = 1 / b.mass, iab = ia + ib;
+      const d = Math.sqrt(d2), nx = dx / d, nz = dz / d, ov = D - d;
+      a.x -= nx * ov * ia / iab; a.z -= nz * ov * ia / iab; b.x += nx * ov * ib / iab; b.z += nz * ov * ib / iab;
+      const rv = (b.vx - a.vx) * nx + (b.vz - a.vz) * nz;
+      if (rv < 0) {
+        const J = -(1 + PHYS.e) * rv / iab, j2 = J / Math.min(a.mass, b.mass);
+        a.vx -= J * ia * nx; a.vz -= J * ia * nz; b.vx += J * ib * nx; b.vz += J * ib * nz;
+        if (ev && j2 > 0.25) ev.push({ t: 'hit', imp: j2, x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, big: a.r > R || b.r > R });
+      }
+    }
+  }
+  for (const m of ms) {
+    if (!m.alive || m.ghost) continue;
+    const d = Math.hypot(m.x, m.z), s = Math.hypot(m.vx, m.vz);
+    if (m.r < HOLE_R && d < HOLE_R - 0.12 && s < PHYS.holeCatch) {
+      m.alive = false; m.fate = 'hole';
+      const bonus = m.owner !== W.shooter;
+      if (bonus) W.bonus[W.shooter] += 3;
+      if (ev) ev.push({ t: 'hole', m, bonus });
+    } else if (offBoard(m.x, m.z)) {
+      m.alive = false; m.fate = 'edge';
+      if (ev) ev.push({ t: 'edge', m });
+    } else if (W.spotCool && s < SPOT_CATCH) {
+      // a hotspot swallows any marble crossing it slowly enough; its event runs once the board settles
+      for (let i = 0; i < SPOTS.length; i++) {
+        if (W.spotCool[i] > 0 || Math.hypot(m.x - SPOTS[i].x, m.z - SPOTS[i].z) >= SPOT_R) continue;
+        m.alive = false; m.fate = 'spot';
+        const type = W.spotTypes[i];
+        W.spotCool[i] = W.spotCoolTurns || 1; W.spotQueue.push(type);
+        if (ev) ev.push({ t: 'spot', m, i, type });
+        break;
+      }
+    }
+  }
+  return maxRel > PHYS.settle;
+}
+function scoresOf(W) {
+  const s = W.bonus.slice();
+  for (const m of W.marbles) if (m.alive && !m.ghost) s[m.owner] += zonePts(m);
+  return s;
+}
+// a marble left resting on an occupied seat's launch pad is destroyed, and the shooter pays for it
+const PAD_CLEAR = 1.3, PAD_PENALTY = 2;
+function padCulprits(W) {
+  return W.marbles.filter(m => m.alive && !m.ghost && (W.pads || []).some(([px, pz]) => Math.hypot(m.x - px, m.z - pz) < PAD_CLEAR));
+}
+function clearPad(W, m) { m.alive = false; m.fate = 'pad'; W.bonus[W.shooter] -= PAD_PENALTY; }
+// hotspots at the middle of each edge: rest a marble on one to sacrifice it and trigger an event
+const SPOTS = [{ x: 0, z: 8.9 }, { x: 8.9, z: 0 }, { x: 0, z: -8.9 }, { x: -8.9, z: 0 }];
+const SPOT_TYPES = {
+  quake: { color: '#c9782c', name: 'Catquake!' },
+  spin: { color: '#7b4bd6', name: 'Zoomies!' },
+  cat: { color: '#6f7f90', name: 'Here, kitty…' },
+  paw: { color: '#3f8f3a', name: 'Grabby paw!' },
+};
+const SPOT_R = 0.95, SPOT_CATCH = 5, SPIN_SURGE = 4;
+function cloneWorld(W) {
+  return { marbles: W.marbles.filter(m => m.alive).map(m => ({ ...m })), bonus: W.bonus.slice(), shooter: W.shooter, pads: W.pads, spotCool: W.spotCool && W.spotCool.slice(), spotQueue: (W.spotQueue || []).slice(), spotCoolTurns: W.spotCoolTurns, spotTypes: W.spotTypes, spinMul: W.spinMul };
+}
+// lead: seconds the world turns before the flick (so the computer can aim at where marbles will be)
+function simulateShot(W, vx, vz, lead = 0) {
+  const S = cloneWorld(W);
+  for (let t = 0; t < lead; t += PHYS.dt) stepWorld(S, PHYS.dt, null);
+  const g = S.marbles.find(m => m.ghost);
+  g.ghost = false; g.vx = vx; g.vz = vz;
+  let t = 0;
+  while (t < 14) { if (!stepWorld(S, PHYS.dt, null)) break; t += PHYS.dt; }
+  let shrunk = false;
+  for (const m of S.marbles) if (m.alive && m.r > R) { m.r = R; m.mass = 1; shrunk = true; }
+  if (shrunk) { t = 0; while (t < 8) { if (!stepWorld(S, PHYS.dt, null)) break; t += PHYS.dt; } }
+  for (const m of padCulprits(S)) clearPad(S, m);
+  return S;
+}
+/* ===== END PHYSICS ===== */
+
+const SEATS = [
+  { name: 'Cobalt', color: '#0a5cff', pad: [-PAD, PAD] },
+  { name: 'Oxblood', color: '#d90b1e', pad: [PAD, PAD] },
+  { name: 'Jade', color: '#00b558', pad: [PAD, -PAD] },
+  { name: 'Amber', color: '#ffc000', pad: [-PAD, -PAD] },
+];
+const MODES = ['human', 'cpu', 'off'];
+const MODE_LABEL = { human: 'Player', cpu: 'Computer', off: 'Empty seat' };
+const seatModes = ['human', 'cpu', 'off', 'off'];
+let perPlayer = 5;
+
+/* seeded random for textures */
+function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const smooth = (a, b, v) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/* a cat pops up from the shooter's corner at the end of each go: delighted if the shot gained points, and
+   pointedly unimpressed if it did not. Some are cut-out cats striking a pose, and some the upright puppet */
+const REACT_MS = 2000;
+const REACTIONS = {
+  cheer: ['beg', c => { sChirp(); setTimeout(sChirp, 380); return c.play('cheer'); }],
+  flip: ['beg', async c => { sChirp(1.25); if (await c.play('flip')) { sChirp(); await c.play('hop'); } }],
+  hop: ['upright', c => { sChirp(); return c.play('cheer', { hops: 2, height: 0.26 }); }],
+  wave: ['paw-up', c => { sChirp(0.9); return c.play('wiggle', { deg: 6 }); }],
+  yawn: ['loaf', c => { setTimeout(sYawn, 260); return c.play('yawn'); }],
+  groom: ['groom', c => { sTut(); return c.play('tilt', { deg: -5, duration: 1100 }); }],
+  snub: ['look-away', c => { sTut(); return c.play('shake', { times: 2 }); }],
+  applaud: { play: 'clap', opts: () => ({ claps: 4, onBeat: sPat }) },
+  hurrah: { play: 'cheer', sound: () => { sChirp(); setTimeout(sChirp, 350); } },
+  salute: { play: 'wave', sound: () => sChirp(0.9) },
+  despair: { play: 'facepaw', sound: () => sTut() },
+  slump: { play: 'slump', sound: () => sYawn() },
+};
+let reactCat = null, reactPuppet = null, reactRun = 0;
+// stand a cat in a seat's corner, head towards the middle of the board, with its feet tucked out of sight
+function cornerCat(cat, seat, size) {
+  const [ax, ay] = cornerPoint(seat, stage.clientWidth, stage.clientHeight), k = CORNER[seat], d = size * 0.3;
+  return cat.place({ x: ax - k.sx * d, y: ay - k.sy * d, rot: k.rot, size });
+}
+const reactSize = () => Math.min(Math.min(stage.clientWidth, stage.clientHeight) * 0.3, 210);
+// name picks the reaction; left out, it follows from the points gained
+async function catReact(seat, gained, name = gained >= 5 ? pick(['flip', 'hurrah']) : pick(gained > 0 ? ['cheer', 'hop', 'wave', 'applaud', 'hurrah', 'salute'] : ['yawn', 'groom', 'snub', 'despair', 'slump'])) {
+  const r = REACTIONS[name], puppet = !Array.isArray(r), run = ++reactRun;
+  for (const c of [reactCat, reactPuppet]) if (c) c.stop().hide();
+  const cat = puppet ? reactPuppet || (reactPuppet = new CatPuppet(stage, { rig: 'upright', hidden: true, z: 3 })) : reactCat || (reactCat = new CatActor(stage, { hidden: true, z: 3 }));
+  cornerCat(cat, seat, reactSize());
+  if (puppet) cat.place({ flip: Math.random() < 0.5 }); else cat.pose(r[0]);
+  sSwoosh(true);
+  setTimeout(() => { if (run === reactRun) { sSwoosh(false, 0.18); cat.exit(); } }, REACT_MS - 350);
+  if (!await cat.enter() || run !== reactRun) return;
+  if (!puppet) r[1](cat);
+  else { if (r.sound) r.sound(); cat.play(r.play, { rate: 1.45, ...(r.opts ? r.opts() : {}) }); }
+}
+function dismissCats() {
+  reactRun++;
+  for (const cat of [reactCat, reactPuppet, walkerCat, pawArm, debugCat, ...Object.values(debugPuppets), ...quakeCats]) if (cat) cat.stop().hide();
+  endParty();
+}
+
+/* seat corners, in screen terms: seat 0 bottom-left, 1 bottom-right, 2 top-right, 3 top-left.
+   rot turns text so its top points from that corner towards the centre of the board. */
+const CORNER = [{ sx: -1, sy: 1, rot: 45 }, { sx: 1, sy: 1, rot: -45 }, { sx: 1, sy: -1, rot: -135 }, { sx: -1, sy: -1, rot: 135 }];
+const BADGE_W = 180, BADGE_H = 104;
+function cornerPoint(i, w, h) { return [CORNER[i].sx < 0 ? 0 : w, CORNER[i].sy < 0 ? 0 : h]; }
+
+/* ===== THREE SETUP ===== */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#10231c');
+const camera = new THREE.PerspectiveCamera(30, 1, 1, 200);
+camera.up.set(0, 0, -1);
+
+// environment for glossy reflections
+(function makeEnv() {
+  const pm = new THREE.PMREMGenerator(renderer);
+  const es = new THREE.Scene();
+  es.add(new THREE.Mesh(new THREE.BoxGeometry(40, 40, 40), new THREE.MeshBasicMaterial({ color: 0x2a3a33, side: THREE.BackSide })));
+  const panel = (w, h, c, x, y, z) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); es.add(m); };
+  panel(14, 6, 0xffffff, -8, 16, 6);
+  panel(8, 8, 0xfff0d8, 12, 12, -8);
+  panel(20, 3, 0x9fd0ff, 0, 6, -18);
+  panel(6, 12, 0xffe2b0, 18, 4, 8);
+  scene.environment = pm.fromScene(es, 0.04).texture;
+})();
+
+scene.add(new THREE.HemisphereLight(0xfff4e2, 0x1e3a2e, 0.55));
+const sun = new THREE.DirectionalLight(0xfff1dc, 1.5);
+sun.position.set(-9, 22, 7);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -15, right: 15, top: 15, bottom: -15, near: 5, far: 50 });
+sun.shadow.bias = -0.0004;
+sun.shadow.radius = 4;
+scene.add(sun);
+
+/* table felt */
+(function makeTable() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d'), r = rng(7);
+  g.fillStyle = '#244a3d'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 9000; i++) { g.fillStyle = r() < .5 ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.035)'; g.fillRect(r() * 256, r() * 256, 1, 1 + r() * 2); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 30); t.encoding = THREE.sRGBEncoding;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ map: t, roughness: 1 }));
+  m.rotation.x = -Math.PI / 2; m.position.y = -0.62; m.receiveShadow = true; scene.add(m);
+})();
+
+/* board */
+function roundedSquare(s, h, cr) {
+  s.moveTo(-h + cr, -h); s.lineTo(h - cr, -h); s.quadraticCurveTo(h, -h, h, -h + cr);
+  s.lineTo(h, h - cr); s.quadraticCurveTo(h, h, h - cr, h); s.lineTo(-h + cr, h);
+  s.quadraticCurveTo(-h, h, -h, h - cr); s.lineTo(-h, -h + cr); s.quadraticCurveTo(-h, -h, -h + cr, -h);
+}
+function drawBoardCanvas() {
+  const S = 2048, u = S / 20, C = S / 2;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), r = rng(42);
+  // maple with grain
+  g.fillStyle = '#e2c393'; g.fillRect(0, 0, S, S);
+  for (let i = 0; i < 320; i++) {
+    const y0 = r() * S, a1 = 6 + r() * 30, a2 = 2 + r() * 8, p1 = r() * 6, p2 = r() * 6;
+    g.strokeStyle = `rgba(${120 + r() * 30 | 0},${75 + r() * 20 | 0},35,${0.03 + r() * 0.08})`;
+    g.lineWidth = 0.8 + r() * 3.2; g.beginPath();
+    for (let x = 0; x <= S; x += 24) { const y = y0 + Math.sin(x * 0.0022 + p1) * a1 + Math.sin(x * 0.011 + p2) * a2; x ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke();
+  }
+  // ring bands, multiplied over the grain
+  g.globalCompositeOperation = 'multiply';
+  const disc = (rad, col) => { g.fillStyle = col; g.beginPath(); g.arc(C, C, rad * u, 0, Math.PI * 2); g.fill(); };
+  disc(ZONES[2].r, '#f4e3c4');
+  disc(ZONES[1].r, '#d9a569');
+  disc(ZONES[0].r, '#b0573a');
+  g.globalCompositeOperation = 'source-over';
+  // walnut inlay lines
+  for (const z of ZONES) {
+    g.strokeStyle = '#4a2c17'; g.lineWidth = 0.1 * u; g.beginPath(); g.arc(C, C, z.r * u, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = 'rgba(255,240,210,.35)'; g.lineWidth = 0.025 * u; g.beginPath(); g.arc(C, C, (z.r - 0.08) * u, 0, Math.PI * 2); g.stroke();
+  }
+  // funnel shading and hole
+  const fg = g.createRadialGradient(C, C, HOLE_R * u, C, C, FUNNEL_R * u);
+  fg.addColorStop(0, 'rgba(30,8,0,.6)'); fg.addColorStop(0.55, 'rgba(30,8,0,.2)'); fg.addColorStop(1, 'rgba(30,8,0,0)');
+  g.fillStyle = fg; g.beginPath(); g.arc(C, C, FUNNEL_R * u, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#0b0503'; g.beginPath(); g.arc(C, C, HOLE_R * u, 0, Math.PI * 2); g.fill();
+  // launch pads
+  SEATS.forEach((s, i) => {
+    const x = C + s.pad[0] * u, y = C + s.pad[1] * u;
+    g.globalCompositeOperation = 'multiply';
+    g.fillStyle = s.color + '55'; g.beginPath(); g.arc(x, y, 0.85 * u, 0, Math.PI * 2); g.fill();
+    g.globalCompositeOperation = 'source-over';
+    g.strokeStyle = s.color; g.lineWidth = 0.09 * u; g.beginPath(); g.arc(x, y, 0.85 * u, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = 'rgba(60,30,12,.5)'; g.lineWidth = 0.04 * u; g.beginPath(); g.arc(x, y, 0.55 * u, 0, Math.PI * 2); g.stroke();
+  });
+  // walnut paw prints, as if a cat had strolled in towards the rings from every corner
+  g.fillStyle = 'rgba(74,44,23,.42)';
+  for (let k = 0; k < 4; k++) [[10.15, 0.3], [9.4, -0.3], [8.65, 0.3]].forEach(([rad, side]) => {
+    const a = Math.PI / 4 + k * Math.PI / 2;
+    g.save(); g.translate(C + (Math.cos(a) * rad - Math.sin(a) * side) * u, C + (Math.sin(a) * rad + Math.cos(a) * side) * u); g.rotate(a - Math.PI / 2); g.scale(u / 110, u / 110);
+    g.beginPath(); g.ellipse(0, 12, 20, 16, 0, 0, Math.PI * 2); g.fill();
+    [[-26, -10], [-10, -26], [10, -26], [26, -10]].forEach(([tx, ty]) => { g.beginPath(); g.ellipse(tx, ty, 8, 10, 0, 0, Math.PI * 2); g.fill(); });
+    g.restore();
+  });
+  // border inlay
+  g.strokeStyle = '#4a2c17'; g.lineWidth = 0.08 * u;
+  const bi = 0.45 * u; g.beginPath(); g.roundRect ? g.roundRect(bi, bi, S - 2 * bi, S - 2 * bi, 0.4 * u) : g.rect(bi, bi, S - 2 * bi, S - 2 * bi); g.stroke();
+  return c;
+}
+let boardMesh; const ringMeshes = [];
+// numerals built as bent glass rods: strokes in a unit box (x right, y up, height 1)
+function arc(cx, cy, r, a0, a1, n = 14) { const p = []; for (let i = 0; i <= n; i++) { const a = (a0 + (a1 - a0) * i / n) * Math.PI / 180; p.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return p; }
+const DIGITS = {
+  '1': [[[-0.15, 0.36], [0, 0.5], [0, 0.1], [0, -0.5]], [[-0.17, -0.5], [0.17, -0.5]]],
+  '3': [arc(0, 0.25, 0.24, 150, -90), arc(0, -0.235, 0.265, 90, -150)],
+  '5': [[[0.24, 0.5], [0.02, 0.5], [-0.2, 0.5]], [[-0.2, 0.5], [-0.21, 0.3], ...arc(0.01, -0.2, 0.29, 128, -150)]],
+};
+const NUMERAL_TINT = ['#ffb040', '#6fd3ff', '#b6f59a'];   // 5, 3, 1
+const rodCap = new THREE.SphereGeometry(1, 16, 12);
+function addNumerals(ring, zi, ri, ro) {
+  const ch = String(ZONES[zi].pts), size = Math.min(1.35, (ro - ri) * 0.62), rad = size * 0.075, rm = (ri + ro) / 2 + (zi === 0 ? 0.08 : 0);
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff, transmission: 1, thickness: rad * 2, ior: 1.5, roughness: 0.04,
+    attenuationColor: new THREE.Color(NUMERAL_TINT[zi]), attenuationDistance: 0.12,
+    clearcoat: 1, clearcoatRoughness: 0.03, specularIntensity: 1, envMapIntensity: 1.6,
+  });
+  for (let k = 0; k < 4; k++) {
+    const phi = k * Math.PI / 2;
+    const cx = Math.cos(phi) * rm, cz = Math.sin(phi) * rm;
+    const ux = -Math.cos(phi), uz = -Math.sin(phi);      // the digit's "up" points at the centre
+    const rx = Math.sin(phi), rz = -Math.cos(phi);       // so it reads upright from that side of the board
+    for (const stroke of DIGITS[ch]) {
+      const pts = stroke.map(([x, y]) => new THREE.Vector3(cx + (x * rx + y * ux) * size, 0.004, cz + (x * rz + y * uz) * size));
+      const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 64, rad, 12, false), mat);
+      tube.receiveShadow = true; ring.add(tube);
+      for (const end of [pts[0], pts[pts.length - 1]]) {
+        const cap = new THREE.Mesh(rodCap, mat); cap.scale.setScalar(rad); cap.position.copy(end); ring.add(cap);
+      }
+    }
+  }
+}
+function buildBoard() {
+  const shape = new THREE.Shape();
+  roundedSquare(shape, HALF, CORNER_R);
+  const hole = new THREE.Path(); hole.absarc(0, 0, HOLE_R + 0.06, 0, Math.PI * 2, true); shape.holes.push(hole);
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.45, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.06, bevelSegments: 3, curveSegments: 48 });
+  geo.rotateX(-Math.PI / 2);
+  geo.computeBoundingBox();
+  geo.translate(0, -geo.boundingBox.max.y, 0);
+  const tex = new THREE.CanvasTexture(drawBoardCanvas());
+  tex.encoding = THREE.sRGBEncoding; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  tex.repeat.set(1 / 20, 1 / 20); tex.offset.set(0.5, 0.5);
+  const top = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.45, clearcoat: 0.55, clearcoatRoughness: 0.25 });
+  const side = new THREE.MeshStandardMaterial({ color: 0x5b3920, roughness: 0.6 });
+  if (boardMesh) { scene.remove(boardMesh); boardMesh.geometry.dispose(); }
+  ringMeshes.splice(0).forEach(r => { scene.remove(r); r.children.forEach(c => { if (c.geometry !== rodCap) c.geometry.dispose(); }); if (r.children[0]) r.children[0].material.dispose(); r.geometry.dispose(); r.material.map.dispose(); r.material.dispose(); });
+  const bounds = [[HOLE_R + 0.06, ZONES[0].r], [ZONES[0].r, ZONES[1].r], [ZONES[1].r, ZONES[2].r]];
+  bounds.forEach(([ri, ro]) => {
+    const g2 = new THREE.RingGeometry(ri, ro, 160, 1); g2.rotateX(-Math.PI / 2);
+    const t2 = new THREE.CanvasTexture(tex.image); t2.encoding = THREE.sRGBEncoding; t2.anisotropy = tex.anisotropy;
+    t2.repeat.set(ro / 10, ro / 10); t2.offset.set(0.5 - ro / 20, 0.5 - ro / 20);   // RingGeometry UVs span its outer radius
+    const m2 = new THREE.Mesh(g2, new THREE.MeshPhysicalMaterial({ map: t2, roughness: 0.45, clearcoat: 0.55, clearcoatRoughness: 0.25, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }));
+    m2.position.y = 0.004; m2.receiveShadow = true; scene.add(m2); ringMeshes.push(m2);
+    addNumerals(m2, ringMeshes.length - 1, ri, ro);
+  });
+  boardMesh = new THREE.Mesh(geo, [top, side]);
+  boardMesh.receiveShadow = true; boardMesh.castShadow = true;
+  scene.add(boardMesh);
+}
+// hole interior
+(function () {
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(HOLE_R, HOLE_R * 0.9, 3, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0x1a0d06, roughness: 1, side: THREE.BackSide }));
+  tube.position.y = -1.5; scene.add(tube);
+  const cap = new THREE.Mesh(new THREE.CircleGeometry(HOLE_R, 40), new THREE.MeshBasicMaterial({ color: 0x050302 }));
+  cap.rotation.x = -Math.PI / 2; cap.position.y = -2.95; scene.add(cap);
+})();
+
+/* marble meshes */
+const marbleGeo = new THREE.SphereGeometry(R, 40, 28);
+function marbleTexture(color, seed) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const g = c.getContext('2d'), r = rng(seed);
+  const base = new THREE.Color(color);
+  g.fillStyle = '#' + base.clone().multiplyScalar(0.55).getHexString(); g.fillRect(0, 0, 256, 128);
+  const grd = g.createLinearGradient(0, 0, 0, 128);
+  grd.addColorStop(0, '#' + base.clone().multiplyScalar(0.8).getHexString());
+  grd.addColorStop(0.5, color); grd.addColorStop(1, '#' + base.clone().multiplyScalar(0.8).getHexString());
+  g.fillStyle = grd; g.fillRect(0, 0, 256, 128);
+  const light = '#' + base.clone().lerp(new THREE.Color('#ffffff'), 0.7).getHexString();
+  for (let i = 0; i < 4; i++) {
+    g.strokeStyle = i % 2 ? light : 'rgba(255,255,255,.85)';
+    g.globalAlpha = 0.55 + r() * 0.35; g.lineWidth = 3 + r() * 9; g.lineCap = 'round';
+    const y = 20 + r() * 88, amp = 14 + r() * 26, ph = r() * 6;
+    g.beginPath();
+    for (let x = -10; x <= 266; x += 8) { const yy = y + Math.sin(x / 256 * Math.PI * 2 * (1 + (i % 2)) + ph) * amp; x < 0 ? g.moveTo(x, yy) : g.lineTo(x, yy); }
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = THREE.RepeatWrapping;
+  return t;
+}
+const meshes = new Map();
+let marbleFinish = 'glass';
+// cat's-eye vane: a lens shape, three of them crossed inside each glass marble
+const vaneGeo = (() => {
+  const L = R * 0.78, W2 = R * 0.26, sh = new THREE.Shape();
+  sh.moveTo(-L, 0); sh.quadraticCurveTo(0, W2 * 2, L, 0); sh.quadraticCurveTo(0, -W2 * 2, -L, 0);
+  return new THREE.ShapeGeometry(sh, 16);
+})();
+const WHITE = new THREE.Color('#ffffff');
+function dressMarble(e, m) {
+  const old = e.mesh.material;
+  if (old) { if (old.map) old.map.dispose(); old.dispose(); }
+  e.mesh.children.slice().forEach(c => { e.mesh.remove(c); c.material.dispose(); });
+  const col = new THREE.Color(SEATS[m.owner].color);
+  if (marbleFinish === 'glass') {
+    e.mesh.material = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff, transmission: 1, thickness: R * 1.8, ior: 1.52, roughness: 0.02, metalness: 0,
+      attenuationColor: col.clone().lerp(WHITE, 0.08), attenuationDistance: 0.45,
+      clearcoat: 1, clearcoatRoughness: 0.02, specularIntensity: 1, envMapIntensity: 1.5,
+    });
+    for (let k = 0; k < 3; k++) {
+      const v = new THREE.Mesh(vaneGeo, new THREE.MeshStandardMaterial({ color: col, roughness: 0.35, emissive: col, emissiveIntensity: 0.3, side: THREE.DoubleSide }));
+      v.rotation.set(0.25 * (k - 1), k * Math.PI / 3, 0.3);   // slight twist so each vane catches light differently
+      e.mesh.add(v);
+    }
+  } else {
+    e.mesh.material = new THREE.MeshPhysicalMaterial({ map: marbleTexture(SEATS[m.owner].color, m.id * 97 + 13), roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.3, transparent: true });
+  }
+}
+function addMarbleMesh(m) {
+  const mesh = new THREE.Mesh(marbleGeo, undefined);
+  mesh.material = null;
+  mesh.castShadow = true;
+  mesh.quaternion.setFromEuler(new THREE.Euler(Math.random() * 6, Math.random() * 6, Math.random() * 6));
+  const e = { mesh, anim: null, scale: m.r / R };
+  mesh.scale.setScalar(e.scale);
+  dressMarble(e, m);
+  scene.add(mesh); meshes.set(m.id, e);
+  syncMesh(m);
+}
+function setMarbleFinish(f) {
+  marbleFinish = f;
+  document.querySelectorAll('.finishSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === f));
+  if (W) for (const m of W.marbles) { const e = meshes.get(m.id); if (e) dressMarble(e, m); }
+}
+function removeMarbleMesh(id) {
+  const e = meshes.get(id); if (!e) return;
+  scene.remove(e.mesh);
+  e.mesh.children.forEach(c => c.material.dispose());
+  if (e.mesh.material.map) e.mesh.material.map.dispose();
+  e.mesh.material.dispose(); meshes.delete(id);
+}
+function restY(x, z, r) {
+  const d = Math.hypot(x, z);
+  return (r < HOLE_R && d < FUNNEL_R) ? r - 0.14 * Math.pow(1 - d / FUNNEL_R, 2) : r;
+}
+function syncMesh(m) {
+  const e = meshes.get(m.id); if (!e || e.anim || (m.ghost && m !== current && !m.loaded)) return;
+  const r = e.scale * R;   // follow the displayed size so a shrinking marble settles smoothly
+  e.mesh.position.set(m.x, restY(m.x, m.z, r) + (m.ghost ? 0.02 : 0), m.z);
+}
+
+/* aim arrow: one for taking turns, plus one per seat for rapid fire, where several players can aim at once */
+const headShape = new THREE.Shape(); headShape.moveTo(0, 0.32); headShape.lineTo(0.55, 0); headShape.lineTo(0, -0.32); headShape.lineTo(0, 0.32);
+function makeAim() {
+  const aim = new THREE.Group(); aim.visible = false; scene.add(aim);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false });
+  const shaft = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.14), mat); shaft.rotation.x = -Math.PI / 2; aim.add(shaft);
+  const head = new THREE.Mesh(new THREE.ShapeGeometry(headShape), mat); head.rotation.x = -Math.PI / 2; aim.add(head);
+  const bandMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 0.18, gapSize: 0.14, transparent: true, opacity: 0.6 });
+  const bandGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]);
+  const band = new THREE.Line(bandGeo, bandMat); band.visible = false; scene.add(band);
+  return { aim, mat, shaft, head, band, bandGeo };
+}
+const turnAim = makeAim(), seatAims = [0, 1, 2, 3].map(makeAim);
+const MAX_PULL = 4.2;
+function showAim(m, dirx, dirz, power, pullPoint, A = turnAim) {
+  const len = 0.9 + power * 4.2, ang = Math.atan2(-dirz, dirx);
+  A.aim.visible = true; aimSound(power);
+  A.aim.position.set(m.x, 0.04, m.z); A.aim.rotation.set(0, ang, 0);
+  A.shaft.scale.x = len; A.shaft.position.x = m.r + len / 2; A.head.position.x = m.r + len;
+  A.mat.color.set(new THREE.Color('#ffffff').lerp(new THREE.Color('#ffcf4a'), power));
+  if (pullPoint) {
+    A.band.visible = true;
+    A.bandGeo.setFromPoints([new THREE.Vector3(m.x, R, m.z), new THREE.Vector3(pullPoint.x, R, pullPoint.z)]);
+    A.band.computeLineDistances();
+  } else A.band.visible = false;
+}
+// hides one arrow, or all of them; the stretching sound stops when no arrow is left showing
+function hideAim(A) {
+  for (const a of A ? [A] : [turnAim, ...seatAims]) { a.aim.visible = false; a.band.visible = false; }
+  if (![turnAim, ...seatAims].some(a => a.aim.visible)) aimSilence();
+}
+
+/* ===== THE CAT IN THE HOLE =====
+   A face lurks in the dark at the bottom of the hole, eyes glinting, turned towards whoever's go it is. When a marble
+   drops in, the whole face surges up out of the hole and sinks back. */
+const holeCat = { lurk: null, pop: null, t: -1, blink: 3, turn: 0, big: 1 };
+CatPuppet.photo('face').then(img => {
+  // the photograph, darkened, and with or without its eyes left bright
+  const face = (dim, eyes) => {
+    const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
+    g.drawImage(img, 0, 0);
+    if (dim) { g.globalCompositeOperation = 'source-atop'; g.fillStyle = `rgba(4,8,6,${dim})`; g.fillRect(0, 0, 512, 512); g.globalCompositeOperation = 'source-over'; }
+    if (eyes) { g.save(); g.beginPath(); g.ellipse(230, 267, 31, 21, 0, 0, 7); g.moveTo(396, 265); g.ellipse(370, 265, 26, 19, 0, 0, 7); g.clip(); g.drawImage(img, 0, 0); g.restore(); }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+  };
+  const flat = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+  const mesh = map => new THREE.Mesh(flat, new THREE.MeshBasicMaterial({ map, transparent: true, toneMapped: false, depthWrite: false }));
+  holeCat.open = face(0.78, true); holeCat.shut = face(0.78, false);
+  holeCat.lurk = mesh(holeCat.open); holeCat.lurk.scale.setScalar(HOLE_R * 2.1); holeCat.lurk.position.y = -0.5; scene.add(holeCat.lurk);
+  holeCat.pop = mesh(face(0, false)); holeCat.pop.material.depthTest = false; holeCat.pop.renderOrder = 10; holeCat.pop.visible = false; scene.add(holeCat.pop);
+}).catch(e => console.error(e));
+function popFace(big = 1) { if (holeCat.pop && !CatActor.reducedMotion) { holeCat.t = 0; holeCat.big = big; } }
+// what happens to a marble that drops down the hole
+function holeGulp(x) { sHoleSequence(x); setTimeout(popFace, 300); }
+function updateHoleCat(dt) {
+  const h = holeCat; if (!h.lurk) return;
+  const want = W && phase !== 'over' ? -CORNER[W.shooter].rot * Math.PI / 180 : 0;
+  h.turn += Math.atan2(Math.sin(want - h.turn), Math.cos(want - h.turn)) * Math.min(1, dt * 4);
+  h.lurk.rotation.y = h.pop.rotation.y = h.turn;
+  if ((h.blink -= dt) < -0.13) h.blink = 2.5 + Math.random() * 4;
+  h.lurk.material.map = h.blink < 0 ? h.shut : h.open;
+  if (h.t < 0) return;
+  h.t += dt;
+  const up = smooth(0, 0.2, h.t) * (1 - smooth(0.62, 0.9, h.t)), spring = 1 + Math.sin(Math.min(1, h.t / 0.3) * Math.PI) * 0.14;
+  h.pop.visible = up > 0.01; h.lurk.visible = !h.pop.visible;
+  h.pop.scale.setScalar(HOLE_R * 2.1 * (1 + 3.8 * h.big * up * spring));
+  h.pop.position.set(Math.sin(h.t * 55) * 0.06 * up, -0.5 + 3.5 * up, 0);
+  if (h.t > 0.9) { h.t = -1; h.pop.visible = false; h.lurk.visible = true; }
+}
+
+/* ===== AUDIO (all synthesised) ===== */
+let actx = null, master = null, noiseBuf = null, muted = false, lastClick = 0;
+function audio() {
+  if (!actx) {
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      const comp = actx.createDynamicsCompressor();
+      comp.threshold.value = -14; comp.ratio.value = 4;
+      master = actx.createGain(); master.gain.value = muted ? 0 : 0.9;
+      master.connect(comp).connect(actx.destination);
+      noiseBuf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    } catch (e) { actx = null; }
+  }
+  if (actx && actx.state === 'suspended' && document.getElementById('pause').hidden) actx.resume();
+  return actx;
+}
+function setMuted(m) {
+  muted = m;
+  document.querySelectorAll('.soundSeg button').forEach(b => b.setAttribute('aria-pressed', (b.dataset.s === 'off') === m));
+  if (master) master.gain.setTargetAtTime(m ? 0 : 0.9, actx.currentTime, 0.05);
+}
+// output node, optionally panned by board x position
+function bus(x) {
+  if (x === undefined || !actx.createStereoPanner) return master;
+  const p = actx.createStereoPanner(); p.pan.value = Math.max(-0.9, Math.min(0.9, x / 11)); p.connect(master); return p;
+}
+function tone(freq, t0, dur, vol, type = 'sine', f1, x) {
+  if (!actx) return;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t0); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(bus(x)); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+// filtered noise burst with a frequency sweep
+function noise(t0, dur, vol, type, f0, f1, q = 1, x, attack = 0.005) {
+  if (!actx) return;
+  const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  src.buffer = noiseBuf; src.loop = true; src.playbackRate.value = 0.9 + Math.random() * 0.2;
+  f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t0); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + attack); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(f).connect(g).connect(bus(x)); src.start(t0, Math.random() * 1.5); src.stop(t0 + dur + 0.05);
+}
+const now_ = () => actx.currentTime;
+
+/* marble-on-marble clack: glassy partials plus a hard transient; giants thunk */
+function sClick(imp, x, big) {
+  if (!actx) return; const n = now_(); if (n - lastClick < 0.012) return; lastClick = n;
+  const v = Math.min(0.55, 0.06 + imp / 12);
+  noise(n, 0.018, v * 0.7, 'highpass', 2500, 0, 0.7, x, 0.001);
+  const f = (big ? 1100 : 2300) + Math.random() * 700;
+  tone(f, n, big ? 0.12 : 0.07, v * 0.6, 'sine', 0, x);
+  tone(f * 2.71, n, 0.035, v * 0.3, 'sine', 0, x);
+  if (big) tone(170, n, 0.18, v * 0.9, 'sine', 90, x);
+}
+function sFlick(big) {
+  if (!actx) return; const n = now_();
+  noise(n, 0.05, 0.4, 'bandpass', 3000, 900, 1.2, undefined, 0.001);
+  tone(big ? 400 : 1600, n, 0.05, 0.18, 'square', big ? 120 : 700);
+  if (big) tone(90, n, 0.3, 0.4, 'sine', 45);
+}
+function sGiant() { sFlick(true); }
+function sShrink() { if (!actx) return; const n = now_(); tone(260, n, 0.35, 0.12, 'sine', 1000); noise(n, 0.35, 0.08, 'bandpass', 600, 3500, 2); }
+
+/* hole: rattle down the chute, then the cat down there gets it */
+function sHoleSequence(x) {
+  if (!actx) return; const n = now_();
+  for (let k = 0; k < 4; k++) { const t = n + k * 0.06 + k * k * 0.01; tone(700 - k * 110, t, 0.05, 0.25 - k * 0.04, 'triangle', 0, x); noise(t, 0.03, 0.12, 'bandpass', 1800 - k * 250, 0, 3, x); }
+  const c = n + 0.3;
+  voice(x, [330, 560, 230], 0.5, 0.42, c);                                  // a satisfied mrowm
+  tone(150, c, 0.22, 0.55, 'sine', 55); noise(c, 0.1, 0.3, 'lowpass', 700, 200, 0.8, undefined, 0.004);   // the lunge
+  tone(240, c + 0.32, 0.12, 0.3, 'sine', 90); noise(c + 0.32, 0.09, 0.2, 'lowpass', 500, 160, 1, undefined, 0.01);   // gulp
+}
+function sSpot() { if (!actx) return; const n = now_(); [523, 659, 784, 1047].forEach((f, k) => tone(f, n + k * 0.07, 0.25, 0.14, 'triangle')); noise(n, 0.4, 0.1, 'bandpass', 800, 4000, 2, undefined, 0.02); }
+function sQuake(dur) {
+  if (!actx) return; const n = now_();
+  noise(n, dur + 0.4, 0.5, 'lowpass', 140, 60, 0.8, undefined, 0.15);
+  tone(38, n, dur, 0.35, 'sine', 30);
+  for (let k = 0; k < 7; k++) { const p = 0.7 + Math.random() * 0.9; voice((Math.random() - 0.5) * 16, [420 * p, 760 * p, 500 * p], 0.3 + Math.random() * 0.3, 0.12, n + Math.random() * dur); }
+}
+// one cat landing; many of them land, so they are kept from piling up
+let lastThump = 0;
+function sThump(x) {
+  if (!actx) return; const n = now_(); if (n - lastThump < 0.045) return; lastThump = n;
+  tone(75 + Math.random() * 50, n, 0.16, 0.4, 'sine', 42, x); noise(n, 0.07, 0.22, 'lowpass', 520, 180, 0.7, x, 0.003);
+}
+// paws scrabbling for grip
+function sScrabble(dur) { if (!actx) return; const n = now_(); for (let t = 0; t < dur; t += 0.055 + Math.random() * 0.03) noise(n + t, 0.035, 0.1 + Math.random() * 0.08, 'bandpass', 1400 + Math.random() * 1400, 0, 2.5, (Math.random() - 0.5) * 14, 0.002); }
+// a paw coming down on a marble, two paws patted together, and a paw swatting something away with feeling
+function sGrab(x) { if (!actx) return; const n = now_(); noise(n, 0.07, 0.4, 'lowpass', 700, 240, 0.8, x, 0.003); voice(x, [620, 900, 760], 0.16, 0.2, n + 0.02); }
+function sPat() { if (!actx) return; const n = now_(); noise(n, 0.07, 0.4, 'bandpass', 900, 500, 0.8, undefined, 0.002); noise(n, 0.03, 0.15, 'lowpass', 400, 0, 0.7, undefined, 0.002); }
+function sSwat(x) { if (!actx) return; const n = now_(); noise(n, 0.18, 0.35, 'bandpass', 500, 2600, 1.4, x, 0.05); voice(x, [260, 300, 170], 0.42, 0.3, n); sKick(x); }
+function sSurge() { if (!actx) return; const n = now_(); tone(60, n, 1.3, 0.3, 'sawtooth', 520); noise(n, 1.3, 0.25, 'bandpass', 300, 3500, 3, undefined, 0.3); }
+function sSurgeDown() { if (!actx) return; const n = now_(); tone(420, n, 1.0, 0.18, 'sawtooth', 70); }
+function sPaw(x) { if (!actx) return; noise(now_(), 0.06, 0.12, 'lowpass', 500, 200, 0.7, x, 0.004); }
+// the cats' voices live in ../cat/cat-voice.js; here they are panned by board x position
+function voice(x, pitch, dur, vol = 0.35, t0 = now_()) { CatVoice.voice(actx, bus(x), pitch, dur, vol, t0); }
+function sMeow(x) { if (actx) voice(x, [420, 760, 520], 0.65); }
+function sChirp(k = 1) { if (actx) voice(undefined, [520 * k, 1050 * k, 940 * k], 0.2, 0.3); }
+function sYawn() { if (actx) voice(undefined, [760, 700, 300], 0.85, 0.2); }
+function sPurr(dur) { if (actx) CatVoice.purr(actx, master, dur); }
+/* the winner's fanfare, sung by a choir of cats over bells; then fireworks and airborne cats */
+function sFanfare() {
+  if (!actx) return; const n = now_() + 0.05;
+  const sing = (f, t, dur, vol) => { voice((Math.random() - 0.5) * 12, [f * 0.86, f, f * 0.97], dur, vol, n + t); tone(f, n + t, dur * 1.2, vol * 0.45, 'triangle'); tone(f * 2, n + t, dur * 0.8, vol * 0.15); };
+  [[523, 0], [659, 0.17], [784, 0.34], [1047, 0.51], [784, 0.76], [1047, 0.93]].forEach(([f, t], i) => sing(f, t, i === 5 ? 1.1 : 0.2, 0.3));
+  for (const f of [523, 659, 784]) sing(f, 0.93, 1.1, 0.16);
+}
+function sFirework() {
+  if (!actx) return; const n = now_(), x = (Math.random() - 0.5) * 16;
+  noise(n, 0.16, 0.3, 'bandpass', 1500, 300, 0.8, x, 0.002); tone(150, n, 0.2, 0.25, 'sine', 60, x);
+  for (let k = 0; k < 9; k++) noise(n + 0.08 + Math.random() * 0.45, 0.02, 0.05 + Math.random() * 0.07, 'highpass', 2500 + Math.random() * 3000, 0, 1, x, 0.001);
+}
+function sFling() {
+  if (!actx) return; const k = 0.8 + Math.random() * 0.7, x = (Math.random() - 0.5) * 14;
+  voice(x, [480 * k, 900 * k, 380 * k], 0.4 + Math.random() * 0.25, 0.14);
+  noise(now_(), 0.3, 0.07, 'bandpass', 500, 2400, 1.4, x, 0.1);
+}
+function sKick(x) { if (!actx) return; const n = now_(); noise(n, 0.08, 0.6, 'bandpass', 900, 400, 1, x, 0.001); tone(220, n, 0.15, 0.4, 'sine', 80, x); }
+function sShuffle() { if (!actx) return; const n = now_(); for (let k = 0; k < 8; k++) noise(n + k * 0.045, 0.04, 0.12, 'bandpass', 2500 + k * 150, 0, 2, (k % 2 ? 6 : -6), 0.002); }
+
+
+/* off the edge: a whoosh as it drops, then bouncing thuds on the table */
+function sEdge(x, big) {
+  if (!actx) return; const n = now_();
+  noise(n, 0.4, 0.2, 'bandpass', 1400, 400, 1.2, x, 0.02);
+  const f = big ? 70 : 120;
+  [[0.38, 0.4], [0.62, 0.22], [0.78, 0.12], [0.88, 0.06]].forEach(([dt, v]) => {
+    tone(f, n + dt, 0.18, v, 'sine', f * 0.6, x); noise(n + dt, 0.05, v * 0.4, 'lowpass', 900, 0, 0.7, x, 0.002);
+  });
+}
+
+/* the cat at the end of each go: a tut, and the swoosh of its coming and going */
+function sTut() { if (!actx) return; const n = now_() + 0.1; tone(420, n, 0.14, 0.12, 'triangle', 360); tone(360, n + 0.22, 0.2, 0.12, 'triangle', 280); }
+function sSwoosh(up, vol = 0.25) { if (!actx) return; const n = now_(); noise(n, 0.32, vol, 'bandpass', up ? 350 : 2200, up ? 2200 : 350, 1.4, undefined, 0.12); }
+function sUi() { if (!actx) return; tone(1300, now_(), 0.04, 0.08, 'triangle', 900); }
+
+/* continuous voices: one rolling voice per moving marble, plus the aiming stretch */
+const rollVoices = new Map();
+function rollVoice(id) {
+  let v = rollVoices.get(id); if (v) return v;
+  const src = actx.createBufferSource(); src.buffer = noiseBuf; src.loop = true; src.playbackRate.value = 0.85 + Math.random() * 0.3;
+  const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.9;
+  const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.8;
+  const gR = actx.createGain(), gW = actx.createGain(); gR.gain.value = gW.gain.value = 0;
+  const pan = actx.createStereoPanner ? actx.createStereoPanner() : actx.createGain();
+  src.connect(lp).connect(gR).connect(pan); src.connect(bp).connect(gW).connect(pan); pan.connect(master);
+  src.start(0, Math.random() * 1.5);
+  v = { src, lp, bp, gR, gW, pan, quiet: 0 }; rollVoices.set(id, v); return v;
+}
+function killVoice(id, v) { const n = now_(); v.gR.gain.setTargetAtTime(0, n, 0.08); v.gW.gain.setTargetAtTime(0, n, 0.08); v.src.stop(n + 0.6); rollVoices.delete(id); }
+function updateRolling(dt) {
+  if (!actx || !W) { if (actx) for (const [id, v] of rollVoices) killVoice(id, v); return; }
+  const n = now_(), seen = new Set();
+  for (const m of W.marbles) {
+    if (!m.alive || m.ghost) continue;
+    const d = Math.hypot(m.x, m.z), w = omegaAt(d), sp = Math.hypot(m.vx + w * m.z, m.vz - w * m.x);
+    if (sp < 0.06 && !rollVoices.has(m.id)) continue;
+    const v = rollVoice(m.id); seen.add(m.id);
+    const big = m.r > R, k = Math.min(1, sp / 12);
+    v.gR.gain.setTargetAtTime(k * (big ? 0.34 : 0.2), n, 0.04);          // wooden rumble
+    v.gW.gain.setTargetAtTime(Math.pow(k, 1.4) * 0.22, n, 0.04);         // air whoosh
+    v.lp.frequency.setTargetAtTime((big ? 90 : 160) + sp * 30, n, 0.05);
+    v.bp.frequency.setTargetAtTime(450 + sp * 190, n, 0.05);
+    if (v.pan.pan) v.pan.pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, m.x / 11)), n, 0.05);
+    v.quiet = sp < 0.06 ? v.quiet + dt : 0;
+    if (v.quiet > 0.6) killVoice(m.id, v);
+  }
+  for (const [id, v] of rollVoices) if (!seen.has(id)) killVoice(id, v);
+}
+let aimVoice = null;
+function aimSound(power) {
+  if (!actx) return;
+  const n = now_();
+  if (!aimVoice) {
+    const o = actx.createOscillator(), f = actx.createBiquadFilter(), g = actx.createGain(), lfo = actx.createOscillator(), lg = actx.createGain();
+    o.type = 'sawtooth'; f.type = 'bandpass'; f.Q.value = 6; g.gain.value = 0;
+    lfo.frequency.value = 23; lg.gain.value = 0.02; lfo.connect(lg).connect(g.gain);
+    o.connect(f).connect(g).connect(master); o.start(); lfo.start();
+    aimVoice = { o, f, g, lfo, last: power };
+  }
+  const moving = Math.abs(power - aimVoice.last) > 0.002; aimVoice.last = power;
+  aimVoice.o.frequency.setTargetAtTime(70 + power * 180, n, 0.03);
+  aimVoice.f.frequency.setTargetAtTime(400 + power * 1400, n, 0.03);
+  aimVoice.g.gain.setTargetAtTime(moving ? 0.05 + power * 0.06 : 0.012 + power * 0.015, n, 0.05);
+}
+function aimSilence() { if (!aimVoice || !actx) return; const n = now_(), v = aimVoice; aimVoice = null; v.g.gain.setTargetAtTime(0, n, 0.03); v.o.stop(n + 0.3); v.lfo.stop(n + 0.3); }
+/* ===== HOTSPOT EVENTS ===== */
+let eventBusy = false, activeEffect = null;
+const quake = { t: 0, dur: 2.4, next: 0, dirs: new Map() };
+const camBase = new THREE.Vector3();
+function applyQuake(dt) {
+  quake.t -= dt; if (quake.t <= 0) return;
+  const k = quake.t / quake.dur;
+  quake.next -= dt;
+  if (quake.next <= 0) { quake.next = 0.09; for (const m of W.marbles) quake.dirs.set(m.id, Math.random() * Math.PI * 2); }
+  for (const m of W.marbles) {
+    if (!m.alive || m.ghost) continue;
+    const a = quake.dirs.get(m.id) || 0, A = 34 * k / Math.sqrt(m.mass);
+    m.vx += Math.cos(a) * A * dt; m.vz += Math.sin(a) * A * dt;
+  }
+}
+// hotspot glow rings and recharge shading
+const spotFx = SPOTS.map(sp => {
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.8, 0.98, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false, toneMapped: false }));
+  const shade = new THREE.Mesh(new THREE.CircleGeometry(0.82, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5, depthWrite: false }));
+  ring.position.set(sp.x, 0.012, sp.z); shade.position.set(sp.x, 0.014, sp.z); shade.visible = false;
+  scene.add(ring); scene.add(shade); return { ring, shade };
+});
+function updateSpotFx(now, dt) {
+  medallions.forEach((md, i) => {
+    const f = md.flip; if (!f) return;
+    f.t += dt; const k = Math.max(0, f.t) / 0.5;
+    md.mesh.scale.x = Math.max(0.02, Math.abs(Math.cos(Math.min(1, k) * Math.PI)));
+    if (k >= 0.5 && !f.swapped) { f.swapped = true; md.mesh.material.map = medTex[f.type]; spotFx[i].ring.material.color.set(SPOT_TYPES[f.type].color); }
+    if (k >= 1) { md.mesh.scale.x = 1; md.flip = null; }
+  });
+  SPOTS.forEach((sp, i) => {
+    const cool = W && W.spotCool[i] > 0;
+    spotFx[i].shade.visible = cool;
+    spotFx[i].ring.material.opacity = cool ? 0.08 : 0.35 + 0.3 * Math.sin(now / 300 + i);
+  });
+}
+function medallionTexture(type) {
+  const S = 256, u = S / 2 / 0.8, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), x = S / 2, y = S / 2, col = SPOT_TYPES[type].color;
+  const gr = g.createRadialGradient(x - 0.2 * u, y - 0.25 * u, 0.1 * u, x, y, 0.8 * u);
+  gr.addColorStop(0, '#ffffff22'); gr.addColorStop(0.3, col); gr.addColorStop(1, col);
+  g.fillStyle = gr; g.beginPath(); g.arc(x, y, 0.76 * u, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = '#4a2c17'; g.lineWidth = 0.07 * u; g.stroke();
+  g.save(); g.translate(x, y); g.scale(u / 100, u / 100);
+  g.strokeStyle = g.fillStyle = '#fff8ec'; g.lineWidth = 9; g.lineCap = g.lineJoin = 'round';
+  if (type === 'quake') {
+    // a cat in mid-air above the lines it leaves behind
+    g.beginPath(); g.ellipse(0, -8, 24, 19, 0, 0, Math.PI * 2); g.fill();
+    for (const k of [-1, 1]) { g.beginPath(); g.moveTo(k * 22, -18); g.lineTo(k * 19, -40); g.lineTo(k * 5, -25); g.fill(); }
+    g.lineWidth = 6; for (const k of [-1, 0, 1]) { g.beginPath(); g.moveTo(k * 22 - 8, 30 - Math.abs(k) * 6); g.lineTo(k * 22 + 8, 30 - Math.abs(k) * 6); g.stroke(); }
+  } else if (type === 'spin') {
+    for (const k of [0, 1]) {
+      g.save(); g.rotate(k * Math.PI);
+      g.beginPath(); g.arc(0, 0, 30, Math.PI * 1.1, Math.PI * 1.85); g.stroke();
+      const ax = Math.cos(Math.PI * 1.85) * 30, ay = Math.sin(Math.PI * 1.85) * 30;
+      g.beginPath(); g.moveTo(ax + 12, ay - 2); g.lineTo(ax, ay); g.lineTo(ax - 2, ay - 14); g.stroke();
+      g.restore();
+    }
+  } else if (type === 'cat') {
+    g.beginPath(); g.ellipse(0, 12, 20, 16, 0, 0, Math.PI * 2); g.fill();
+    [[-26, -10], [-10, -26], [10, -26], [26, -10]].forEach(([tx, ty]) => { g.beginPath(); g.ellipse(tx, ty, 8, 10, 0, 0, Math.PI * 2); g.fill(); });
+  } else {
+    // a paw reaching up out of the hole
+    g.fillStyle = '#1a0d06'; g.beginPath(); g.ellipse(0, 30, 30, 11, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#fff8ec'; g.beginPath(); g.moveTo(-11, 30); g.lineTo(-11, -8); g.lineTo(11, -8); g.lineTo(11, 30); g.fill();
+    g.beginPath(); g.ellipse(0, -14, 17, 14, 0, 0, Math.PI * 2); g.fill();
+    [[-19, -30], [-7, -38], [7, -38], [19, -30]].forEach(([tx, ty]) => { g.beginPath(); g.ellipse(tx, ty, 6, 8, 0, 0, Math.PI * 2); g.fill(); });
+  }
+  g.restore();
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+const medTex = Object.fromEntries(Object.keys(SPOT_TYPES).map(k => [k, medallionTexture(k)]));
+let spotTypesShown = ['quake', 'spin', 'cat', 'paw'];
+const medallions = SPOTS.map((sp, i) => {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(0.8, 48).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: medTex[spotTypesShown[i]], roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
+  m.position.set(sp.x, 0.006, sp.z); m.rotation.y = Math.atan2(sp.x, sp.z);   // glyph top points at the centre
+  m.receiveShadow = true; scene.add(m); return { mesh: m, flip: null };
+});
+showSpotTypes(spotTypesShown, false);
+function showSpotTypes(types, animate) {
+  types.forEach((ty, i) => {
+    const md = medallions[i];
+    if (animate && spotTypesShown[i] !== ty) md.flip = { t: -i * 0.08, type: ty, swapped: false };
+    else { md.mesh.material.map = medTex[ty]; spotFx[i].ring.material.color.set(SPOT_TYPES[ty].color); }
+  });
+  spotTypesShown = types.slice();
+}
+function shuffleSpots() {
+  const old = W.spotTypes.slice();
+  let perm;
+  do { perm = [0, 1, 2, 3].sort(() => Math.random() - 0.5); } while (perm.every((p, i) => p === i));
+  W.spotTypes = perm.map(p => old[p]);
+  W.spotCool = perm.map(p => W.spotCool[p]);      // a recharging event keeps recharging wherever it moves to
+  showSpotTypes(W.spotTypes, true); sShuffle();
+}
+function banner(text, color, seat, cls = '') {
+  const b = document.getElementById('banner');
+  b.textContent = text; b.style.setProperty('--c', color); b.style.setProperty('--rot', CORNER[seat].rot + 'deg');
+  b.className = 'banner ' + cls; void b.offsetWidth; b.classList.add('go');
+}
+function runSpot(type) {
+  eventBusy = true;
+  const start = { quake: startQuake, spin: startZoomies, cat: startCat, paw: startPaw }[type];
+  activeEffect = { wait: 0.3, start, update: null };
+}
+function endEffect() { activeEffect = null; eventBusy = false; restHold = 0; launchAt = performance.now(); if (W) shuffleSpots(); }
+
+// where a point on the board falls on the stage, in CSS pixels; the reverse; and the size there of one unit of the board
+function boardToStage(x, z) {
+  const v = new THREE.Vector3(x, 0, z).project(camera);
+  return [(v.x + 1) / 2 * stage.clientWidth, (1 - v.y) / 2 * stage.clientHeight];
+}
+function boardUnit() { return boardToStage(1, 0)[0] - boardToStage(0, 0)[0]; }
+function stageToBoard(x, y) { const [x0, y0] = boardToStage(0, 0), u = boardUnit(); return [(x - x0) / u, (y - y0) / u]; }
+// the puppets that come onto the board: a cat that walks, and one very long front leg
+let walkerCat = null, pawArm = null;
+const seatArms = [];   // in rapid fire each computer player has a leg of its own, as several may be shooting at once
+function walker() { return walkerCat || (walkerCat = new CatPuppet(stage, { hidden: true, z: 2 })); }
+// the leg, drawn in and ready to reach out from a point of the stage
+function arm([x, y], size, seat) {
+  const a = seat === undefined ? pawArm || (pawArm = new CatPuppet(stage, { rig: 'arm', hidden: true, z: 2 }))
+    : seatArms[seat] || (seatArms[seat] = new CatPuppet(stage, { rig: 'arm', hidden: true, z: 2 }));
+  a.stop(); a.armLen = 0; a.armTo = null;
+  return a.place({ x, y, size }).show();
+}
+
+/* --- catquake: a crowd of cats along the edges of the board, all jumping up and down, and none of them in step --- */
+const quakeCats = [];
+function startQuake() {
+  quake.t = quake.dur; quake.next = 0; sQuake(quake.dur);
+  const unit = boardUnit(), poses = ['sit', 'beg', 'look-up', 'upright', 'paw-up', 'look-away', 'loaf', 'look-down'];
+  let live = true, n = 0;
+  // side 0 is the bottom edge, and they go round from there; every cat has its feet to the edge and its head to the middle
+  for (let side = 0; side < 4; side++) for (let k = -3; k <= 3; k++, n++) {
+    const cat = quakeCats[n] || (quakeCats[n] = new CatActor(stage, { hidden: true, z: 2, shadow: false }));
+    const along = k * 2.5 + (Math.random() - 0.5) * 0.8, out = 9 + (Math.random() - 0.5) * 0.9, a = side * Math.PI / 2;
+    const bx = along * Math.cos(a) + out * Math.sin(a), bz = out * Math.cos(a) - along * Math.sin(a), [x, y] = boardToStage(bx, bz);
+    cat.stop().hide().place({ x, y, rot: -side * 90, size: (2.3 + Math.random() * 0.9) * unit, flip: Math.random() < 0.5 }).pose(pick(poses));
+    (async () => {
+      if (!await cat.wait(Math.random() * 300) || !await cat.enter({ from: 'pop', duration: 180 })) return;
+      while (live) { if (!await cat.play('hop', { height: 0.25 + Math.random() * 0.45, duration: 280 + Math.random() * 260 })) return; sThump(bx); }
+      cat.exit({ to: 'pop', duration: 200 });
+    })();
+  }
+  let t = 0;
+  return dt => { if ((t += dt) > quake.dur) live = false; return t > quake.dur + 0.75; };
+}
+
+/* --- zoomies: the cat tears round the rings, which pick up speed beneath it --- */
+function startZoomies() {
+  W.spinTarget = SPIN_SURGE; W.surgeTurns = active.length; sSurge();
+  const cat = walker(), unit = boardUnit(), TRACK = 6.3, DUR = 2.9, LAPS = 1.4, a0 = Math.random() * Math.PI * 2;
+  // it spirals in from off the board, runs round against the turn of the rings, and spirals out again
+  const at = k => { const a = a0 - LAPS * 2 * Math.PI * k, r = TRACK + 9 * (1 - smooth(0, 0.22, k)) + 9 * smooth(0.8, 1, k); return [Math.cos(a) * r, Math.sin(a) * r]; };
+  let t = 0, [px, pz] = at(-0.01);
+  cat.stop().place({ size: 4.2 * unit, flip: false }).show(); cat.play('trot', { rate: 3 }); sScrabble(DUR);
+  return dt => {
+    t += dt;
+    const k = Math.min(1, t / DUR), [x, z] = at(k), [sx, sy] = boardToStage(x, z);
+    cat.place({ x: sx, y: sy, rot: Math.atan2(pz - z, px - x) * 180 / Math.PI });   // the cat faces left, so this turns its nose the way it is going
+    px = x; pz = z;
+    if (k < 1) return false;
+    cat.stop().hide(); return true;
+  };
+}
+
+// kick velocity that sinks marble m, found by simulating from the current board
+function kickToHole(m) {
+  const base = Math.atan2(-m.z, -m.x), D = Math.hypot(m.x, m.z);
+  let v = 1; while (v < PHYS.vmax * 1.5) { let x = 0, s = v; while (s > 0) { s = Math.max(0, s - (PHYS.a0 + PHYS.k * s) * PHYS.dt); x += s * PHYS.dt; } if (x >= D + 0.2) break; v += 0.1; }
+  for (const da of [0, 2, -2, 4, -4, 7, -7, 10, -10, 14, -14]) for (const dv of [1, 0.94, 1.06, 0.88, 1.12]) {
+    const S = cloneWorld(W), sm = S.marbles.find(x => x.id === m.id), a = base + da * Math.PI / 180;
+    const kv = [Math.cos(a) * v * dv, Math.sin(a) * v * dv];
+    sm.vx = kv[0]; sm.vz = kv[1];
+    for (let t = 0; t < 7; t += PHYS.dt) { stepWorld(S, PHYS.dt, null); if (!sm.alive) break; }
+    if (sm.fate === 'hole') return kv;
+  }
+  return [Math.cos(base) * v, Math.sin(base) * v];
+}
+function startCat() {
+  const cat = walker(), sc = scoresOf(W), shooter = W.shooter;
+  const rivals = active.filter(i => i !== shooter);
+  const leader = rivals.length ? rivals.reduce((a, b) => sc[b] > sc[a] ? b : a) : shooter;
+  const pool = W.marbles.filter(m => m.alive && !m.ghost);
+  const target = pick(pool.filter(m => m.owner === leader)) || pick(pool.filter(m => m.owner !== shooter)) || pick(pool);
+  const SIZE = 4.2, LEAP = 3.6, FAR = 18, unit = boardUnit();
+  const REACH = 0.36 * SIZE;   // board units from beneath the cat's middle to the tips of its front paws
+  // The cat keeps to the line from the hole out through the marble, nose to the hole, however that line swings round
+  // as the rings turn. Of the two ways up it could be, it takes the one that looks more upright from the shooter's seat.
+  let ux = 0, uz = -1;
+  const aim = () => { if (target) { const d = Math.hypot(target.x, target.z) || 1; ux = target.x / d; uz = target.z / d; } };
+  aim();
+  const k = CORNER[shooter], other = ux * k.sy - uz * k.sx < 0;
+  // how far out along that line to stand to bat the marble, and to leap at it from
+  const near = () => target ? Math.hypot(target.x, target.z) + target.r + 0.2 + REACH : 7;
+  // it pounces only if there is room on the stage to be seen crouching first
+  const seen = d => { const [x, y] = boardToStage(ux * d, uz * d), m = SIZE * unit * 0.4; return x > m && y > m && x < stage.clientWidth - m && y < stage.clientHeight - m; };
+  const pounce = !!target && seen(near() + LEAP) && (kittyMove ? kittyMove === 'pounce' : Math.random() < 0.5);
+  const spot = () => near() + (pounce ? LEAP : 0);
+  let rho = FAR, phase = 'in', leaving = false;   // rho: how far out along the line the cat is
+  const show = () => {
+    const [x, y] = boardToStage(ux * rho, uz * rho), a = Math.atan2(uz, ux) * 180 / Math.PI;
+    cat.place({ x, y, size: SIZE * unit, rot: other ? a + 180 : a, flip: other !== leaving });
+  };
+  // trot in or out along the line; true on arrival
+  const go = (to, dt) => {
+    const step = (cat.velocity / unit || 9) * dt;   // the puppet stands still when motion is reduced, but must still get there
+    if (Math.abs(to - rho) < step) { rho = to; return true; }
+    rho += Math.sign(to - rho) * step; return false;
+  };
+  const strike = () => {
+    if (target.alive && !target.ghost) { const [vx, vz] = kickToHole(target); target.vx = vx; target.vz = vz; sKick(target.x); }
+    const [bx, bz] = stageToBoard(cat.x, cat.y);
+    rho = bx * ux + bz * uz; phase = 'struck';
+  };
+  const act = async () => {
+    sMeow(ux * rho);
+    const done = !target ? await cat.play('look', { rate: 1.5 })
+      : pounce ? await cat.play('pounce', { distance: LEAP / SIZE, height: 0.4, onLand: strike })
+      : await cat.play('swat', { at: boardToStage(target.x + ux * target.r * 0.4, target.z + uz * target.r * 0.4), onStrike: strike });
+    if (done) setTimeout(() => { phase = 'leave'; }, 350);
+  };
+  cat.stop(); cat.airborne = false; show(); cat.show(); cat.play('trot', { rate: 1.6 });
+  return dt => {
+    const tracking = phase === 'in' || (phase === 'act' && !cat.airborne);
+    if (tracking) aim();
+    if (phase === 'in') { if (go(spot(), dt)) { phase = 'act'; act(); } show(); }
+    else if (tracking) { rho = spot(); show(); }
+    else if (phase === 'leave') { phase = 'out'; leaving = true; cat.play('trot', { rate: 1.7 }); show(); }
+    else if (phase === 'out') { if (go(FAR, dt)) { cat.stop().hide(); return true; } show(); }
+    return false;
+  };
+}
+let kittyMove = null;   // 'bat' or 'pounce' to take the choice away from chance, for the debug panel
+
+/* --- paw: a front leg comes up out of the hole, stretches as far as it has to for the nearest marble, and drags it down --- */
+function startPaw() {
+  const pool = W.marbles.filter(m => m.alive && !m.ghost);
+  const target = pool.reduce((b, m) => !b || Math.hypot(m.x, m.z) < Math.hypot(b.x, b.z) ? m : b, null);
+  const a = arm(boardToStage(0, 0), 8 * boardUnit());
+  let done = false, held = false;
+  (async () => {
+    if (!target) {   // nothing to be had: a grope about, and back down
+      const q = Math.random() * Math.PI * 2;
+      if (await a.play('reach', { to: boardToStage(Math.cos(q) * 4, Math.sin(q) * 4), duration: 0.6 }) && await a.play('pat') && await a.play('retract')) { a.hide(); done = true; }
+      return;
+    }
+    if (!await a.play('reach', { to: () => boardToStage(target.x, target.z), duration: 0.5 + Math.hypot(target.x, target.z) * 0.05 })) return;
+    target.ghost = true; target.vx = target.vz = 0; held = true; sGrab(target.x);
+    if (!await a.play('pat', { duration: 0.35 }) || !await a.play('retract', { duration: 0.75 })) return;
+    held = false; target.alive = false; target.fate = 'hole'; target.ghost = false;
+    if (target.owner !== W.shooter) { W.bonus[W.shooter] += 3; pop(0, 0, '+3', SEATS[W.shooter].color); }
+    const me = meshes.get(target.id); if (me) me.anim = { kind: 'hole', t: 0 };
+    holeGulp(0); a.hide(); done = true;
+  })();
+  return () => {
+    if (held) {   // the marble goes wherever the paw does
+      const me = meshes.get(target.id), [bx, bz] = stageToBoard(...a.locate('paw', CatPuppet.RIGS.arm.pawAt));
+      if (me) me.mesh.position.set(bx, target.r, bz);
+    }
+    return done;
+  };
+}
+
+/* a marble left on a launch pad is swatted off the board by a paw from that corner, one marble at a time */
+let swatting = Promise.resolve();
+function padSwat(m) {
+  const e = meshes.get(m.id), world = W;
+  if (e) e.anim = { kind: 'held', t: 0 };
+  swatting = swatting.then(async () => {
+    if (W !== world || !m.alive) return;   // the game was abandoned while this one waited its turn
+    const seat = SEATS.findIndex(s => Math.hypot(m.x - s.pad[0], m.z - s.pad[1]) < PAD_CLEAR);
+    const [cx, cy] = cornerPoint(seat, stage.clientWidth, stage.clientHeight), [mx, my] = boardToStage(m.x, m.z);
+    const a = arm([cx, cy], 5 * boardUnit());
+    const strike = () => {
+      // knocked sideways, the way the paw is going, and a little outwards
+      const d = Math.hypot(mx - cx, my - cy), dx = (mx - cx) / d, dy = (my - cy) / d;
+      clearPad(W, m); sSwat(m.x); pop(m.x, m.z, '−' + PAD_PENALTY, SEATS[W.shooter].color);
+      if (e) e.anim = { kind: 'edge', t: 0, vx: (dy - dx * 0.3) * 15, vz: (-dx - dy * 0.3) * 15, vy: 7 };
+    };
+    if (await a.play('reach', { to: [mx, my], duration: 0.35 }) && await a.play('swat', { onStrike: strike }) && await a.play('retract', { duration: 0.3 })) a.hide();
+  }).catch(e => console.error(e));
+}
+// a computer player's marble is flicked by a paw reaching in from its corner, which waits behind the marble until the shot
+function cpuPaw(seat, m = current) {
+  const [px, pz] = SEATS[seat].pad, d = Math.hypot(px, pz), back = m.r + 0.35;
+  const a = arm(cornerPoint(seat, stage.clientWidth, stage.clientHeight), 5 * boardUnit(), rapid ? seat : undefined);
+  a.play('reach', { to: boardToStage(m.x + px / d * back, m.z + pz / d * back), duration: 0.5 });
+  return a;
+}
+
+/* ===== GAME STATE ===== */
+let shotStart = 0;
+let W = null, phase = 'setup', active = [], turn = 0, shots = [0, 0, 0, 0], current = null, restHold = 0, cpuTimer = null;
+const events = [];
+// rapid fire: everyone flicks whenever they like. Each seat has its own marble waiting on its pad (`loaded`), reloaded
+// RELOAD_MS after each flick; `rapidGen` retires the timers of an abandoned game
+let rapid = false, loaded = [null, null, null, null], rapidGen = 0;
+const drags = new Map(), RELOAD_MS = 900;
+const badges = [0, 1, 2, 3].map(i => document.getElementById('b' + i));
+badges.forEach((b, i) => {
+  b.style.setProperty('--c', SEATS[i].color);
+  b.innerHTML = `<div class="row"><span class="dot"></span><span class="name">${SEATS[i].name}</span><span class="score">0</span></div><div class="pips"></div><div class="msg"></div>`;
+});
+
+function seatOfTurn() { return active[turn % active.length]; }
+function newGame() {
+  clearTimeout(cpuTimer); rapidGen++;
+  if (W) for (const m of W.marbles) removeMarbleMesh(m.id);
+  for (const id of [...meshes.keys()]) removeMarbleMesh(id);
+  eventBusy = false; activeEffect = null; quake.t = 0; dismissCats();
+  W = { marbles: [], bonus: [0, 0, 0, 0], shooter: 0, nextId: 1, spotCool: [0, 0, 0, 0], spotQueue: [], spotTypes: ['quake', 'spin', 'cat', 'paw'].sort(() => Math.random() - 0.5), spinMul: 1, spinTarget: 1, surgeTurns: 0, pads: [0, 1, 2, 3].filter(i => seatModes[i] !== 'off').map(i => SEATS[i].pad) };
+  active = [0, 1, 2, 3].filter(i => seatModes[i] !== 'off');
+  shots = [0, 1, 2, 3].map(i => seatModes[i] === 'off' ? 0 : perPlayer);
+  W.spotCoolTurns = active.length;
+  showSpotTypes(W.spotTypes, false);
+  turn = Math.floor(Math.random() * active.length);   // a random seat opens, then play goes round in order
+  document.getElementById('setup').hidden = true;
+  document.getElementById('over').hidden = true;
+  document.getElementById('menuBtn').hidden = false;
+  syncDebug();
+  if (rapid) startRapid(); else startTurn();
+}
+function padSpot(seat, rad) {
+  const [px, pz] = SEATS[seat].pad, dx = Math.sign(px), dz = Math.sign(pz);
+  const tries = [0, 0.4, -0.4, 0.8, -0.8, 1.1, -1.2, -1.6, -2.0];
+  for (const t of tries) {
+    const x = px + dx * t * 0.7071, z = pz + dz * t * 0.7071;
+    if (!offBoard(x + dx * rad, z + dz * rad) && W.marbles.every(m => !m.alive || Math.hypot(m.x - x, m.z - z) > m.r + rad + 0.05)) return [x, z];
+  }
+  return [px, pz];
+}
+// every third marble a player shoots is a giant: heavy, and too big to fall in the hole
+function isGiantShot(seat) { return !rapid && (perPlayer - shots[seat] + 1) % 3 === 0; }
+function startRapid() {
+  const gen = ++rapidGen;
+  phase = 'rapid'; loaded = [null, null, null, null]; drags.clear(); restHold = 0;
+  W.shooter = active[0];
+  active.forEach((seat, k) => setTimeout(() => gen === rapidGen && rapidLoad(seat), 300 + k * 150));
+  updateHud();
+}
+function rapidLoad(seat) {
+  if (phase !== 'rapid' || shots[seat] === 0 || loaded[seat]) return;
+  const [x, z] = padSpot(seat, R);
+  const m = { id: W.nextId++, owner: seat, x, z, vx: 0, vz: 0, alive: true, ghost: true, loaded: true, r: R, mass: 1, giant: false };
+  W.marbles.push(m); addMarbleMesh(m); loaded[seat] = m;
+  if (seatModes[seat] === 'cpu') {
+    const gen = rapidGen;
+    setTimeout(() => { if (gen === rapidGen && loaded[seat] === m) cpuTurn(seat, m); }, 300 + Math.random() * 1500);
+  }
+  updateHud();
+}
+function rapidLaunch(m, vx, vz) {
+  const seat = m.owner; if (phase !== 'rapid' || loaded[seat] !== m) return;
+  hideAim(seatAims[seat]);
+  m.ghost = false; m.loaded = false; m.vx = vx; m.vz = vz; loaded[seat] = null;
+  shots[seat]--; W.shooter = seat;   // a rival's marble sunk in the hole earns the bonus for whoever flicked last
+  W.spotCool = W.spotCool.map(c => Math.max(0, c - 1 / active.length));   // hotspots recharge over a round's worth of flicks
+  restHold = 0; launchAt = performance.now();
+  audio(); sFlick();
+  const gen = rapidGen; setTimeout(() => gen === rapidGen && rapidLoad(seat), RELOAD_MS);
+  updateHud();
+}
+function startTurn() {
+  if (active.every(i => shots[i] === 0)) return endGame();
+  let seat = seatOfTurn();
+  while (shots[seat] === 0) { turn++; seat = seatOfTurn(); }
+  W.shooter = seat;
+  W.spotCool = W.spotCool.map(c => Math.max(0, c - 1));
+  if (W.surgeTurns > 0 && --W.surgeTurns === 0) { W.spinTarget = 1; sSurgeDown(); }
+  const giant = isGiantShot(seat), rad = giant ? R * GIANT : R;
+  const [x, z] = padSpot(seat, rad);
+  current = { id: W.nextId++, owner: seat, x, z, vx: 0, vz: 0, alive: true, ghost: true, r: rad, mass: giant ? GIANT ** 3 : 1, giant };
+  W.marbles.push(current); addMarbleMesh(current);
+  phase = seatModes[seat] === 'cpu' ? 'cpu' : 'aim';
+  updateHud();
+  if (phase === 'cpu') cpuTimer = setTimeout(() => cpuTurn(seat), 450);
+}
+function launch(vx, vz) {
+  hideAim();
+  current.ghost = false; current.vx = vx; current.vz = vz;
+  shotStart = scoresOf(W)[current.owner];
+  shots[current.owner]--;
+  phase = 'rolling'; restHold = 0; launchAt = performance.now();
+  audio(); current.giant ? sGiant() : sFlick();
+  updateHud();
+}
+function endGame() {
+  phase = 'over'; hideAim(); updateHud();
+  const sc = scoresOf(W);
+  const order = active.slice().sort((a, b) => sc[b] - sc[a]);
+  const top = sc[order[0]], winners = order.filter(i => sc[i] === top), tie = winners.length > 1;
+  document.getElementById('winTitle').textContent = tie ? 'A tie' : SEATS[winners[0]].name + ' wins';
+  document.getElementById('winSub').textContent = tie ? winners.map(i => SEATS[i].name).join(' and ') + ' share the board with ' + top + ' points.' : 'With ' + top + ' points on the board.';
+  document.getElementById('results').innerHTML = order.map(i => `<li class="${sc[i] === top ? 'win' : ''}" style="--c:${SEATS[i].color}"><span class="dot"></span>${SEATS[i].name}<span class="pts">${sc[i]}</span></li>`).join('');
+  cardCats.over.pose(tie ? 'pair' : 'sit').place({ size: tie ? 100 : 104 }).wear(tie ? null : 'crown');
+  celebrate(winners);
+  overTimer = setTimeout(() => { document.getElementById('over').hidden = false; document.getElementById('menuBtn').hidden = true; sPurr(5); }, CatActor.reducedMotion ? 1200 : 4200);
+}
+
+/* ===== THE WINNER'S PARTY =====
+   Fireworks of confetti burst from the hole and across the table, cats are flung out of the hole, a crowd in party
+   hats bobs up round the edges, and a crowned cat turns somersaults in each winner's corner. It carries on behind the
+   results until the next game. */
+let party = null, champs = [], overTimer = null;
+const champSize = () => Math.min(Math.min(stage.clientWidth, stage.clientHeight) * 0.36, 260);
+function celebrate(winners) {
+  endParty();
+  const [x, y] = boardToStage(0, 0), cols = winners.map(i => SEATS[i].color);
+  party = CatActor.party(stage, {
+    colors: [...cols, ...cols, '#f2c14e', '#fff8ec'], origin: { x, y }, z: 4,
+    onEvent: e => e === 'burst' ? sFirework() : e === 'fling' ? sFling() : sPaw(),
+  });
+  sFanfare(); popFace(1.5);
+  banner(winners.length > 1 ? 'A tie!' : SEATS[winners[0]].name + ' wins!', winners.length > 1 ? '#f2c14e' : cols[0], winners[0], 'win');
+  champs = winners.map((seat, n) => {
+    const cat = cornerCat(new CatActor(stage, { pose: 'beg', hidden: true, z: 4 }), seat, champSize()).wear('crown');
+    (async () => {
+      if (!await cat.wait(350 + n * 200) || !await cat.enter({ duration: 520 })) return;
+      for (let i = 0; !CatActor.reducedMotion; i++) {
+        if (i % 3 === 0) sChirp(0.9 + Math.random() * 0.4);
+        if (!await cat.play(i % 3 === 1 ? 'flip' : 'cheer') || !await cat.wait(200 + Math.random() * 500)) return;
+      }
+    })();
+    return cat;
+  });
+}
+function endParty() {
+  clearTimeout(overTimer);
+  if (party) party.stop();
+  champs.forEach(c => c.remove());
+  party = null; champs = [];
+}
+// keep the champions in their corners if the window changes shape
+addEventListener('resize', () => champs.forEach(c => cornerCat(c, CORNER.findIndex(k => k.rot === c.rot), champSize())));
+
+/* the cats that preside over the menus */
+const cardCats = {
+  setup: new CatActor(document.getElementById('setupCat'), { pose: 'loaf', size: 112, x: -62, y: 68, flip: true }),
+  over: new CatActor(document.getElementById('overCat'), { pose: 'sit', size: 104, y: 112 }),
+  pause: new CatActor(document.getElementById('pauseCat'), { pose: 'roll', size: 124, y: 96 }),
+};
+Object.values(cardCats).forEach(c => c.play('bob'));
+
+function updateHud() {
+  const sc = W ? scoresOf(W) : [0, 0, 0, 0];
+  const seatNow = W && phase !== 'over' && phase !== 'setup' && phase !== 'rapid' ? W.shooter : -1;
+  badges.forEach((b, i) => {
+    const on = W && seatModes[i] !== 'off';
+    b.hidden = !on; if (!on) return;
+    b.classList.toggle('on', i === seatNow);
+    b.querySelector('.score').textContent = sc[i];
+    const used = perPlayer - shots[i];
+    b.querySelector('.pips').innerHTML = Array.from({ length: perPlayer }, (_, k) => `<span class="pip${k < used ? ' used' : ''}${!rapid && (k + 1) % 3 === 0 ? ' big' : ''}"></span>`).join('');
+    let msg = '';
+    if (phase === 'rapid' && loaded[i] && seatModes[i] === 'human') msg = 'Flick whenever you like!';
+    if (i === seatNow) {
+      const big = current && current.giant;
+      if (phase === 'aim') msg = big ? 'Giant marble! Drag back and let go.' : 'Your shot: drag back and let go.';
+      else if (phase === 'cpu') msg = big ? 'Lining up a giant…' : 'Lining up a shot…';
+    }
+    b.querySelector('.msg').textContent = msg;
+  });
+}
+
+/* ===== COMPUTER PLAYER ===== */
+async function cpuTurn(seat, m = current) {
+  // taking turns, the shot is live while it's the computer's go; in rapid fire, while this marble is still waiting
+  const live = rapid ? () => phase === 'rapid' && loaded[seat] === m : () => phase === 'cpu';
+  const shoot = rapid ? (vx, vz) => rapidLaunch(m, vx, vz) : launch, A = rapid ? seatAims[seat] : turnAim;
+  const pause = () => new Promise(r => setTimeout(r, 0)), paw = cpuPaw(seat, m);
+  const LEAD = rapid ? 1.2 : 2.0, t0 = performance.now(), snap = cloneWorld(W);
+  if (rapid) { snap.marbles = snap.marbles.filter(o => !o.ghost || o === m || o.id === m.id); snap.pads = []; }
+  const [px, pz] = [m.x, m.z];
+  const base = Math.atan2(-pz, -px);
+  const evalShot = (ang, pow) => {
+    const v = pow * PHYS.vmax, S = simulateShot(snap, Math.cos(ang) * v, Math.sin(ang) * v, LEAD), sc = scoresOf(S);
+    const others = active.filter(i => i !== seat);
+    const worst = others.length ? Math.max(...others.map(i => sc[i])) : 0;
+    const mean = others.length ? others.reduce((a, i) => a + sc[i], 0) / others.length : 0;
+    const hs = S.spotQueue.length > 0, deficit = worst - sc[seat];
+    const spotVal = hs ? (deficit >= 3 ? 1 + deficit * 0.6 : -3) : 0;
+    return sc[seat] - 0.5 * worst - 0.3 * mean + spotVal;
+  };
+  const cands = [];
+  let n = 0;
+  for (let a = -45; a <= 45; a += 5) for (let p = 0.3; p <= 1.001; p += 0.07) {
+    const ang = base + a * Math.PI / 180;
+    cands.push({ ang, p, v: evalShot(ang, p) });
+    if (++n % 20 === 0) { await pause(); if (!live()) return paw.hide(); }
+  }
+  cands.sort((x, y) => y.v - x.v);
+  let best = cands[0];
+  for (const c of cands.slice(0, 4)) {
+    for (let da = -2; da <= 2; da++) for (let dp = -2; dp <= 2; dp++) {
+      if (!da && !dp) continue;
+      const ang = c.ang + da * Math.PI / 180, p = Math.min(1, Math.max(0.2, c.p + dp * 0.018));
+      const v = evalShot(ang, p);
+      if (v > best.v) best = { ang, p, v };
+      if (++n % 20 === 0) { await pause(); if (!live()) return paw.hide(); }
+    }
+  }
+  const ang = best.ang + (Math.random() - 0.5) * 0.035, pow = Math.min(1, best.p * (1 + (Math.random() - 0.5) * 0.05));
+  const fire = t0 + LEAD * 1000, a0 = performance.now(), dur = Math.max(250, fire - a0 - 150);
+  const anim = () => {
+    if (!live()) { hideAim(A); paw.hide(); return; }
+    if (!document.getElementById('pause').hidden) { requestAnimationFrame(anim); return; }
+    const now = performance.now(), k = Math.min(1, (now - a0) / dur), e = 1 - Math.pow(1 - k, 3);
+    showAim(m, Math.cos(ang), Math.sin(ang), pow * e, null, A);
+    if (now < Math.max(fire, a0 + dur)) requestAnimationFrame(anim);
+    else paw.play('flick', { onStrike: () => { if (live()) shoot(Math.cos(ang) * pow * PHYS.vmax, Math.sin(ang) * pow * PHYS.vmax); } })
+      .then(ok => ok && paw.play('retract', { duration: 0.3 })).then(ok => { if (ok) paw.hide(); });
+  };
+  anim();
+}
+
+/* ===== INPUT ===== */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -R);
+let drag = null;
+function worldAt(ev) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const p = new THREE.Vector3(); return ray.ray.intersectPlane(plane, p) ? p : null;
+}
+function pullVector(p, m = current) {
+  let dx = m.x - p.x, dz = m.z - p.z; const len = Math.hypot(dx, dz);
+  return { dx: dx / (len || 1), dz: dz / (len || 1), power: Math.min(1, len / MAX_PULL), len };
+}
+renderer.domElement.addEventListener('pointerdown', ev => {
+  audio();
+  if (phase === 'rapid') {
+    const p = worldAt(ev); if (!p) return;
+    const held = new Set([...drags.values()].map(d => d.m));
+    let best = null, bd = 2.6;
+    for (const seat of active) {
+      const m = loaded[seat];
+      if (!m || seatModes[seat] !== 'human' || held.has(m)) continue;
+      const d = Math.hypot(p.x - m.x, p.z - m.z); if (d < bd) { bd = d; best = m; }
+    }
+    if (!best) return;
+    drags.set(ev.pointerId, { m: best, shot: null });
+    renderer.domElement.setPointerCapture(ev.pointerId);
+    return;
+  }
+  if (phase !== 'aim' || drag) return;
+  const p = worldAt(ev); if (!p) return;
+  if (Math.hypot(p.x - current.x, p.z - current.z) > 2.6) return;
+  drag = { id: ev.pointerId, m: current };
+  renderer.domElement.setPointerCapture(ev.pointerId);
+});
+function dragOf(ev) {
+  if (phase === 'rapid') return drags.get(ev.pointerId) || null;
+  return drag && ev.pointerId === drag.id && phase === 'aim' ? drag : null;
+}
+renderer.domElement.addEventListener('pointermove', ev => {
+  const g = dragOf(ev); if (!g) return;
+  const p = worldAt(ev); if (!p) return;
+  const m = g.m, A = phase === 'rapid' ? seatAims[m.owner] : turnAim;
+  if (phase === 'rapid' && loaded[m.owner] !== m) { drags.delete(ev.pointerId); hideAim(A); return; }
+  const v = pullVector(p, m);
+  if (v.len < 0.3) { hideAim(A); g.shot = null; return; }
+  g.shot = v;
+  const pull = { x: m.x - v.dx * Math.min(v.len, MAX_PULL), z: m.z - v.dz * Math.min(v.len, MAX_PULL) };
+  showAim(m, v.dx, v.dz, v.power, pull, A);
+});
+function endDrag(ev) {
+  const g = dragOf(ev); if (!g) return;
+  const s = g.shot;
+  if (phase === 'rapid') {
+    drags.delete(ev.pointerId);
+    if (s && s.power > 0.05) rapidLaunch(g.m, s.dx * s.power * PHYS.vmax, s.dz * s.power * PHYS.vmax);
+    else hideAim(seatAims[g.m.owner]);
+    return;
+  }
+  drag = null;
+  if (s && s.power > 0.05) launch(s.dx * s.power * PHYS.vmax, s.dz * s.power * PHYS.vmax);
+  else hideAim();
+}
+renderer.domElement.addEventListener('pointerup', endDrag);
+renderer.domElement.addEventListener('pointercancel', ev => {
+  const g = dragOf(ev); if (!g) return;
+  if (phase === 'rapid') { drags.delete(ev.pointerId); hideAim(seatAims[g.m.owner]); } else { drag = null; hideAim(); }
+});
+
+/* ===== POPUPS ===== */
+function pop(x, z, text, color) {
+  const v = new THREE.Vector3(x, R, z).project(camera), r = renderer.domElement.getBoundingClientRect();
+  const el = document.createElement('div'); el.className = 'pop'; el.textContent = text; el.style.color = color;
+  el.style.left = ((v.x + 1) / 2 * r.width) + 'px'; el.style.top = ((1 - v.y) / 2 * r.height) + 'px';
+  stage.appendChild(el); setTimeout(() => el.remove(), 1400);
+}
+
+/* ===== LOOP ===== */
+const up = new THREE.Vector3(0, 1, 0), tmpA = new THREE.Vector3(), tmpQ = new THREE.Quaternion();
+let last = performance.now(), acc = 0, hudTick = 0, lastMoving = false, launchAt = 0;
+const ringAng = [0, 0, 0];
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const paused = !document.getElementById('pause').hidden;
+  if (!paused) {
+    if (W) {
+      acc += dt;
+      while (acc >= PHYS.dt) {
+        if (quake.t > 0) applyQuake(PHYS.dt);
+        lastMoving = stepWorld(W, PHYS.dt, events);
+        ringAng.forEach((_, i) => ringAng[i] += RING_W[i] * W.spinMul * PHYS.dt);
+        for (const m of W.marbles) {
+          if (!m.alive || m.ghost) continue;
+          const e = meshes.get(m.id); if (!e || e.anim) continue;
+          const w = omegaAt(Math.hypot(m.x, m.z), W.spinMul);
+          const rx = m.vx + w * m.z, rz = m.vz - w * m.x, d = Math.hypot(rx, rz) * PHYS.dt;   // rolling = motion relative to the ring
+          if (d > 1e-6) { tmpA.set(rz, 0, -rx).normalize(); tmpQ.setFromAxisAngle(tmpA, d / (e.scale * R)); e.mesh.quaternion.premultiply(tmpQ); }
+          if (w) { tmpQ.setFromAxisAngle(up, -w * PHYS.dt); e.mesh.quaternion.premultiply(tmpQ); }
+        }
+        acc -= PHYS.dt;
+      }
+    } else ringAng.forEach((_, i) => ringAng[i] += RING_W[i] * dt);
+    ringMeshes.forEach((r, i) => { r.rotation.y = -ringAng[i]; });
+    if (W) W.spinMul += (W.spinTarget - W.spinMul) * Math.min(1, dt * 1.3);
+    updateSpotFx(now, dt);
+    // hotspot effects
+    if (activeEffect) {
+      if (activeEffect.wait > 0) { activeEffect.wait -= dt; if (activeEffect.wait <= 0) activeEffect.update = activeEffect.start(); }
+      else if (activeEffect.update(dt)) endEffect();
+    }
+    // earthquake camera shake
+    if (quake.t > 0) { const k = quake.t / quake.dur; camera.position.set(camBase.x + (Math.random() - 0.5) * 0.5 * k, camBase.y, camBase.z + (Math.random() - 0.5) * 0.5 * k); }
+    else if (camera.position.x !== camBase.x || camera.position.z !== camBase.z) camera.position.copy(camBase);
+
+    for (const e of events) {
+      if (e.t === 'hit') sClick(e.imp, e.x, e.big);
+      else if (e.t === 'hole') {
+        holeGulp(e.m.x);
+        const me = meshes.get(e.m.id); if (me) me.anim = { kind: 'hole', t: 0 };
+        if (e.bonus) pop(0, 0, '+3', SEATS[W.shooter].color);
+      } else if (e.t === 'spot') {
+        const sp = SPOTS[e.i], me = meshes.get(e.m.id);
+        if (me) me.anim = { kind: 'sink', t: 0, x: sp.x, z: sp.z };
+        sSpot(); banner(SPOT_TYPES[e.type].name, SPOT_TYPES[e.type].color, W.shooter);
+      } else if (e.t === 'edge') {
+        sEdge(e.m.x, e.m.r > R);
+        const me = meshes.get(e.m.id); if (me) me.anim = { kind: 'edge', t: 0, vx: e.m.vx, vz: e.m.vz, vy: 0 };
+      }
+    }
+    events.length = 0;
+    if (W) for (const m of W.marbles) {
+      if (!m.alive) continue;
+      const e = meshes.get(m.id);
+      if (e) { const target = m.r / R; e.scale += (target - e.scale) * Math.min(1, dt * 6); if (Math.abs(target - e.scale) < 1e-3) e.scale = target; e.mesh.scale.setScalar(e.scale); }
+      syncMesh(m);
+    }
+
+    if (phase === 'rapid') {
+      // hotspot events run as soon as one is triggered; the game ends once every marble is flicked and the board is still
+      if (!eventBusy && W.spotQueue.length) runSpot(W.spotQueue.shift());
+      const settled = !eventBusy && (!lastMoving && ![...meshes.values()].some(e => e.anim) || now - launchAt > 12000);
+      if (settled && active.every(i => shots[i] === 0 && !loaded[i])) {
+        restHold += dt;
+        if (restHold > 0.6) { W.marbles = W.marbles.filter(m => m.alive); endGame(); }
+      } else restHold = 0;
+    }
+    if (phase === 'rolling') {
+      // settled = nothing rolling, nothing falling, and no marble still visibly shrinking
+      const settled = !eventBusy && !lastMoving && ![...meshes.values()].some(e => e.anim) &&
+        W.marbles.every(m => { const e = meshes.get(m.id); return !m.alive || !e || e.scale === m.r / R; });
+      if (settled || now - launchAt > 12000) {
+        restHold += dt;
+        if (restHold > 0.35) {
+          W.marbles = W.marbles.filter(m => m.alive);
+          let shrunk = false;
+          for (const m of W.marbles) if (m.r > R) { m.r = R; m.mass = 1; shrunk = true; }
+          const doomed = shrunk ? [] : padCulprits(W).filter(m => !m.doomed);
+          if (shrunk) {
+            // a shrunk giant may now roll into the hole or nudge others: keep playing until that settles too
+            sShrink(); restHold = 0; launchAt = now;
+          } else if (doomed.length) {
+            for (const m of doomed) { m.doomed = true; padSwat(m); }
+            restHold = 0; launchAt = now;
+          } else if (W.spotQueue.length) {
+            runSpot(W.spotQueue.shift()); restHold = 0; launchAt = now;
+          } else {
+            const shooter = W.shooter, gained = scoresOf(W)[shooter] - shotStart;
+            catReact(shooter, gained);
+            turn++; phase = 'between'; updateHud(); setTimeout(startTurn, Math.max(250, REACT_MS));
+          }
+        }
+      } else restHold = 0;
+    }
+    if ((hudTick += dt) > 0.15 && W) { hudTick = 0; updateHud(); }
+
+    for (const [id, e] of meshes) {
+      const a = e.anim; if (!a) continue;
+      a.t += dt; const p = e.mesh.position;
+      if (a.kind === 'held') {
+        // waiting on a launch pad for the paw that is coming for it
+      } else if (a.kind === 'sink') {
+        const k = Math.min(1, a.t / 0.6);
+        p.x += (a.x - p.x) * Math.min(1, dt * 8); p.z += (a.z - p.z) * Math.min(1, dt * 8);
+        e.mesh.scale.setScalar(e.scale * (1 - k)); e.mesh.rotateY(dt * 14);
+        if (k >= 1) removeMarbleMesh(id);
+      } else if (a.kind === 'hole') {
+        p.x += (0 - p.x) * Math.min(1, dt * 10); p.z += (0 - p.z) * Math.min(1, dt * 10);
+        p.y -= dt * (1.5 + a.t * 9);
+        if (p.y < -2.5) removeMarbleMesh(id);
+      } else {
+        a.vy -= 20 * dt; p.x += a.vx * dt; p.z += a.vz * dt; p.y += a.vy * dt;
+        if (p.y < -0.2 && !e.mesh.material.transmission) e.mesh.material.opacity = Math.max(0, 1 + (p.y + 0.2) / 3);
+        if (p.y < -4) removeMarbleMesh(id);
+      }
+    }
+    updateHoleCat(dt);
+    updateRolling(dt);
+  }
+  if ((phase === 'aim' || phase === 'cpu') && current) {
+    const e = meshes.get(current.id), bob = Math.sin(now / 260); if (e) e.mesh.position.y = current.r + 0.03 + bob * 0.025;
+  }
+  if (phase === 'rapid') for (const m of loaded) {
+    const e = m && meshes.get(m.id), bob = Math.sin(now / 260 + m?.owner * 1.7); if (e) e.mesh.position.y = m.r + 0.03 + bob * 0.025;
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  // pixels per world unit: fit the board, then shrink until each corner pad
+  // (pad centre at 8.3, clearance 1.2 for ring + marble) sits clear of its badge
+  const sFit = Math.min(w, h) / 21.8, c = (BADGE_W + BADGE_H) / (2 * Math.SQRT2) + 8;
+  const clear = sc => CORNER.every((k, i) => {
+    const [cx, cy] = cornerPoint(i, w, h), bx = cx - k.sx * c, by = cy - k.sy * c;       // badge centre
+    const px = w / 2 + SEATS[i].pad[0] * sc, py = h / 2 + SEATS[i].pad[1] * sc, rp = 1.25 * sc;
+    const ux = -k.sx / Math.SQRT2, uy = -k.sy / Math.SQRT2, dx = px - bx, dy = py - by;  // u: corner -> centre
+    const along = dx * ux + dy * uy, across = dx * -uy + dy * ux;
+    return Math.abs(along) > BADGE_H / 2 + rp || Math.abs(across) > BADGE_W / 2 + rp;
+  });
+  let s = sFit; while (s > sFit * 0.55 && !clear(s)) s *= 0.985;
+  badges.forEach((b, i) => {
+    const [cx, cy] = cornerPoint(i, w, h), k = CORNER[i];
+    b.style.left = (cx - k.sx * c) + 'px'; b.style.top = (cy - k.sy * c) + 'px';
+    b.style.transform = `translate(-50%,-50%) rotate(${k.rot}deg)`;
+  });
+  const halfH = (h / 2) / s;
+  camera.position.set(0, halfH / t, 0.001); camera.lookAt(0, 0, 0); camBase.copy(camera.position);
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+/* ===== MENUS ===== */
+const seatsEl = document.getElementById('seats');
+function renderSeats() {
+  // grid order mirrors the board: top-left, top-right, bottom-left, bottom-right
+  seatsEl.innerHTML = [3, 2, 0, 1].map(i => `<button class="seat" data-i="${i}" data-mode="${seatModes[i]}" style="--c:${SEATS[i].color}"><span class="dot"></span><span><b>${SEATS[i].name}</b><span>${MODE_LABEL[seatModes[i]]}</span></span></button>`).join('');
+  const n = seatModes.filter(m => m !== 'off').length;
+  const btn = document.getElementById('startBtn');
+  btn.disabled = n < 1;
+  btn.textContent = n === 1 ? 'Start solo practice' : 'Start game';
+}
+seatsEl.addEventListener('click', e => {
+  const b = e.target.closest('.seat'); if (!b) return;
+  const i = +b.dataset.i; seatModes[i] = MODES[(MODES.indexOf(seatModes[i]) + 1) % MODES.length];
+  renderSeats();
+});
+document.getElementById('perSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  perPlayer = +b.dataset.n;
+  document.querySelectorAll('#perSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+document.getElementById('playSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  rapid = b.dataset.p === 'rapid';
+  document.querySelectorAll('#playSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+document.getElementById('startBtn').onclick = () => { audio(); newGame(); };
+document.getElementById('againBtn').onclick = () => newGame();
+function toSetup() {
+  eventBusy = false; activeEffect = null; quake.t = 0; dismissCats();
+  clearTimeout(cpuTimer); rapidGen++; drags.clear(); phase = 'setup'; hideAim();
+  for (const id of [...meshes.keys()]) removeMarbleMesh(id);
+  W = null; updateHud(); badges.forEach(b => b.hidden = true);
+  ['over', 'pause'].forEach(id => document.getElementById(id).hidden = true);
+  document.getElementById('menuBtn').hidden = true;
+  document.getElementById('setup').hidden = false;
+  syncDebug();
+}
+document.getElementById('changeBtn').onclick = toSetup;
+document.getElementById('quitBtn').onclick = toSetup;
+let pausedPhase = null;
+document.getElementById('menuBtn').onclick = () => {
+  if (phase === 'setup' || phase === 'over') return;
+  drag = null; drags.clear(); hideAim(); sUi();
+  document.getElementById('pause').hidden = false;
+  if (actx) setTimeout(() => actx.suspend(), 80);
+};
+document.getElementById('resumeBtn').onclick = () => { document.getElementById('pause').hidden = true; audio(); };
+
+document.querySelectorAll('.finishSeg').forEach(sg => sg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMarbleFinish(b.dataset.f); }));
+
+document.querySelectorAll('.soundSeg').forEach(sg => sg.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMuted(b.dataset.s === 'off'); }));
+document.addEventListener('click', e => { if (e.target.closest('.card button, .debug button')) { audio(); sUi(); } }, true);
+
+/* ===== DEBUG PANEL =====
+   Ticked on the opening screen, it sits beside the board during a game with a button for every animation. */
+const debugEl = document.getElementById('debug'), debugBody = document.getElementById('debugBody'), debugChk = document.getElementById('debugChk');
+let debugCat = null, debugSeat = 0;
+function syncDebug() { debugEl.hidden = !(debugChk.checked && document.getElementById('setup').hidden); }
+try { debugChk.checked = localStorage.getItem('marble-flick-debug') === '1'; } catch (e) {}
+debugChk.addEventListener('change', () => { try { localStorage.setItem('marble-flick-debug', debugChk.checked ? '1' : '0'); } catch (e) {} syncDebug(); });
+document.getElementById('debugHead').onclick = e => {
+  debugBody.hidden = !debugBody.hidden;
+  e.currentTarget.textContent = 'Debug ' + (debugBody.hidden ? '▸' : '▾'); e.currentTarget.setAttribute('aria-expanded', !debugBody.hidden);
+};
+function debugSet(title, buttons) {
+  const h = document.createElement('h2'); h.textContent = title;
+  const set = document.createElement('div'); set.className = 'set';
+  for (const [label, fn] of buttons) { const b = document.createElement('button'); b.textContent = label; b.onclick = fn; set.appendChild(b); }
+  debugBody.append(h, set); return set;
+}
+function debugSelect(set, options) {
+  const sel = document.createElement('select');
+  for (const [value, label] of options) sel.add(new Option(label, value));
+  set.prepend(sel); return sel;
+}
+// a cat in the chosen corner, to try poses, hats and gestures on. A gesture that brings its own poses hands back the chosen one afterwards
+function debugGesture(name) {
+  const cat = debugCat || (debugCat = new CatActor(stage, { hidden: true, z: 3 })), fresh = cat.hidden, pose = debugPose.value;
+  cornerCat(cat.stop(), debugSeat, reactSize()).pose(pose).wear(debugHat.value || null, { color: SEATS[debugSeat].color });
+  (async () => { if ((!fresh || await cat.enter()) && name && await cat.play(name)) cat.pose(pose); })();
+}
+function debugSpot(type) {
+  if (!W || eventBusy || phase === 'over') return;
+  sSpot(); banner(SPOT_TYPES[type].name, SPOT_TYPES[type].color, W.shooter); runSpot(type);
+}
+// marbles dropped at random in the rings, to give the hotspots something to work on
+function debugScatter() {
+  if (!W || phase === 'over') return;
+  for (let k = 0; k < 6; k++) {
+    const a = Math.random() * Math.PI * 2, d = 1.6 + Math.random() * 5.6;
+    const m = { id: W.nextId++, owner: active[k % active.length], x: Math.cos(a) * d, z: Math.sin(a) * d, vx: 0, vz: 0, alive: true, ghost: false, r: R, mass: 1 };
+    W.marbles.push(m); addMarbleMesh(m);
+  }
+}
+function debugEndGame() {
+  if (!W || (phase !== 'aim' && phase !== 'cpu')) return;
+  clearTimeout(cpuTimer); W.marbles = W.marbles.filter(m => m !== current); removeMarbleMesh(current.id); shots = [0, 0, 0, 0];
+  endGame();
+}
+const debugSeats = debugSet('Seat', SEATS.map((s, i) => ['', () => { debugSeat = i; debugSeats.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-pressed', k === i)); if (debugCat && !debugCat.hidden) debugGesture(); }]));
+debugSeats.querySelectorAll('button').forEach((b, i) => { b.className = 'seatdot'; b.style.setProperty('--c', SEATS[i].color); b.title = SEATS[i].name; b.setAttribute('aria-label', SEATS[i].name); b.setAttribute('aria-pressed', i === 0); });
+debugSet('End of a go', Object.keys(REACTIONS).map(name => [name, () => catReact(debugSeat, 0, name)]));
+const debugCatSet = debugSet('Cat gestures', [
+  ...CatActor.gestures.map(name => [name, () => debugGesture(name)]),
+  ['enter', () => { if (debugCat) debugCat.stop().hide(); debugGesture(); }],
+  ['exit', () => { if (debugCat) debugCat.exit(); }],
+]);
+const debugHat = debugSelect(debugCatSet, [['', 'no hat'], ...Object.keys(CatActor.HATS).map(k => [k, k])]);
+const debugPose = debugSelect(debugCatSet, Object.keys(CatActor.POSES).map(k => [k, k]));
+debugPose.onchange = debugHat.onchange = () => debugGesture();
+// the jointed puppets: any of them can be put through its animations, and any bone turned by hand
+const debugPuppets = {};
+let debugRig = 'walker';
+function puppet() {
+  const w = stage.clientWidth, h = stage.clientHeight, m = Math.min(w, h);
+  let cat = debugPuppets[debugRig];
+  if (!cat) cat = debugPuppets[debugRig] = new CatPuppet(stage, { rig: debugRig, hidden: true, z: 3, x: w * 0.75, y: h * 0.62 });
+  if (debugRig === 'arm') { if (cat.hidden) { cat.place({ x: w * 0.12, y: h * 0.9, size: m * 0.25 }); cat.armLen = 0; } }
+  else cat.place({ size: m * 0.3 });
+  if (cat.hidden) cat.show();
+  return cat;
+}
+function debugPuppetPlay(name) {
+  const cat = puppet(), w = stage.clientWidth, h = stage.clientHeight;
+  if (debugRig === 'walker' && (name === 'walk' || name === 'trot')) return cat.walkTo(cat.x > w / 2 ? w * 0.22 : w * 0.78, cat.y, { gait: name });   // from one side of the stage to the other
+  if (debugRig === 'walker' && name === 'pounce') cat.place({ flip: cat.x < w / 2 });   // leap towards the middle
+  cat.play(name, name === 'reach' ? { to: [w * (0.3 + Math.random() * 0.5), h * (0.15 + Math.random() * 0.5)] } : {});
+}
+const debugPuppetSet = debugSet('Puppet', [
+  ['turn round', () => { const cat = puppet(); cat.place({ flip: !cat.flip }); }],
+  ['bones', () => { const cat = puppet(); cat.showBones = !cat.showBones; }],
+  ['reset joints', () => { puppet().tweak = {}; debugJoint.value = 0; }],
+  ['hide', () => { const cat = debugPuppets[debugRig]; if (cat) cat.stop().hide(); }],
+]);
+const debugAnims = document.createElement('div'); debugAnims.className = 'set'; debugAnims.style.flexBasis = '100%';
+const debugJoint = document.createElement('input'); debugJoint.type = 'range'; debugJoint.min = -70; debugJoint.max = 70; debugJoint.value = 0; debugJoint.setAttribute('aria-label', 'Turn the chosen joint');
+debugPuppetSet.prepend(debugAnims);
+debugPuppetSet.prepend(debugJoint);
+const debugBone = debugSelect(debugPuppetSet, []);
+const debugRigs = debugSelect(debugPuppetSet, CatPuppet.rigs.map(k => [k, k]));
+function debugRigChanged() {
+  for (const cat of Object.values(debugPuppets)) cat.stop().hide();
+  debugRig = debugRigs.value;
+  debugAnims.replaceChildren(...CatPuppet.animations(debugRig).map(name => { const b = document.createElement('button'); b.textContent = name; b.onclick = () => debugPuppetPlay(name); return b; }));
+  debugBone.replaceChildren(...CatPuppet.bones(debugRig).map(k => new Option(k, k)));
+  debugJoint.value = 0;
+}
+debugRigs.onchange = debugRigChanged;
+debugBone.onchange = () => { debugJoint.value = puppet().tweak[debugBone.value] || 0; };
+debugJoint.oninput = () => { puppet().tweak[debugBone.value] = +debugJoint.value; };
+debugRigChanged();
+debugSet('Hotspots', [...Object.keys(SPOT_TYPES).map(type => [type, () => { kittyMove = null; debugSpot(type); }]),
+  ...['bat', 'pounce'].map(move => ['cat: ' + move, () => { kittyMove = move; debugSpot('cat'); }]), ['scatter marbles', debugScatter]]);
+debugSet('Finale', [
+  ['hole face', () => holeGulp(0)],
+  ['win', () => celebrate([debugSeat])],
+  ['tie', () => celebrate([debugSeat, (debugSeat + 2) % 4])],
+  ['stop party', endParty],
+  ['end game', debugEndGame],
+]);
+
+/* ===== BOOT ===== */
+badges.forEach(b => b.hidden = true);
+CatActor.preload();
+for (const photo of ['walker', 'upright', 'arm']) CatPuppet.photo(photo);
+renderSeats();
+resize();
+const fontReady = document.fonts ? Promise.race([document.fonts.load('700 80px Fredoka'), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve();
+buildBoard();
+fontReady.then(() => buildBoard());
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

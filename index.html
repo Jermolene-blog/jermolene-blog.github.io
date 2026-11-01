@@ -43,8 +43,24 @@ Home
 
 <li>
 
+<a class="tc-tiddlylink tc-tiddlylink-resolves" href="/games">
+Games
+</a>
+
+</li>
+
+<li>
+
 <a class="tc-tiddlylink tc-tiddlylink-resolves" href="/toys">
 Toys
+</a>
+
+</li>
+
+<li>
+
+<a class="tc-tiddlylink tc-tiddlylink-resolves" href="/tools">
+Tools
 </a>
 
 </li>
@@ -113,7 +129,7 @@ The Lenticulator
 </div>
 <div class="tc-subtitle">9th January 2022</div>
 
-<div class="tc-tiddler-body"><p><a class="tc-tiddlylink-external" href="https://jermolene.com/toys/lenticulator/" rel="noopener noreferrer" target="_blank">The Lenticulator</a> is a web toy that helps you print and fold eye-baffling illusions whereby one picture blends into another as the observer moves from one side to the other.</p><p>Take two photos, feed them into the app then print, score and fold. Nothing leaves your computer, and it is all open source</p><a href="https://jermolene.com/toys/lenticulator/"><p><img src="https://jermolene.com/toys/lenticulator/screenshot.png" width="400px"></p></a><p>I used to make these 20 years ago very laboriously by slicing and dicing images in a graphics package, and have been meaning to make the app ever since.</p><p>This version is written in HTML, CSS and 80 lines of JavaScript (see the <a class="tc-tiddlylink-external" href="https://github.com/Jermolene/lenticulator" rel="noopener noreferrer" target="_blank">code on GitHub</a>).</p></div>
+<div class="tc-tiddler-body"><p><a class="tc-tiddlylink-external" href="https://jermolene.com/tools/lenticulator/" rel="noopener noreferrer" target="_blank">The Lenticulator</a> is a web toy that helps you print and fold eye-baffling illusions whereby one picture blends into another as the observer moves from one side to the other.</p><p>Take two photos, feed them into the app then print, score and fold. Nothing leaves your computer, and it is all open source</p><a href="https://jermolene.com/tools/lenticulator/"><p><img src="https://jermolene.com/tools/lenticulator/screenshot.png" width="400px"></p></a><p>I used to make these 20 years ago very laboriously by slicing and dicing images in a graphics package, and have been meaning to make the app ever since.</p><p>This version is written in HTML, CSS and 80 lines of JavaScript (see the <a class="tc-tiddlylink-external" href="https://github.com/Jermolene/lenticulator" rel="noopener noreferrer" target="_blank">code on GitHub</a>).</p></div>
 
 </div>
 
@@ -507,8 +523,8 @@ title: $:/_Toys/PWA.js
 type: application/javascript
 tags: $:/tags/Static/JS
 
-On the Toys page, which $:/_Toys/PWA marks with its web app manifest, load the
-script shared with the toys that registers the service worker. A <script> tag
+On the Toys, Games and Tools pages, which $:/_Toys/PWA marks with their web app
+manifests, load the script shared with the toys that registers the service worker. A <script> tag
 cannot be written in the wikified head, so it is loaded from here instead
 
 \*/
@@ -516,9 +532,10 @@ cannot be written in the wikified head, so it is loaded from here instead
 
 "use strict";
 
-if(document.querySelector('link[rel="manifest"][href="/toys/manifest.webmanifest"]')) {
+var manifest = document.querySelector('link[rel="manifest"][href$="/manifest.webmanifest"]');
+if(manifest) {
 	var script = document.createElement("script");
-	script.src = "/toys/pwa.js";
+	script.src = manifest.getAttribute("href").replace(/manifest\.webmanifest$/,"pwa.js");
 	document.head.appendChild(script);
 }
 

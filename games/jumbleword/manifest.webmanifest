@@ -1,0 +1,43 @@
+{
+	"name": "Jumbleword",
+	"short_name": "Jumbleword",
+	"description": "Five, six or seven lettered balls land in the rack: spell every word hidden in them to fill the card, and shout house when one word uses every ball",
+	"id": "/games/jumbleword/",
+	"start_url": "/games/jumbleword/",
+	"scope": "/games/jumbleword/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#24160f",
+	"background_color": "#24160f",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}
