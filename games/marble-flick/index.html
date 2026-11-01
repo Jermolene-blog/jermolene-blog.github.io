@@ -163,7 +163,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
         <div class="seg soundSeg"><button data-s="on" aria-pressed="true">On</button><button data-s="off">Off</button></div>
       </div>
       <label class="optrow" for="debugChk">Debug panel<input type="checkbox" id="debugChk"></label>
-      <p class="how"><strong>Drag back</strong> from your marble and let go to flick it. When everything stops, marbles in the rings score <strong>1, 3 and 5</strong>. Sinking a rival's marble in the centre hole earns <strong>+3</strong>. Anything that rolls off the edge is gone, and a marble left sitting on a launch pad is swatted off the board by an irritated paw, costing the shooter <strong>2</strong>. The four <strong>hotspots</strong> on the edges swallow any marble that rolls slowly across them and set something off: a catquake, a fit of the zoomies, a paw that reaches out of the hole and helps itself, or a cat who strolls on and bats a marble away. Handy when you're losing. Each one needs a full round to recharge, and after every event the hotspots shuffle places. Every third marble is a <strong>giant</strong>: heavy enough to bulldoze, too big for the hole, and it shrinks back once everything stops. In <strong>rapid fire</strong> nobody waits their turn: everyone flicks whenever they like, a fresh marble appears on your pad a moment after each flick, and there are no giants or pad swats. Tap a seat to switch it between player, computer and empty.</p>
+      <p class="how"><strong>Drag back</strong> from your marble and let go to flick it. When everything stops, marbles in the rings score <strong>1, 3 and 5</strong>. Sinking a rival's marble in the centre hole earns <strong>+3</strong>. Anything that rolls off the edge is gone, and a marble left sitting on a launch pad is swatted off the board by an irritated paw, costing the shooter <strong>2</strong>. The four <strong>hotspots</strong> on the edges swallow any marble that rolls slowly across them and set something off: a catquake, a fit of the zoomies, a paw that reaches out of the hole and helps itself, or a cat who strolls on and bats a marble away. Handy when you're losing. Each one needs a full round to recharge, and after every event the hotspots shuffle places. Every third marble is a <strong>giant</strong>: heavy enough to bulldoze, too big for the hole, and it shrinks back once everything stops. In <strong>rapid fire</strong> nobody waits their turn: everyone flicks whenever they like, a fresh marble appears on your pad a moment after each flick, and there are no giants or pad swats. Taking turns, whenever the rings are left empty it's <strong>quickfire</strong>: five seconds of everyone flicking at once, with marbles on the house. Tap a seat to switch it between player, computer and empty.</p>
       <button class="go" id="startBtn">Start game</button>
     </div>
   </div>
@@ -1212,6 +1212,26 @@ const events = [];
 // RELOAD_MS after each flick; `rapidGen` retires the timers of an abandoned game
 let rapid = false, loaded = [null, null, null, null], rapidGen = 0;
 const drags = new Map(), RELOAD_MS = 900;
+// quickfire: taking turns, whenever a turn leaves the rings empty, everyone flicks at once for QUICK_MS, as in rapid
+// fire but with free marbles that don't use up anyone's shots. When the time is up the board is left to settle and
+// the turns carry on. `W.quickDone` stops an empty board from setting off one quickfire after another
+let quickfire = false;
+const QUICK_MS = 5000;
+const ringsEmpty = () => W.marbles.every(m => !m.alive || m.ghost || zonePts(m) <= 0);
+function startQuickfire() {
+  quickfire = true; rapid = true; W.quickDone = true;
+  banner('Quickfire!', '#f2c14e', seatOfTurn());
+  startRapid();
+  const gen = rapidGen;
+  setTimeout(() => gen === rapidGen && endQuickfire(), QUICK_MS);
+}
+// the marbles still waiting on their pads are taken away, and the board settles before the turns carry on
+function endQuickfire() {
+  rapidGen++;
+  for (const m of loaded) if (m) { m.alive = false; removeMarbleMesh(m.id); }
+  loaded = [null, null, null, null]; drags.clear(); seatAims.forEach(A => hideAim(A));
+  phase = 'quickend'; restHold = 0; updateHud();
+}
 const badges = [0, 1, 2, 3].map(i => document.getElementById('b' + i));
 badges.forEach((b, i) => {
   b.style.setProperty('--c', SEATS[i].color);
@@ -1221,6 +1241,7 @@ badges.forEach((b, i) => {
 function seatOfTurn() { return active[turn % active.length]; }
 function newGame() {
   clearTimeout(cpuTimer); rapidGen++;
+  if (quickfire) { quickfire = false; rapid = false; }
   if (W) for (const m of W.marbles) removeMarbleMesh(m.id);
   for (const id of [...meshes.keys()]) removeMarbleMesh(id);
   eventBusy = false; activeEffect = null; quake.t = 0; dismissCats();
@@ -1255,7 +1276,7 @@ function startRapid() {
   updateHud();
 }
 function rapidLoad(seat) {
-  if (phase !== 'rapid' || shots[seat] === 0 || loaded[seat]) return;
+  if (phase !== 'rapid' || (!quickfire && shots[seat] === 0) || loaded[seat]) return;
   const [x, z] = padSpot(seat, R);
   const m = { id: W.nextId++, owner: seat, x, z, vx: 0, vz: 0, alive: true, ghost: true, loaded: true, r: R, mass: 1, giant: false };
   W.marbles.push(m); addMarbleMesh(m); loaded[seat] = m;
@@ -1269,7 +1290,8 @@ function rapidLaunch(m, vx, vz) {
   const seat = m.owner; if (phase !== 'rapid' || loaded[seat] !== m) return;
   hideAim(seatAims[seat]);
   m.ghost = false; m.loaded = false; m.vx = vx; m.vz = vz; loaded[seat] = null;
-  shots[seat]--; W.shooter = seat;   // a rival's marble sunk in the hole earns the bonus for whoever flicked last
+  if (!quickfire) shots[seat]--;
+  W.shooter = seat;   // a rival's marble sunk in the hole earns the bonus for whoever flicked last
   W.spotCool = W.spotCool.map(c => Math.max(0, c - 1 / active.length));   // hotspots recharge over a round's worth of flicks
   restHold = 0; launchAt = performance.now();
   audio(); sFlick();
@@ -1280,6 +1302,7 @@ function startTurn() {
   if (active.every(i => shots[i] === 0)) return endGame();
   let seat = seatOfTurn();
   while (shots[seat] === 0) { turn++; seat = seatOfTurn(); }
+  if (!W.quickDone && ringsEmpty()) return startQuickfire();
   W.shooter = seat;
   W.spotCool = W.spotCool.map(c => Math.max(0, c - 1));
   if (W.surgeTurns > 0 && --W.surgeTurns === 0) { W.spinTarget = 1; sSurgeDown(); }
@@ -1570,9 +1593,17 @@ function frame(now) {
       // hotspot events run as soon as one is triggered; the game ends once every marble is flicked and the board is still
       if (!eventBusy && W.spotQueue.length) runSpot(W.spotQueue.shift());
       const settled = !eventBusy && (!lastMoving && ![...meshes.values()].some(e => e.anim) || now - launchAt > 12000);
-      if (settled && active.every(i => shots[i] === 0 && !loaded[i])) {
+      if (!quickfire && settled && active.every(i => shots[i] === 0 && !loaded[i])) {
         restHold += dt;
         if (restHold > 0.6) { W.marbles = W.marbles.filter(m => m.alive); endGame(); }
+      } else restHold = 0;
+    }
+    if (phase === 'quickend') {
+      if (!eventBusy && W.spotQueue.length) runSpot(W.spotQueue.shift());
+      const settled = !eventBusy && (!lastMoving && ![...meshes.values()].some(e => e.anim) || now - launchAt > 12000);
+      if (settled) {
+        restHold += dt;
+        if (restHold > 0.5) { W.marbles = W.marbles.filter(m => m.alive); quickfire = false; rapid = false; startTurn(); }
       } else restHold = 0;
     }
     if (phase === 'rolling') {
@@ -1596,7 +1627,7 @@ function frame(now) {
             runSpot(W.spotQueue.shift()); restHold = 0; launchAt = now;
           } else {
             const shooter = W.shooter, gained = scoresOf(W)[shooter] - shotStart;
-            catReact(shooter, gained);
+            catReact(shooter, gained); W.quickDone = false;
             turn++; phase = 'between'; updateHud(); setTimeout(startTurn, Math.max(250, REACT_MS));
           }
         }
