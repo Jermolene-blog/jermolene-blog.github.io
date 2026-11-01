@@ -1,7 +1,7 @@
 {
 	"name": "Jumbleword",
 	"short_name": "Jumbleword",
-	"description": "Five, six or seven lettered balls land in the rack: spell every word hidden in them to fill the card, and shout house when one word uses every ball",
+	"description": "Four, five, six or seven lettered balls land in the rack: spell every word hidden in them to fill the card, and shout house when one word uses every ball",
 	"id": "/games/jumbleword/",
 	"start_url": "/games/jumbleword/",
 	"scope": "/games/jumbleword/",
