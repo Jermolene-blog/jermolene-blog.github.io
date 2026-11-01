@@ -25,7 +25,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "520eedefe05b6a7b",
+	"version": "e943616f157c812a",
 	"urls": [
 		"/toys/",
 		"/toys/animal-island/apple-touch-icon.png",
@@ -102,7 +102,6 @@ self.PRECACHE = {
 		"/toys/fractaliser/manifest.webmanifest",
 		"/toys/icon-192.png",
 		"/toys/icon-512.png",
-		"/toys/icon.svg",
 		"/toys/jpegulator/apple-touch-icon.png",
 		"/toys/jpegulator/icon-192.png",
 		"/toys/jpegulator/icon-512.png",
@@ -175,6 +174,12 @@ self.PRECACHE = {
 		"/toys/quizbuzz/icon.svg",
 		"/toys/quizbuzz/",
 		"/toys/quizbuzz/manifest.webmanifest",
+		"/toys/radialator/apple-touch-icon.png",
+		"/toys/radialator/icon-192.png",
+		"/toys/radialator/icon-512.png",
+		"/toys/radialator/icon.svg",
+		"/toys/radialator/",
+		"/toys/radialator/manifest.webmanifest",
 		"/toys/rug-addict/apple-touch-icon.png",
 		"/toys/rug-addict/icon-192.png",
 		"/toys/rug-addict/icon-512.png",
@@ -238,6 +243,7 @@ self.PRECACHE = {
 		"/screenshots/toys/mimic.webp",
 		"/screenshots/toys/over-underiser.webp",
 		"/screenshots/toys/quizbuzz.webp",
+		"/screenshots/toys/radialator.webp",
 		"/screenshots/toys/rug-addict.webp",
 		"/screenshots/toys/spotty-sphericle.webp",
 		"/screenshots/toys/sunthesis.webp",
@@ -262,6 +268,7 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap",
 		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap",
+		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@400;500;700&family=Cutive+Mono&display=swap",
 		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Familjen+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap",

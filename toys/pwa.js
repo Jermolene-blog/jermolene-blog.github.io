@@ -18,7 +18,15 @@ The site's menu links to the index as /toys without a trailing slash, which
 lies outside the worker's scope and so cannot be served offline, so such links
 are given their trailing slash on the pages this script runs on.
 
-When a toy is opened from disk there is nothing to do.
+When a toy is opened from disk the rest has nothing to do.
+
+Pinching never zooms a toy's page, even opened from disk, though toys that
+zoom their own content with a pinch (such as Flowing Field and Vectorious)
+still get the gesture: CSS touch-action stops browsers zooming the page
+while leaving the pointer events alone, and Safari, which zooms the page
+regardless, has its gesture events cancelled, as do trackpad pinches, which
+arrive as wheel events with the control key held. The toys index itself
+still zooms.
 */
 
 (function() {
@@ -26,6 +34,23 @@ When a toy is opened from disk there is nothing to do.
 "use strict";
 
 var script = document.currentScript;
+
+if(script && location.pathname.replace(/\/$/,"") !== new URL("./",script.src).pathname.replace(/\/$/,"")) {
+	var noZoom = document.createElement("style");
+	noZoom.textContent = "html{touch-action:pan-x pan-y}";
+	document.head.appendChild(noZoom);
+	["gesturestart","gesturechange","gestureend"].forEach(function(type) {
+		document.addEventListener(type,function(event) {
+			event.preventDefault();
+		},{passive: false});
+	});
+	window.addEventListener("wheel",function(event) {
+		if(event.ctrlKey) {
+			event.preventDefault();
+		}
+	},{passive: false, capture: true});
+}
+
 if(!script || !/^https?:$/.test(location.protocol)) {
 	return;
 }

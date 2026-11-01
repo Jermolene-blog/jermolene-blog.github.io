@@ -63,6 +63,11 @@ h1{font:400 34px/1 var(--f-display);margin:0;letter-spacing:.005em}
 h1 i{color:var(--ember)}
 .lede{color:var(--muted);margin:8px 0 16px;line-height:1.45;font-size:13px}
 .row{display:flex;flex-wrap:wrap;gap:6px}
+.dl{position:relative;display:inline-block}
+.dl>summary{list-style:none;font:500 13px var(--f-body);color:var(--text);background:#1a1e2b;border:1px solid var(--line);border-radius:8px;padding:8px 11px;cursor:pointer;letter-spacing:normal;text-transform:none;display:block}
+details.dl>summary::after,details.dl[open]>summary::after{content:none}
+.dl>summary::-webkit-details-marker{display:none}
+.dlmenu{position:absolute;z-index:20;top:calc(100% + 4px);left:0;display:flex;flex-direction:column;gap:4px;min-width:100%;white-space:nowrap}
 button.b{font:500 13px var(--f-body);color:var(--text);background:#1a1e2b;border:1px solid var(--line);border-radius:8px;padding:8px 11px;cursor:pointer}
 button.b:hover{border-color:#3a4258}
 button.b.primary{background:var(--ember);border-color:var(--ember);color:#1b0e04}
@@ -124,10 +129,10 @@ input,textarea{-webkit-user-select:text;user-select:text}
   <div id="stage">
     <div id="frame"><canvas id="cv"></canvas></div>
     <div class="hud tl">
-      <button class="chip" id="animBtn" aria-pressed="false" title="Drift the clouds and move the water">animate</button>
+      <button class="chip" id="animBtn" aria-pressed="false" title="Drift the clouds, move the water and sway the trees">animate</button>
       <button class="chip ex" id="exploreChip" aria-pressed="false">explore</button>
     </div>
-    <div id="hint">Drag the picture to move the sun</div>
+    <div id="hint">Drag the picture to move the sun. Pinch or scroll to zoom</div>
   </div>
   <aside id="panel">
     <h1>Sun<i>thesis</i></h1>
@@ -135,8 +140,10 @@ input,textarea{-webkit-user-select:text;user-select:text}
     <div class="row">
       <button class="b primary" id="randBtn">Randomise all</button>
       <button class="b" id="resetBtn">Reset</button>
-      <button class="b" id="pngBtn">Export PNG</button>
-      <button class="b" id="hdrBtn" title="A JPEG with an HDR gain map: brighter-than-white highlights on HDR screens, an ordinary JPEG everywhere else">Export HDR JPEG</button>
+      <details class="dl"><summary>Download ▾</summary><div class="dlmenu">
+        <button class="b" id="pngBtn">PNG</button>
+        <button class="b" id="hdrBtn" title="A JPEG with an HDR gain map: brighter-than-white highlights on HDR screens, an ordinary JPEG everywhere else">HDR JPEG</button>
+      </div></details>
       <button class="b violet" id="exploreBtn">Explore</button>
     </div>
     <label class="keep" for="keepSunset"><input type="checkbox" id="keepSunset" checked> Keep it sunset-like <span>Randomise and Explore skip results that read as daytime, night, a colour cast or a flat grey sky</span></label>
@@ -182,6 +189,7 @@ uniform vec2 uOff;      // tile origin in px
 uniform float uTime;
 uniform float uSeed;   // per-pass noise seed (progressive refinement)
 uniform vec2 uJit;     // sub-pixel jitter
+uniform vec3 uView;    // zoom, and the centre of the view's offset from the frame's in frame widths
 uniform vec3 uSun;      // true sun direction
 uniform vec3 uSunApp;   // apparent (refracted) sun direction
 uniform vec4 uMS;       // multiple-scattering fill radiance (4 spectral bands)
@@ -1021,7 +1029,7 @@ float fgCover(vec2 uv, float asp, float px){
     float c = 0.0;
     float Ht = H*2.6;
     vec2 base = vec2(P_fgX, y0);
-    float lean = (h11(sd)-0.5)*0.25;
+    float lean = (h11(sd)-0.5)*0.25 + 0.012*sin(WT*0.7) + 0.006*sin(WT*1.9 + 1.3);   // swaying in the wind
     vec2 top = base + vec2(lean, 1.0)*Ht;
     if(uv.y < y0 - px) return 0.0;
     c = max(c, lineCov(segD(uv, base, mix(base, top, 0.5)), Ht*0.018, px));
@@ -1031,7 +1039,7 @@ float fgCover(vec2 uv, float asp, float px){
       float t = mix(0.18, 0.97, fi/13.0) + (h11(fi+sd)-0.5)*0.05;
       vec2 o = mix(base, top, t);
       float side = mod(fi, 2.0) < 1.0 ? -1.0 : 1.0;
-      float ang = side*mix(0.4, 1.0, h11(fi*3.7+sd)) + lean;
+      float ang = side*mix(0.4, 1.0, h11(fi*3.7+sd)) + lean + t*0.05*sin(WT*1.6 + fi*1.3);
       float L = Ht*mix(0.55, 0.25, t)*mix(0.7, 1.2, h11(fi*1.9+sd));
       vec2 dir = vec2(sin(ang), cos(ang));
       if(length(uv - (o + dir*L*0.5)) > L*0.85) continue;
@@ -1079,7 +1087,7 @@ float fgCover(vec2 uv, float asp, float px){
         float clump = smoothstep(0.25, 0.75, fbm1(ci*cw*3.0, sd+1.0, 3));
         float hb = H*mix(0.45, 1.0, hA)*mix(0.55, 1.0, clump);
         vec2 b0 = vec2((ci + hB)*cw, y0 + H*0.15);
-        float ln = wind + (hC-0.5)*0.5;
+        float ln = wind + (hC-0.5)*0.5 + 0.12*sin(WT*1.4 - ci*cw*4.0) + 0.04*sin(WT*3.1 + ci*1.7);
         vec2 prev = b0;
         for(int s2=1;s2<=3;s2++){
           float u = float(s2)/3.0;
@@ -1096,7 +1104,7 @@ float fgCover(vec2 uv, float asp, float px){
 
 void main(){
   vec2 frag = gl_FragCoord.xy - uOff + uJit;
-  vec2 uv = (frag - 0.5*uRes)/(0.5*uRes.x);   // x in [-1,1]
+  vec2 uv = (frag - 0.5*uRes)/(0.5*uRes.x)/uView.x + 2.0*uView.yz;   // x in [-1,1] unzoomed
   CAMH = P_camH/1000.0;
   HM = P_mieH;
   CAM = vec3(0.0, R0 + CAMH, 0.0);
@@ -1109,7 +1117,7 @@ void main(){
   LSEED = vec2(h11(P_landSeed+3.0)*200.0, h11(P_landSeed+29.0)*200.0);
   WT = uTime;
   float tf = tan(radians(P_fov)*0.5);
-  PIXANG = 2.0*tf/uRes.x;
+  PIXANG = 2.0*tf/(uRes.x*uView.x);
 
   float pch = radians(P_pitch), rl = 0.0;   // camera is always level: the horizon stays horizontal
   vec3 f = vec3(0.0, sin(pch), cos(pch));
@@ -1247,7 +1255,7 @@ void main(){
       vec2 w1 = c + s*vec2(-1.0, 0.45+fl), w2 = c + s*vec2(1.0, 0.45+fl);
       vec2 m1 = c + s*vec2(-0.45, 0.05), m2 = c + s*vec2(0.45, 0.05);
       float dd = min(min(segD(uv, c, m1), segD(uv, m1, w1)), min(segD(uv, c, m2), segD(uv, m2, w2)));
-      float px = 2.0/uRes.x;
+      float px = 2.0/(uRes.x*uView.x);
       cov = max(cov, smoothstep(s*0.16+px, s*0.16, dd));
     }
     col *= 1.0 - 0.93*cov;
@@ -1256,7 +1264,7 @@ void main(){
   // palm silhouettes
   if(P_palms > 0.5){
     float asp = uRes.y/uRes.x;
-    float px = 2.0/uRes.x;
+    float px = 2.0/(uRes.x*uView.x);
     float cov = 0.0;
     for(int i=0;i<6;i++){
       if(float(i) >= P_palms) break;
@@ -1264,7 +1272,7 @@ void main(){
       float x0 = (fract(h11(fi*2.3) + float(i)*0.61803) - 0.5)*1.9;
       float H = mix(0.18, 0.34, h11(fi*5.7))*asp*2.0*P_palmH;
       float y0 = -asp;
-      float bend = (h11(fi*8.1)-0.5)*0.08;
+      float bend = (h11(fi*8.1)-0.5)*0.08 + 0.008*sin(uTime*0.8 + fi*2.1)*H/0.3;   // swaying in the wind
       vec2 crown = vec2(x0 + bend, y0 + H);
       // trunk
       float ty = (uv.y - y0)/H;
@@ -1278,7 +1286,7 @@ void main(){
       if(length(uv - crown) < L*1.3){
         for(int j=0;j<10;j++){
           float fj = float(j);
-          float th = fj/10.0*6.2832 + h11(fi*13.0+fj)*0.5;
+          float th = fj/10.0*6.2832 + h11(fi*13.0+fj)*0.5 + 0.07*sin(uTime*2.3 + fj*1.7 + fi);
           vec2 dir = vec2(cos(th), 0.35+0.45*sin(th));
           float droop = (0.9+0.7*h11(fj+fi))*(0.7 - 0.3*sin(th));
           vec2 prev = crown;
@@ -1299,7 +1307,7 @@ void main(){
 
   // foreground silhouettes standing at the bottom of the frame
   if(P_fg > 0.5){
-    float c = fgCover(uvb, uRes.y/uRes.x, 2.0/uRes.x);
+    float c = fgCover(uvb, uRes.y/uRes.x, 2.0/(uRes.x*uView.x));
     col = mix(col, uAmb*0.006, c);
   }
 
@@ -1587,7 +1595,7 @@ function buildGL(){
   prog=gl.createProgram(); gl.attachShader(prog,mk(gl.VERTEX_SHADER,vsrc)); gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsrc)); gl.linkProgram(prog);
   if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(prog)); window.__glerr=(window.__glerr||'')+gl.getProgramInfoLog(prog);}
   gl.useProgram(prog);
-  for(const n of ['P_','uRes','uOff','uTime','uSeed','uJit','uHDR','uSun','uSunApp','uMS','uAmb','uZen','uExpo']) uni[n]=gl.getUniformLocation(prog,n);
+  for(const n of ['P_','uView','uRes','uOff','uTime','uSeed','uJit','uHDR','uSun','uSunApp','uMS','uAmb','uZen','uExpo']) uni[n]=gl.getUniformLocation(prog,n);
   gl.bindVertexArray(gl.createVertexArray());
 }
 const derivCache=new Map();
@@ -1597,8 +1605,9 @@ function derivedFor(s){
   return d;
 }
 const pArr=new Float32Array(KEYS.length);
-function drawTile(s,x,y,w,h,fbH){
+function drawTile(s,x,y,w,h,v=null){
   const d=derivedFor(s);
+  gl.uniform3f(uni.uView,v?v.z:1,v?v.x:0,v?v.y:0);
   KEYS.forEach((k,i)=>pArr[i]=s[k]);
   gl.uniform1fv(uni.P_,pArr);
   gl.uniform2f(uni.uRes,w,h); gl.uniform2f(uni.uOff,x,y);
@@ -1912,7 +1921,7 @@ function render(){
   gl.enable(gl.SCISSOR_TEST);
   if(pass===0){ gl.disable(gl.BLEND); gl.scissor(0,0,W,H); gl.clearColor(0.04,0.047,0.07, hdr.active?0:1); gl.clear(gl.COLOR_BUFFER_BIT); jit=[0,0]; }
   else { gl.enable(gl.BLEND); gl.blendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA); gl.blendColor(0,0,0,1/(pass+1)); jit=[halton(pass,2)-0.5, halton(pass,3)-0.5]; }
-  if(!exploring){ drawTile(S,0,0,W,H); }
+  if(!exploring){ drawTile(S,0,0,W,H,view); }
   else{
     const g=Math.round(3*scale), tw=Math.floor((W-2*g)/3), th=Math.floor((H-2*g)/3);
     for(let i=0;i<9;i++){
@@ -2064,27 +2073,59 @@ function randomise(){
   S=s; derivCache.clear(); syncUI(); markPreset(null); if(exploring) makeDeltas(); requestRender();
 }
 
-// drag to move the sun
-let drag=null;
+// drag to move the sun; pinch or scroll to zoom, two fingers, right-drag or shift-drag to pan, double-click to see it all
+// view: zoom, and the centre of the view's offset from the frame's in frame widths (y up); exports show the whole frame
+const view={x:0,y:0,z:1}, ptrs=new Map();
+let drag=null, pan=null, pinch=null;
+function frameXY(cx,cy){ const r=cv.getBoundingClientRect(); return {w:r.width,h:r.height,x:(cx-r.left-r.width/2)/r.width,y:-(cy-r.top-r.height/2)/r.width}; }
+function clampView(h){ const m=(1-1/view.z)/2; view.x=Math.max(-m,Math.min(m,view.x)); view.y=Math.max(-m*h,Math.min(m*h,view.y)); }
+function zoomAt(cx,cy,f){
+  const p=frameXY(cx,cy), z0=view.z; view.z=Math.min(8,Math.max(1,view.z*f));
+  view.x+=p.x/z0-p.x/view.z; view.y+=p.y/z0-p.y/view.z; clampView(p.h/p.w); requestRender(true);
+}
+function resetView(){ view.x=view.y=0; view.z=1; requestRender(); }
+cv.addEventListener('contextmenu',e=>{ if(!exploring) e.preventDefault(); });
 cv.addEventListener('pointerdown',e=>{
   if(exploring){
     const r=cv.getBoundingClientRect(); const cx=Math.min(2,Math.floor((e.clientX-r.left)/r.width*3)), cy=Math.min(2,Math.floor((e.clientY-r.top)/r.height*3));
     pickTile(cy*3+cx); return;
   }
-  drag={x:e.clientX,y:e.clientY,az:S.sunAz,el:S.sunElev}; cv.setPointerCapture(e.pointerId); $('hint').style.opacity=0;
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); cv.setPointerCapture(e.pointerId);
+  if(ptrs.size===2){
+    // a second finger turns a sun drag into a pinch, putting the sun back where it was
+    if(drag){ S.sunAz=drag.az; S.sunElev=drag.el; drag=null; syncUI(); }
+    const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,mx:(a.x+b.x)/2,my:(a.y+b.y)/2}; pan=null;
+  } else if(ptrs.size===1){
+    if(e.button!==0||e.shiftKey) pan={x:e.clientX,y:e.clientY};
+    else drag={x:e.clientX,y:e.clientY,az:S.sunAz,el:S.sunElev};
+  }
+  $('hint').style.opacity=0;
 });
 cv.addEventListener('pointermove',e=>{
+  const p=ptrs.get(e.pointerId); if(!p) return;
+  p.x=e.clientX; p.y=e.clientY;
+  if(pinch&&ptrs.size>=2){
+    const [a,b]=[...ptrs.values()], mx=(a.x+b.x)/2, my=(a.y+b.y)/2, d=Math.hypot(a.x-b.x,a.y-b.y)||1, f=frameXY(0,0);
+    view.x-=(mx-pinch.mx)/f.w/view.z; view.y+=(my-pinch.my)/f.w/view.z;
+    zoomAt(mx,my,d/pinch.d); pinch={d,mx,my}; return;
+  }
+  if(pan){ const f=frameXY(0,0); view.x-=(e.clientX-pan.x)/f.w/view.z; view.y+=(e.clientY-pan.y)/f.w/view.z; clampView(f.h/f.w); pan={x:e.clientX,y:e.clientY}; requestRender(true); return; }
   if(!drag) return; const r=cv.getBoundingClientRect();
-  const k=S.fov/r.width;
+  const k=S.fov/r.width/view.z;
   S.sunAz=Math.max(-45,Math.min(45,drag.az+(e.clientX-drag.x)*k));
   S.sunElev=Math.max(-7,Math.min(14,drag.el-(e.clientY-drag.y)*k));
   syncUI(); requestRender(true);
 });
-const endDrag=()=>{ if(drag){drag=null; requestRender(false);} };
+const endDrag=e=>{
+  ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null;
+  if(!ptrs.size){ pan=null; if(drag) drag=null; requestRender(false); }
+};
 cv.addEventListener('pointerup',endDrag); cv.addEventListener('pointercancel',endDrag);
+cv.addEventListener('dblclick',e=>{ if(!exploring){ e.preventDefault(); resetView(); } });
+cv.addEventListener('wheel',e=>{ if(exploring) return; e.preventDefault(); zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015))); },{passive:false});
 
 $('randBtn').onclick=randomise;
-$('resetBtn').onclick=()=>{ S={...defaults(),frame:S.frame}; derivCache.clear(); syncUI(); if(exploring) makeDeltas(); markPreset(null); requestRender(); };
+$('resetBtn').onclick=()=>{ S={...defaults(),frame:S.frame}; view.x=view.y=0; view.z=1; derivCache.clear(); syncUI(); if(exploring) makeDeltas(); markPreset(null); requestRender(); };
 $('exploreBtn').onclick=()=>setExplore(!exploring);
 $('exploreChip').onclick=()=>setExplore(!exploring);
 $('newNb').onclick=()=>{makeDeltas(); requestRender();};
@@ -2102,6 +2143,9 @@ $('animBtn').onclick=()=>{ animating=!animating; $('animBtn').setAttribute('aria
 let last=0;
 function loop(t){ if(!animating){ requestRender(); return; } if(last&&t) time+=Math.min(0.1,(t-last)/1000); last=t||0; pass=0; render(); requestAnimationFrame(loop); }
 $('pngBtn').onclick=exportPNG;
+// the Download menu closes once a format is picked, or on a tap elsewhere
+document.querySelectorAll('details.dl button').forEach(b=>b.addEventListener('click',()=>b.closest('details').open=false));
+document.addEventListener('pointerdown',e=>document.querySelectorAll('details.dl[open]').forEach(d=>{if(!d.contains(e.target))d.open=false}));
 $('hdrBtn').onclick=exportHDR;
 $('shotClose').onclick=()=>{ $('shot').hidden=true; };
 
@@ -2115,7 +2159,7 @@ function renderExportPixels(withBoost){
   gl.bindFramebuffer(gl.FRAMEBUFFER,fb); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
   gl.enable(gl.SCISSOR_TEST);
   const d=derivedFor(S); KEYS.forEach((k,i)=>pArr[i]=S[k]);
-  gl.uniform1fv(uni.P_,pArr); gl.uniform2f(uni.uRes,W,H); gl.uniform2f(uni.uOff,0,0); gl.uniform1f(uni.uTime,time);
+  gl.uniform1fv(uni.P_,pArr); gl.uniform3f(uni.uView,1,0,0); gl.uniform2f(uni.uRes,W,H); gl.uniform2f(uni.uOff,0,0); gl.uniform1f(uni.uTime,time);
   gl.uniform1f(uni.uHDR, withBoost?1:0);
   gl.uniform3fv(uni.uSun,d.sun); gl.uniform3fv(uni.uSunApp,d.sunApp); gl.uniform4fv(uni.uMS,d.ms); gl.uniform4fv(uni.uAmb,d.amb); gl.uniform4fv(uni.uZen,d.zen); gl.uniform1f(uni.uExpo,d.expo);
   gl.viewport(0,0,W,H);
@@ -2158,7 +2202,7 @@ async function exportPNG(){
     const {px,W,H}=renderExportPixels(false);
     const blob=await blobOf(sdrCanvas(px,W,H),'image/png');
     await offerFile(blob,'sunthesis.png','Long-press or right-click the picture to save it.');
-  }catch(e){ toast('Export failed: '+(e&&e.message||e)); }
+  }catch(e){ toast('Download failed: '+(e&&e.message||e)); }
   exporting=false;
 }
 async function exportHDR(){

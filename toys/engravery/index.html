@@ -59,6 +59,8 @@ main{
   padding:24px;overflow:hidden;background:
     repeating-linear-gradient(45deg,#0000 0 14px,#00000006 14px 15px);
 }
+#stage.zoomed canvas#out{touch-action:none;cursor:grab}
+#stage.zoomed canvas#out:active{cursor:grabbing}
 #stage.drag::after{
   content:"Drop photo";
   position:absolute;inset:12px;border:2px dashed var(--accent);
@@ -66,7 +68,7 @@ main{
   font-family:var(--mono);color:var(--accent);background:#f6f5f1e6;
 }
 canvas#out{
-  max-width:100%;max-height:100%;
+  max-width:100%;max-height:100%;touch-action:pan-y;cursor:zoom-in;
   box-shadow:0 1px 0 var(--ink),0 0 0 1px var(--ink);
   background:#fff;
 }
@@ -113,6 +115,10 @@ button,.filebtn{
   color:var(--ink);cursor:pointer;text-align:center;
 }
 button:hover,.filebtn:hover{background:var(--ink);color:var(--paper)}
+.dl{position:relative}
+.dl>summary{list-style:none;font-family:'Archivo',sans-serif;font-weight:500;font-size:14px;padding:10px 14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;text-align:center}
+.dl>summary::-webkit-details-marker{display:none}
+.dlmenu{position:absolute;z-index:5;bottom:calc(100% + 4px);left:0;right:0;display:flex;flex-direction:column;gap:4px}
 button.primary{background:var(--ink);color:var(--paper)}
 button.primary:hover{background:var(--accent);border-color:var(--accent)}
 button:focus-visible,.filebtn:focus-within,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -139,7 +145,7 @@ input,textarea{-webkit-user-select:text;user-select:text}
 <body>
 <header>
   <h1>ENGRAVERY</h1>
-  <p>Hide a photo in parallel lines. Squint to see it</p>
+  <p>Hide a photo in parallel lines. Squint to see it, or pinch to zoom in</p>
 </header>
 <main>
   <div id="stage">
@@ -208,8 +214,10 @@ input,textarea{-webkit-user-select:text;user-select:text}
       </div>
     </fieldset>
 
-    <button class="primary" id="download">Download PNG</button>
-    <button id="downloadSvg">Download SVG</button>
+    <details class="dl"><summary>Download ▾</summary><div class="dlmenu">
+      <button id="download">PNG</button>
+      <button id="downloadSvg">SVG</button>
+    </div></details>
   </aside>
 </main>
 
@@ -224,6 +232,8 @@ let img = null;           // HTMLImageElement or canvas
 let lum = null;           // Float32Array luminance 0..1 (1 = white)
 let chR = null, chG = null, chB = null;  // per-channel 0..1
 let LW = 0, LH = 0;       // luminance buffer size
+let GW = 0, GH = 0;       // size of the drawing: the canvas shows it fitted to the stage, zoomed by `view`
+const view = { x: 0, y: 0, z: 1 };   // zoom, and the view's centre offset from the drawing's, in drawing pixels
 const MAX_OUT = 1400;     // longest output edge
 
 function demoImage() {
@@ -246,6 +256,7 @@ function setSource(source) {
     if (video) stopVideo(false);
   }
   img = source;
+  view.x = view.y = 0; view.z = 1;
   fitOutput();
   buildLuminance();
   requestRender();
@@ -256,16 +267,29 @@ function fitOutput() {
   const h = img.videoHeight || img.naturalHeight || img.height;
   const cap = img === video ? 900 : MAX_OUT;    // keep live mode light
   const s = Math.min(1, cap / Math.max(w, h));
-  out.width = Math.round(w * s);
-  out.height = Math.round(h * s);
+  GW = Math.round(w * s);
+  GH = Math.round(h * s);
+  layoutOut();
+}
+
+// size the canvas to fit the stage at the drawing's aspect ratio, at the screen's resolution
+function layoutOut() {
+  if (!GW) return;
+  const st = $("stage"), cs = getComputedStyle(st);
+  const aw = st.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const ah = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const f = Math.min(aw / GW, ah / GH), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.max(1, GW * f), h = Math.max(1, GH * f);
+  out.style.width = w + "px"; out.style.height = h + "px";
+  out.width = Math.round(w * dpr); out.height = Math.round(h * dpr);
 }
 
 // cached sampling canvas + buffers, rebuilt only on size change
 let sampC = null, sampG = null;
 function buildLuminance() {
   const scale = 0.5;
-  const w = Math.max(2, Math.round(out.width * scale));
-  const h = Math.max(2, Math.round(out.height * scale));
+  const w = Math.max(2, Math.round(GW * scale));
+  const h = Math.max(2, Math.round(GH * scale));
   if (!sampC || w !== LW || h !== LH) {
     LW = w; LH = h;
     sampC = document.createElement("canvas");
@@ -350,7 +374,7 @@ function requestRender() {
 
 function readParams() {
   return {
-    W: out.width, H: out.height,
+    W: GW, H: GH,
     spacing: +$("spacing").value,
     angle: +$("angle").value * Math.PI / 180,
     weight: +$("weight").value,
@@ -553,8 +577,59 @@ function paint(g, P) {
 
 function render() {
   if (!lum) return;
+  const k = out.width / GW * view.z;
+  ctx.setTransform(k, 0, 0, k, out.width / 2 - (GW / 2 + view.x) * k, out.height / 2 - (GH / 2 + view.y) * k);
   paint(ctx, { ...readParams(), scale: 1 });
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  $("stage").classList.toggle("zoomed", view.z > 1.001);
 }
+
+// ---------- zoom: pinch or scroll to zoom, drag to pan once zoomed, double-click or double-tap to see it all ----------
+const ptrs = new Map();
+let pinch = null, lastTap = 0;
+function toDrawing(cx, cy) {
+  const r = out.getBoundingClientRect(), k = r.width / GW * view.z;
+  return { x: (cx - r.left - r.width / 2) / k + GW / 2 + view.x, y: (cy - r.top - r.height / 2) / k + GH / 2 + view.y };
+}
+function clampView() {
+  const m = (1 - 1 / view.z) / 2;
+  view.x = Math.max(-m * GW, Math.min(m * GW, view.x)); view.y = Math.max(-m * GH, Math.min(m * GH, view.y));
+}
+function zoomAt(cx, cy, f) {
+  const b = toDrawing(cx, cy);
+  view.z = Math.min(8, Math.max(1, view.z * f));
+  const a = toDrawing(cx, cy);
+  view.x += b.x - a.x; view.y += b.y - a.y; clampView(); requestRender();
+}
+function resetView() { view.x = view.y = 0; view.z = 1; requestRender(); }
+out.addEventListener("pointerdown", e => {
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; }
+  if (ptrs.size === 2 || view.z > 1) out.setPointerCapture(e.pointerId);
+});
+out.addEventListener("pointermove", e => {
+  const p = ptrs.get(e.pointerId); if (!p) return;
+  const k = out.getBoundingClientRect().width / GW * view.z;
+  if (ptrs.size === 1 && view.z > 1) { view.x -= (e.clientX - p.x) / k; view.y -= (e.clientY - p.y) / k; clampView(); requestRender(); }
+  p.x = e.clientX; p.y = e.clientY;
+  if (ptrs.size >= 2 && pinch) {
+    const [a, b] = [...ptrs.values()], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    view.x -= (mx - pinch.mx) / k; view.y -= (my - pinch.my) / k;
+    zoomAt(mx, my, d / pinch.d); pinch = { d, mx, my };
+  }
+});
+function ptrUp(e) {
+  if (!ptrs.has(e.pointerId)) return;
+  ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
+  if (e.type === "pointerup" && e.pointerType !== "mouse" && !ptrs.size) {
+    if (e.timeStamp - lastTap < 350) { resetView(); lastTap = 0; } else lastTap = e.timeStamp;
+  }
+}
+out.addEventListener("pointerup", ptrUp);
+out.addEventListener("pointercancel", ptrUp);
+out.addEventListener("dblclick", e => { e.preventDefault(); resetView(); });
+out.addEventListener("wheel", e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015))); }, { passive: false });
+window.addEventListener("resize", () => { layoutOut(); requestRender(); });
 
 // params scaled for an s× supersampled render
 function scaledParams(s) {
@@ -636,6 +711,9 @@ function saveFile(filename, type, data) {
   setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 }
 
+// the Download menu closes once a format is picked, or on a tap elsewhere
+document.querySelectorAll('details.dl button').forEach(b=>b.addEventListener('click',()=>b.closest('details').open=false));
+document.addEventListener('pointerdown',e=>document.querySelectorAll('details.dl[open]').forEach(d=>{if(!d.contains(e.target))d.open=false}));
 $("downloadSvg").addEventListener("click", () => {
   // Generic MIME type rather than image/svg+xml: iOS maps SVG to an image
   // UTI, making the share sheet offer "Save Image" (to Photos, which cannot

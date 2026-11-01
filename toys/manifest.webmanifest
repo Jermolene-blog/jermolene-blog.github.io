@@ -32,11 +32,6 @@
 			"sizes": "512x512",
 			"type": "image/png",
 			"purpose": "maskable"
-		},
-		{
-			"src": "icon.svg",
-			"sizes": "any",
-			"type": "image/svg+xml"
 		}
 	],
 	"shortcuts": [
@@ -251,6 +246,18 @@
 			"icons": [
 				{
 					"src": "/toys/quizbuzz/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Radialator",
+			"description": "An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings. Tweak the sliders, randomise, explore nearby patterns and download them as SVG",
+			"url": "/toys/radialator/",
+			"icons": [
+				{
+					"src": "/toys/radialator/icon-192.png",
 					"sizes": "192x192",
 					"type": "image/png"
 				}

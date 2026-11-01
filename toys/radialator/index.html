@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jermolene">
+<meta property="og:title" content="Radialator">
+<meta property="og:description" content="An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings. Tweak the sliders, randomise, explore nearby patterns and download them as SVG">
+<meta property="og:url" content="https://jermolene.com/toys/radialator/">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://jermolene.com/social/toys/radialator.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Radialator: Rings of overlapping shapes flip black and white into dizzying op art rosettes">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f3f3f1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../pwa.js" defer></script>
+<title>Radialator</title>
+<meta name="description" content="An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings. Tweak the sliders, randomise, explore nearby patterns and download them as SVG">
+<meta name="toy-tagline" content="Rings of overlapping shapes flip black and white into dizzying op art rosettes">
+<meta name="toy-category" content="trifles">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: square stage beside a narrow instrument panel; stacks on phones */
+:root{
+  --bg:#f3f3f1; --panel:#ffffff; --fg:#141414; --muted:#6b6b68; --line:#dcdcd8; --accent:#141414; --accent-fg:#ffffff; --hi:#e4e4df;
+  --display:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body:"Instrument Sans", system-ui, -apple-system, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111111; --panel:#1a1a1a; --fg:#ededea; --muted:#9a9a96; --line:#2e2e2c; --accent:#ededea; --accent-fg:#111111; --hi:#2a2a28; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111111; --panel:#1a1a1a; --fg:#ededea; --muted:#9a9a96; --line:#2e2e2c; --accent:#ededea; --accent-fg:#111111; --hi:#2a2a28; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;max-width:1200px;margin:0 auto;align-items:start}
+@media (max-width:820px){.wrap{grid-template-columns:minmax(0,1fr)}}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(28px,5vw,44px);letter-spacing:.01em;margin:0;line-height:1;text-transform:uppercase;text-wrap:balance}
+.sub{color:var(--muted);margin:0;max-width:52ch}
+.stage{position:relative;width:100%;max-width:min(100%,calc(100vh - 140px));aspect-ratio:1;justify-self:center;min-width:0;min-height:0;overflow:hidden}
+#main{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:2px;touch-action:pan-y;cursor:zoom-in}
+.stage.zoomed #main{touch-action:none;cursor:grab}
+.stage.zoomed #main:active{cursor:grabbing}
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:6px}
+.grid .cell{width:100%;height:100%;min-width:0;min-height:0;display:block;background:center/contain no-repeat;cursor:pointer;border-radius:2px;outline:1px solid var(--line);transition:transform .12s}
+.grid .cell:hover{transform:scale(.97)}
+.grid .cell.centre{outline:3px solid var(--accent);outline-offset:-3px}
+.grid .cell:focus-visible{outline:3px solid var(--accent)}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.btns{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+button{font:600 13px/1 var(--body);padding:10px 8px;border-radius:3px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+button:hover{background:var(--hi)}
+button.wide{grid-column:1/-1}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.lbl{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ctrls{display:flex;flex-direction:column;gap:9px}
+.row{display:grid;grid-template-columns:96px minmax(0,1fr) 44px;align-items:center;gap:8px}
+.row label{font-size:13px}
+.row output{font:12px var(--mono);text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+select{width:100%;font:13px var(--body);padding:6px;border-radius:3px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.sel{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center;gap:8px}
+.hint{font-size:12px;color:var(--muted);margin:0;line-height:1.45}
+.err{padding:20px;color:var(--fg)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Radialator</h1>
+    <p class="sub">Rings of overlapping shapes, filled black or white by how many of them cover each point. Each cell is black or white depending on whether an odd or even number of shapes covers it. Pinch or scroll to zoom in; double-tap to see it all.</p>
+  </header>
+  <div class="stage" id="stage">
+    <canvas id="main" aria-label="Op art pattern"></canvas>
+    <div class="grid" id="grid" hidden></div>
+  </div>
+  <aside>
+    <div class="btns">
+      <button id="explore" class="primary">Explore 8 ways</button>
+      <button id="rand">Randomise</button>
+      <button id="undo" disabled>Undo</button>
+      <button id="reset">Reset</button>
+      <button id="svg" class="wide" hidden>Download SVG</button>
+    </div>
+    <div id="exploreBox" hidden class="ctrls">
+      <div class="row"><label for="strength">Variation</label><input type="range" id="strength" min="0.03" max="0.6" step="0.01" value="0.18"><output id="strengthOut">0.18</output></div>
+      <button id="reroll" type="button">New neighbours</button>
+      <p class="hint">Tap a neighbour to adopt it and breed eight more. Tap the centre to leave explore with it.</p>
+    </div>
+    <span class="lbl">Shapes</span>
+    <div class="ctrls" id="ctrlsA"></div>
+    <span class="lbl">Overlays &amp; motion</span>
+    <div class="ctrls" id="ctrlsB"></div>
+    <div class="sel"><label for="clip">Clip</label><select id="clip"><option value="0">None</option><option value="1">To shapes</option><option value="2">To disc</option><option value="3">To star rim</option></select></div>
+    <div class="sel"><label for="invert">Colours</label><select id="invert"><option value="0">Odd = ink</option><option value="1">Odd = paper</option></select></div>
+    <div class="sel"><label for="palette">Palette</label><select id="palette"></select></div>
+  </aside>
+</div>
+
+<script>
+const SPEC=[
+ {k:'count',l:'Count',min:3,max:120,step:1,d:48,g:'A'},
+ {k:'offset',l:'Ring offset',min:0,max:1.2,step:.0005,d:.6705,g:'A'},
+ {k:'radius',l:'Size',min:.05,max:1.2,step:.0005,d:.694,g:'A'},
+ {k:'shape',l:'Squareness',min:.5,max:8,step:.05,d:2,g:'A'},
+ {k:'aspect',l:'Stretch',min:.25,max:2.5,step:.01,d:1,g:'A'},
+ {k:'spin',l:'Turn with ring',min:0,max:4,step:.01,d:1,g:'A'},
+ {k:'tilt',l:'Tilt',min:0,max:3.1416,step:.01,d:0,g:'A'},
+ {k:'dome',l:'Dome',min:0,max:.999,step:.0005,d:.9785,g:'A'},
+ {k:'twist',l:'Twist',min:-6,max:6,step:.05,d:0,g:'A'},
+ {k:'layers',l:'Layers',min:1,max:3,step:1,d:1,g:'A'},
+ {k:'layerScale',l:'Layer scale',min:.3,max:1.5,step:.01,d:.6,g:'A'},
+ {k:'rings',l:'Rings',min:0,max:24,step:1,d:0,g:'B'},
+ {k:'spokes',l:'Spokes',min:0,max:4,step:.5,d:2,g:'B'},
+ {k:'outline',l:'Outline',min:0,max:4,step:.25,d:1,g:'B'},
+ {k:'rim',l:'Rim radius',min:.2,max:2,step:.001,d:.989,g:'B'},
+ {k:'notch',l:'Rim notch',min:0,max:.3,step:.0005,d:.0242,g:'B'},
+ {k:'hub',l:'Hub',min:0,max:.3,step:.001,d:.042,g:'B'},
+ {k:'speed',l:'Spin speed',min:-1,max:1,step:.01,d:0,g:'B'},
+];
+const PALETTES=[
+ ['Ink on white','#111111','#ffffff'],
+ ['Signal red','#c8102e','#fbfaf7'],
+ ['Cobalt','#1d3fbb','#f2f4fb'],
+ ['Negative','#f3f0e8','#121212'],
+ ['Ochre','#2b2118','#e9b949'],
+ ['Sea and coral','#0f5257','#f6a38f'],
+ ['Violet','#3a1a6b','#d9f0e4'],
+];
+const DEFAULTS=Object.fromEntries(SPEC.map(s=>[s.k,s.d]));DEFAULTS.clip=3;DEFAULTS.invert=1;DEFAULTS.palette=0;
+let P={...DEFAULTS};const history=[];
+
+// --- WebGL ---
+const glc=document.createElement('canvas');
+const gl=glc.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
+const FS=`precision highp float;
+uniform vec2 uRes;uniform float uHub,uInv,uWarp,uRim,uNotch,uPx,uLine,uN,uD,uR,uP,uAsp,uSpin,uTilt,uTwist,uRings,uSectors,uLayers,uLS,uPhase,uExtent,uClip;
+uniform vec3 uInk,uPaper;uniform vec2 uPan;uniform float uZoom;
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);}
+float sampleAt(vec2 p){
+  vec2 p0=p;float rad0=length(p);
+  if(uWarp>.001){float t=min(rad0/uExtent,1./uWarp);p*=(asin(uWarp*t)/asin(uWarp))/max(rad0/uExtent,1e-6);}
+  float rad=length(p);
+  p=rot(uTwist*rad)*p;
+  float cnt=0.;float any=0.;float sd=1e9;
+  for(int l=0;l<3;l++){
+    if(float(l)>=uLayers)break;
+    float sc=pow(uLS,float(l));float d=uD*sc,r=uR*sc;
+    float sgn=mod(float(l),2.)<.5?1.:-1.;
+    for(int i=0;i<120;i++){
+      if(float(i)>=uN)break;
+      float a=6.2831853*float(i)/uN+float(l)*3.1415927/uN+sgn*uPhase;
+      vec2 q=p-d*vec2(cos(a),sin(a));
+      q=rot(-(a*uSpin+uTilt))*q;
+      q.x/=uAsp;
+      vec2 b=abs(q)/r+1e-6;
+      float fv=pow(b.x,uP)+pow(b.y,uP);
+      if(fv<1.){cnt+=1.;any=1.;}
+      sd=min(sd,(pow(fv,1./uP)-1.)*r*min(uAsp,1.));
+    }
+  }
+  float par=mod(cnt,2.);
+  if(uRings>0.)par=abs(par-mod(floor(rad/uExtent*uRings),2.));
+  if(uSectors>0.){float th=atan(p.y,p.x)-uPhase;th=mod(th+3.1415927,6.2831853)-3.1415927;par=abs(par-mod(floor((th/6.2831853+.5)*uSectors),2.));}
+  par=abs(par-uInv);
+  if(rad0<uHub*uExtent)par=1.;
+  if(uClip==3.){
+    float seg=6.2831853/uN;float u=mod(atan(p0.y,p0.x),seg);u=min(u,seg-u);
+    vec2 q=rad0*vec2(cos(u),sin(u));vec2 A=vec2(uRim,0.);vec2 B=uRim*(1.-uNotch)*vec2(cos(seg*.5),sin(seg*.5));
+    vec2 e=B-A;vec2 n=normalize(vec2(e.y,-e.x));if(dot(n,A)<0.)n=-n;
+    float sr=dot(q-A,n);
+    if(uLine>0.&&abs(sr)<uLine*uPx*.5)return 1.;
+    if(sr>0.)return 0.;
+  }
+  if(uClip==1.&&uLine>0.&&abs(sd)<uLine*uPx*.5)return 1.;
+  if(uClip==1.&&any<.5)return 0.;
+  if(uClip==2.&&rad0>uExtent)return 0.;
+  return par;
+}
+void main(){
+  float m=min(uRes.x,uRes.y)*.5;float k=uExtent*1.0089/m/uZoom;
+  vec2 f=gl_FragCoord.xy-uRes*.5;
+  float v=sampleAt((f+vec2(.125,.375))*k+uPan)+sampleAt((f+vec2(-.375,.125))*k+uPan)
+         +sampleAt((f+vec2(-.125,-.375))*k+uPan)+sampleAt((f+vec2(.375,-.125))*k+uPan);
+  gl_FragColor=vec4(mix(uPaper,uInk,v*.25),1.);
+}`;
+let prog,U={};
+function hex(h){return [1,3,5].map(i=>parseInt(h.substr(i,2),16)/255)}
+function initGL(){
+  const vs=gl.createShader(gl.VERTEX_SHADER);gl.shaderSource(vs,'attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}');gl.compileShader(vs);
+  const fs=gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(fs,FS);gl.compileShader(fs);
+  if(!gl.getShaderParameter(fs,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(fs));
+  prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.useProgram(prog);
+  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uInk uPaper uPan uZoom'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+}
+function extent(p){
+  if(p.clip==3)return p.rim;
+  const reach=p.shape>2?Math.pow(2,.5-1/p.shape):1;let e=0;
+  for(let l=0;l<p.layers;l++){const s=Math.pow(p.layerScale,l);e=Math.max(e,p.offset*s+p.radius*s*reach*Math.max(p.aspect,1));}
+  return Math.max(e,.05);
+}
+// view: zoom and pan (world units, y up) of the main canvas; explore tiles and the SVG always show the whole pattern
+function render(p,target,size,phase=0,view=null){
+  glc.width=glc.height=size;gl.viewport(0,0,size,size);
+  gl.uniform1f(U.uZoom,view?view.z:1);gl.uniform2f(U.uPan,view?view.x:0,view?view.y:0);
+  gl.uniform2f(U.uRes,size,size);
+  gl.uniform1f(U.uN,p.count);gl.uniform1f(U.uD,p.offset);gl.uniform1f(U.uR,p.radius);gl.uniform1f(U.uP,p.shape);
+  gl.uniform1f(U.uAsp,p.aspect);gl.uniform1f(U.uSpin,p.spin);gl.uniform1f(U.uTilt,p.tilt);gl.uniform1f(U.uTwist,p.twist);
+  gl.uniform1f(U.uRings,p.rings);gl.uniform1f(U.uSectors,2*Math.round(p.spokes*p.count/2));gl.uniform1f(U.uLine,p.outline);gl.uniform1f(U.uRim,p.rim);gl.uniform1f(U.uWarp,p.dome);gl.uniform1f(U.uInv,p.invert);gl.uniform1f(U.uHub,p.hub);gl.uniform1f(U.uNotch,p.notch);gl.uniform1f(U.uPx,extent(p)*1.0089/(size*.5)*(size/1000));gl.uniform1f(U.uLayers,p.layers);gl.uniform1f(U.uLS,p.layerScale);
+  gl.uniform1f(U.uPhase,phase);gl.uniform1f(U.uExtent,extent(p));gl.uniform1f(U.uClip,p.clip);
+  const pal=PALETTES[p.palette];gl.uniform3fv(U.uInk,hex(pal[1]));gl.uniform3fv(U.uPaper,hex(pal[2]));
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  if(!target)return;
+  if(target.width!==size||target.height!==size){target.width=target.height=size}
+  target.getContext('2d').drawImage(glc,0,0,size,size);
+}
+
+// --- UI ---
+const $=id=>document.getElementById(id);
+const main=$('main'),grid=$('grid');
+SPEC.forEach(s=>{
+  const r=document.createElement('div');r.className='row';
+  r.innerHTML=`<label for="p_${s.k}">${s.l}</label><input type="range" id="p_${s.k}" min="${s.min}" max="${s.max}" step="${s.step}"><output id="o_${s.k}"></output>`;
+  $('ctrls'+s.g).appendChild(r);
+  const inp=r.querySelector('input');
+  inp.addEventListener('pointerdown',()=>push());
+  inp.addEventListener('keydown',()=>push());
+  inp.addEventListener('input',()=>{P[s.k]=+inp.value;fmt(s);changed()});
+});
+PALETTES.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p[0];$('palette').appendChild(o)});
+$('clip').addEventListener('change',e=>{push();P.clip=+e.target.value;changed()});
+$('invert').addEventListener('change',e=>{push();P.invert=+e.target.value;changed()});
+$('palette').addEventListener('change',e=>{push();P.palette=+e.target.value;changed()});
+function fmt(s){const v=P[s.k];$('o_'+s.k).textContent=s.step>=1?v:(Math.abs(v)>=10?v.toFixed(1):v.toFixed(2))}
+function syncUI(){SPEC.forEach(s=>{$('p_'+s.k).value=P[s.k];fmt(s)});$('clip').value=P.clip;$('invert').value=P.invert;$('palette').value=P.palette;$('undo').disabled=!history.length}
+let lastPush=0;
+function push(){const now=performance.now();if(now-lastPush<400)return;lastPush=now;history.push({...P});if(history.length>100)history.shift();$('undo').disabled=false}
+
+function mainSize(){const r=main.getBoundingClientRect();return Math.min(2048,Math.round(Math.max(200,r.width)*Math.min(devicePixelRatio||1,2)))}
+let phase=0,last=0,raf=0;
+const view={x:0,y:0,z:1};
+function drawMain(){render(P,main,mainSize(),phase,view);$('stage').classList.toggle('zoomed',view.z>1.001)}
+function loop(t){
+  raf=0;if(!P.speed||exploring)return;
+  const dt=last?Math.min(.05,(t-last)/1000):0;last=t;phase+=P.speed*dt*.5;drawMain();raf=requestAnimationFrame(loop);
+}
+function changed(){if(exploring)buildGrid();else{drawMain();if(P.speed&&!raf){last=0;raf=requestAnimationFrame(loop)}}}
+
+// --- explore ---
+let exploring=false,variants=[];
+const cells=[];
+for(let i=0;i<9;i++){const c=document.createElement('div');c.className='cell';c.tabIndex=0;c.setAttribute('role','button');
+  c.setAttribute('aria-label',i===4?'Current pattern: leave explore':'Variant '+(i<4?i+1:i));
+  if(i===4)c.classList.add('centre');
+  c.addEventListener('click',()=>pick(i));c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(i)}});
+  grid.appendChild(c);cells.push(c)}
+const snap=(s,v)=>{v=Math.min(s.max,Math.max(s.min,v));return s.step>=1?Math.round((v-s.min)/s.step)*s.step+s.min:+v.toFixed(4)};
+function mutate(p,str){
+  const q={...p};const keys=SPEC.filter(s=>s.k!=='speed');
+  const n=1+Math.floor(Math.random()*3);
+  for(let j=0;j<n;j++){const s=keys[Math.floor(Math.random()*keys.length)];
+    const span=s.max-s.min;let dv=(Math.random()*2-1)*str*span;
+    if(s.step>=1&&Math.abs(dv)<s.step)dv=Math.sign(dv||1)*s.step;
+    q[s.k]=snap(s,q[s.k]+dv)}
+  if(Math.random()<.08)q.invert=1-q.invert;
+  if(Math.random()<.08)q.palette=Math.floor(Math.random()*PALETTES.length);
+  if(Math.random()<.08)q.clip=Math.floor(Math.random()*4);
+  return q;
+}
+function buildGrid(reroll=true){
+  const str=+$('strength').value;
+  if(reroll||!variants.length)variants=Array.from({length:9},(_,i)=>i===4?null:mutate(P,str));
+  const cw=$('stage').getBoundingClientRect().width/3;
+  const size=Math.max(120,Math.min(768,Math.round((cw||200)*Math.min(devicePixelRatio||1,2))));
+  cells.forEach((c,i)=>{render(i===4?P:variants[i],null,size);c.style.backgroundImage='url('+glc.toDataURL('image/png')+')'});
+}
+function pick(i){if(i===4){setExplore(false);return}lastPush=0;push();P={...variants[i]};syncUI();buildGrid(true)}
+$('strength').addEventListener('input',e=>$('strengthOut').textContent=(+e.target.value).toFixed(2));
+function setExplore(on){
+  exploring=on;grid.hidden=!exploring;main.style.visibility=exploring?'hidden':'visible';$('exploreBox').hidden=!exploring;
+  $('explore').textContent=exploring?'Back to full view':'Explore 8 ways';
+  if(exploring)buildGrid(true);else changed();
+}
+$('explore').addEventListener('click',()=>setExplore(!exploring));
+$('reroll').addEventListener('click',()=>buildGrid(true));
+
+// --- zoom: pinch or scroll to zoom, drag to pan once zoomed, double-click or double-tap to see it all ---
+const ptrs=new Map();let pinch=null,drawQueued=false,lastTap=0;
+function queueDraw(){if(!drawQueued){drawQueued=true;requestAnimationFrame(()=>{drawQueued=false;if(!exploring)drawMain()})}}
+function toWorld(cx,cy){const r=main.getBoundingClientRect(),k=extent(P)*1.0089/(Math.min(r.width,r.height)/2)/view.z;
+  return{x:(cx-r.left-r.width/2)*k+view.x,y:-(cy-r.top-r.height/2)*k+view.y}}
+function zoomAt(cx,cy,f){const b=toWorld(cx,cy);view.z=Math.min(16,Math.max(1,view.z*f));const a=toWorld(cx,cy);
+  view.x+=b.x-a.x;view.y+=b.y-a.y;if(view.z<=1.001){view.z=1;view.x=view.y=0}queueDraw()}
+function resetView(){view.x=view.y=0;view.z=1;queueDraw()}
+main.addEventListener('pointerdown',e=>{
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,mx:(a.x+b.x)/2,my:(a.y+b.y)/2}}
+  if(ptrs.size===2||view.z>1)main.setPointerCapture(e.pointerId);
+});
+main.addEventListener('pointermove',e=>{
+  const p=ptrs.get(e.pointerId);if(!p)return;
+  if(ptrs.size===1&&view.z>1){const a=toWorld(p.x,p.y),b=toWorld(e.clientX,e.clientY);view.x+=a.x-b.x;view.y+=a.y-b.y;queueDraw()}
+  p.x=e.clientX;p.y=e.clientY;
+  if(ptrs.size>=2&&pinch){const[a,b]=[...ptrs.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,d=Math.hypot(a.x-b.x,a.y-b.y)||1;
+    const k=extent(P)*1.0089/(Math.min(main.clientWidth,main.clientHeight)/2)/view.z;
+    view.x-=(mx-pinch.mx)*k;view.y+=(my-pinch.my)*k;zoomAt(mx,my,d/pinch.d);pinch={d,mx,my}}
+});
+function ptrUp(e){
+  if(!ptrs.has(e.pointerId))return;ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;
+  if(e.type==='pointerup'&&e.pointerType!=='mouse'&&!ptrs.size){if(e.timeStamp-lastTap<350){resetView();lastTap=0}else lastTap=e.timeStamp}
+}
+main.addEventListener('pointerup',ptrUp);main.addEventListener('pointercancel',ptrUp);
+main.addEventListener('dblclick',e=>{e.preventDefault();resetView()});
+main.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)))},{passive:false});
+
+// --- randomise / reset / undo ---
+const R=(a,b)=>a+Math.random()*(b-a);
+function randomise(){
+  const q={...P};
+  SPEC.forEach(s=>{if(s.k!=='speed')q[s.k]=snap(s,R(s.min,s.max))});
+  q.count=Math.round(R(6,80));
+  q.shape=Math.random()<.5?2:q.shape;
+  q.aspect=Math.random()<.45?1:q.aspect;
+  q.twist=Math.random()<.5?0:q.twist;
+  q.layers=Math.random()<.6?1:q.layers;
+  q.rings=Math.random()<.6?0:q.rings;
+  q.spokes=Math.random()<.5?0:q.spokes;q.hub=Math.random()<.6?0:q.hub*.4;q.dome=Math.random()<.4?0:q.dome;q.outline=Math.random()<.5?1:0;
+  q.clip=Math.floor(Math.random()*4);q.invert=Math.random()<.5?1:0;
+  q.palette=Math.random()<.5?0:Math.floor(Math.random()*PALETTES.length);
+  return q;
+}
+$('rand').addEventListener('click',()=>{lastPush=0;push();P=randomise();syncUI();changed()});
+$('reset').addEventListener('click',()=>{lastPush=0;push();P={...DEFAULTS};phase=0;view.x=view.y=0;view.z=1;syncUI();changed()});
+$('undo').addEventListener('click',()=>{if(!history.length)return;P=history.pop();syncUI();changed()});
+
+// --- SVG export: same geometry as the shader, as one even-odd path ---
+function buildSVG(p,ph){
+  const E=extent(p),V=E*1.0089,K=1000/V,w=p.dome,useW=w>.001,aw=useW?Math.asin(w):1;
+  const f=v=>(v*K).toFixed(2);
+  const rhoMax=useW?E*(Math.PI/2)/aw:V*1.5;
+  // pattern-space point -> screen point (inverse of warp + twist)
+  function toScreen(x,y){
+    const r=Math.hypot(x,y);if(r<1e-9)return [0,0];
+    const a=Math.atan2(y,x)-p.twist*r;
+    let s=r;if(useW){const u=r/E*aw;s=u>=Math.PI/2?E/w:E*Math.sin(u)/w}
+    return [s*Math.cos(a),s*Math.sin(a)];
+  }
+  const poly=pts=>'M'+pts.map(q=>f(q[0])+' '+f(-q[1])).join('L')+'Z';
+  const shapes=[];
+  for(let l=0;l<p.layers;l++){
+    const sc=Math.pow(p.layerScale,l),d=p.offset*sc,r=p.radius*sc,sg=l%2?-1:1;
+    for(let i=0;i<p.count;i++){
+      const a=2*Math.PI*i/p.count+l*Math.PI/p.count+sg*ph,cx=d*Math.cos(a),cy=d*Math.sin(a),th=a*p.spin+p.tilt,c=Math.cos(th),s=Math.sin(th);
+      const pts=[];
+      for(let k=0;k<360;k++){
+        const t=2*Math.PI*k/360,ct=Math.cos(t),st=Math.sin(t);
+        const X=p.aspect*r*Math.sign(ct)*Math.pow(Math.abs(ct),2/p.shape),Y=r*Math.sign(st)*Math.pow(Math.abs(st),2/p.shape);
+        pts.push(toScreen(cx+c*X-s*Y,cy+s*X+c*Y));
+      }
+      shapes.push(poly(pts));
+    }
+  }
+  const parts=[...shapes];
+  const S=2*Math.round(p.spokes*p.count/2);
+  if(S>0){
+    const ray=ang=>{const pts=[];for(let k=0;k<=96;k++){pts.push(toScreen(rhoMax*k/96*Math.cos(ang),rhoMax*k/96*Math.sin(ang)))}
+      const e=pts[pts.length-1],m=Math.hypot(e[0],e[1])||1;pts.push([e[0]/m*V*2,e[1]/m*V*2]);return pts};
+    for(let k=1;k<S;k+=2){
+      const a1=ph-Math.PI+2*Math.PI*k/S,a2=a1+2*Math.PI/S;
+      const r1=ray(a1),r2=ray(a2).reverse();
+      parts.push(poly([...r1,...r2]));
+    }
+  }
+  if(p.rings>0){
+    for(let k=1;k*E/p.rings<rhoMax;k++){
+      const q=toScreen(k*E/p.rings,0),rs=Math.hypot(q[0],q[1]);
+      parts.push(`M${f(rs)} 0A${f(rs)} ${f(rs)} 0 1 0 ${f(-rs)} 0A${f(rs)} ${f(rs)} 0 1 0 ${f(rs)} 0Z`);
+    }
+  }
+  if(p.invert)parts.push('M-1000 -1000H1000V1000H-1000Z');
+  const pal=PALETTES[p.palette],ink=pal[1],paper=pal[2],lw=p.outline*E*1.0089/500;
+  let defs='',clipAttr='',under='',over='';
+  if(p.clip==1){defs=`<clipPath id="c"><path d="${shapes.join('')}"/></clipPath>`;clipAttr=' clip-path="url(#c)"';
+    if(lw>0)under=`<path d="${shapes.join('')}" fill="none" stroke="${ink}" stroke-width="${f(lw*2)}"/>`}
+  else if(p.clip==2){defs=`<clipPath id="c"><circle r="${f(E)}"/></clipPath>`;clipAttr=' clip-path="url(#c)"'}
+  else if(p.clip==3){
+    const seg=2*Math.PI/p.count,st=[];
+    for(let k=0;k<p.count;k++){st.push([p.rim*Math.cos(k*seg),p.rim*Math.sin(k*seg)]);const rr=p.rim*(1-p.notch);st.push([rr*Math.cos((k+.5)*seg),rr*Math.sin((k+.5)*seg)])}
+    const d=poly(st);defs=`<clipPath id="c"><path d="${d}"/></clipPath>`;clipAttr=' clip-path="url(#c)"';
+    if(lw>0)over=`<path d="${d}" fill="none" stroke="${ink}" stroke-width="${f(lw)}" stroke-linejoin="miter"/>`;
+  }
+  const hub=p.hub>0?`<circle r="${f(p.hub*E)}" fill="${ink}"/>`:'';
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000" width="2000" height="2000">\n<defs>${defs}</defs>\n<rect x="-1000" y="-1000" width="2000" height="2000" fill="${paper}"/>\n${under}<g${clipAttr}><path fill="${ink}" fill-rule="evenodd" d="${parts.join('')}"/>${hub}</g>\n${over}</svg>\n`;
+}
+let downloads=null;
+// Inside a claude.ai artifact, saving goes through the `downloads` capability.
+// Standalone (no window.claude), fall back to an ordinary blob download.
+const blobSaver={save:async({filename,data})=>{const u=URL.createObjectURL(new Blob([data],{type:'image/svg+xml'}));const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return {status:'saved'}}};
+(async()=>{try{downloads=window.claude?.use?await window.claude.use('downloads'):blobSaver}catch(e){downloads=null}
+  if(downloads)$('svg').hidden=false})();
+$('svg').addEventListener('click',async()=>{
+  const b=$('svg'),t=b.textContent;
+  try{await downloads.save({filename:'radialator.svg',data:buildSVG(P,phase)});b.textContent='Saved'}
+  catch(e){b.textContent=e&&e.code==='declined'?'Not saved':'Could not save';if(e&&e.code&&!['declined','rate_limited'].includes(e.code))b.hidden=true}
+  setTimeout(()=>b.textContent=t,1800);
+});
+
+try{
+  if(!gl)throw new Error('This browser has WebGL turned off, so the pattern cannot be drawn.');
+  initGL();syncUI();drawMain();
+  let rt;new ResizeObserver(()=>{clearTimeout(rt);rt=setTimeout(()=>exploring?buildGrid(false):drawMain(),120)}).observe($('stage'));
+}catch(e){$('stage').innerHTML='<p class="err">'+e.message+'</p>'}
+</script>
