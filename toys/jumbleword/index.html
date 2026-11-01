@@ -98,10 +98,17 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 /* The word being spelt and the last message share one row: the message gives way as soon as a ball is picked */
 .spell { display: grid; place-items: center; }
 .spell:has(.tray .ball) .msg { visibility: hidden; }
-/* Clear and Whirl sit in the top corners, outside the ring */
-.controls { position: relative; display: grid; justify-items: center; width: min(100%, calc(var(--d) + 150px)); align-self: center; }
-.controls > .btn { position: absolute; top: 0; z-index: 1; min-width: 76px; padding: 8px 12px; }
-#clear { left: 0; } #shuffle { right: 0; }
+/* Clear and Whirl fill the top corners beside the dial: each is a corner box with a curved bite taken out round the ring,
+   so it reads as a triangle with one rounded side. The dial sits above them and only its balls and hub take taps. */
+.controls { position: relative; display: grid; justify-items: center; width: min(100%, calc(var(--d) + 240px)); align-self: center; --gap: 7px; }
+.controls > .btn { position: absolute; top: 0; width: calc(50% - var(--gap) / 2); height: calc(var(--d) / 2); padding: 12px 14px; border: 0;
+  display: flex; align-items: flex-start; font-size: 16px; background: color-mix(in srgb, var(--ink) 12%, var(--panel));
+  --m: radial-gradient(circle calc(var(--d) / 2 + var(--gap)) at var(--cx) 100%, transparent calc(100% - .5px), #000 100%);
+  -webkit-mask: var(--m); mask: var(--m); }
+#clear { left: 0; --cx: calc(100% + var(--gap) / 2); border-radius: 16px 0 0 14px; justify-content: flex-start; }
+#shuffle { right: 0; --cx: calc(var(--gap) / -2); border-radius: 0 16px 14px 0; justify-content: flex-end; }
+.dial { z-index: 1; pointer-events: none; }
+.dial .hub { pointer-events: auto; }
 .btn { font: 600 15px var(--body); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 11px 10px; cursor: pointer; }
 .btn.primary { background: var(--tomato); border-color: var(--tomato); color: #fff8ea; font-weight: 800; }
 .btn:disabled { opacity: .45; cursor: default; }
@@ -179,6 +186,8 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
   .wrap { height: 100%; padding-block: 10px 12px; gap: 10px; }
   header { order: 1; } .board { order: 2; } .play { order: 3; }
   .play { gap: 4px; --d: min(90cqi, 38dvh); }
+  /* iPhone SE and other short phones: a smaller dial leaves the card room for more of its words */
+  @media (max-height: 700px) { .play { --d: min(80cqi, 33dvh); } }
   .tray { min-height: 44px; }
   .board { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px; gap: 4px; }
   /* Readable at arm's length: the card's words grow with the screen (about 23px on the largest iPhones) and sit tight together */
