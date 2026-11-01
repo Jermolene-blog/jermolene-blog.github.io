@@ -111,8 +111,6 @@ details.group[open] summary::after{content:"\2013"}
 .rows>.hint{font-size:.88rem;color:var(--muted)}
 .box>details.group{border-top:1px solid var(--rule)}
 .box>details.group .rows{padding-bottom:12px}
-.lock{margin-left:auto;font:500 .8rem var(--f-data);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:none;border:1px solid var(--rule);padding:3px 8px;border-radius:2px;cursor:pointer}
-.lock[aria-pressed="true"]{color:var(--card);background:var(--saffron);border-color:var(--saffron)}
 .rows{display:flex;flex-direction:column;gap:7px;padding-bottom:12px}
 .row{display:grid;grid-template-columns:8.5em minmax(0,1fr) 3em;gap:10px;align-items:center}
 .row label{font-size:.92rem}
@@ -911,15 +909,12 @@ function commit(np){hist.push(committed);if(hist.length>80)hist.shift();p=Object
 // ---------- controls ----------
 function buildControls(){
  const host=$('controls');host.innerHTML='';
- const head=document.createElement('div');head.className='boxhead';head.innerHTML='<h2>Parameters</h2><span class="hint">Lock a group to keep it fixed while randomising and exploring.</span>';host.appendChild(head);
+ const head=document.createElement('div');head.className='boxhead';head.innerHTML='<h2>Parameters</h2>';host.appendChild(head);
  for(const g of GROUPS){
   const det=document.createElement('details');det.className='group';det.open=(g==='Layout'||g==='Field');
   const sum=document.createElement('summary');sum.textContent=g;
-  const lk=document.createElement('button');lk.type='button';lk.className='lock';lk.textContent='Lock';lk.setAttribute('aria-pressed','false');lk.setAttribute('aria-label','Lock '+g);
-  lk.id='lk_'+g;lk.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();setLock(g,!locks[g])});
-  lk.addEventListener('dblclick',ev=>ev.stopPropagation());
   sum.addEventListener('dblclick',()=>resetTo(SPECS.filter(s=>s.g===g)));
-  sum.appendChild(lk);det.appendChild(sum);
+  det.appendChild(sum);
   const rows=document.createElement('div');rows.className='rows';
   for(const s of SPECS.filter(s=>s.g===g)){
    const row=document.createElement('div');row.className='row';const id='p_'+s.k;
@@ -936,11 +931,11 @@ function buildControls(){
    lab.addEventListener('dblclick',()=>resetTo([s]));if(s.t==='rng')inp.addEventListener('dblclick',()=>resetTo([s]));
    rows.appendChild(row)}
   det.appendChild(rows);host.appendChild(det)}
- // explore: one checkbox per group, ticked = may change (the same state as the group's Lock)
+ // explore: one checkbox per group, ticked = may change (locks[g] is true when unticked)
  const gc=$('groupChecks');gc.innerHTML='';
  for(const g of GROUPS){const l=document.createElement('label');l.innerHTML='<input type="checkbox" id="g_'+g+'" checked> '+g;l.querySelector('input').addEventListener('change',e=>setLock(g,!e.target.checked));gc.appendChild(l)}
 }
-function setLock(g,on){locks[g]=on;const lk=$('lk_'+g);lk.setAttribute('aria-pressed',String(on));lk.textContent=on?'Locked':'Lock';$('g_'+g).checked=!on;regenVariants()}
+function setLock(g,on){locks[g]=on;$('g_'+g).checked=!on;regenVariants()}
 // double-click reset: a control or a whole group back to DEFAULTS, through commit (so Undo and the neighbours follow)
 function resetTo(specs){const q=Object.assign({},p);for(const s of specs)q[s.k]=DEFAULTS[s.k];if(JSON.stringify(q)!==JSON.stringify(p))commit(q)}
 function syncControls(){for(const s of SPECS){const inp=$('p_'+s.k),out=$('o_'+s.k);if(!inp)continue;
@@ -1078,7 +1073,7 @@ function drawPresets(){const host=$('presets');host.innerHTML='';
 function markPreset(i){PRESETS.forEach((_,k)=>{const b=$('preset'+k);if(b)b.setAttribute('aria-pressed',String(k===i))})}
 
 // ---------- wiring ----------
-$('rand').addEventListener('click',()=>{const q=Object.assign({},p);for(const s of SPECS)if(!locks[s.g])q[s.k]=randomValue(s);commit(q)});
+$('rand').addEventListener('click',()=>{const q=Object.assign({},p);for(const s of SPECS)q[s.k]=randomValue(s);commit(q)});
 $('reset').addEventListener('click',()=>commit(Object.assign({},DEFAULTS)));
 $('back').addEventListener('click',()=>{if(!hist.length)return;p=hist.pop();committed=Object.assign({},p);$('back').disabled=!hist.length;syncControls();renderMain();regenVariants()});
 $('reroll').addEventListener('click',regenVariants);
