@@ -787,3 +787,12 @@ resize();sync();setPause(paused);setPurr(purrOn);setAccent();requestAnimationFra
 window.__sumi={get fast(){return FAST},halt(){halted=true},snap(){return new Promise(r=>{snapCb=r;dirty=true})},frames(){return frameN}};
 })();
 </script>
+<script>
+// double-click the Settings/Display heading to put its checkboxes and menus back to their defaults (toys-src/PANELS.md)
+addEventListener('DOMContentLoaded',()=>document.querySelectorAll('summary').forEach(sm=>{
+  if(!/^(Settings|Display)/.test(sm.textContent.trim()))return;
+  sm.addEventListener('dblclick',e=>{e.preventDefault();sm.parentNode.querySelectorAll('input[type=checkbox],select').forEach(el=>{
+    const box=el.type==='checkbox',was=box?el.checked:el.value;
+    if(box)el.checked=el.defaultChecked;else{const o=[...el.options].find(o=>o.defaultSelected)||el.options[0];if(o)el.value=o.value}
+    if((box?el.checked:el.value)!==was)['input','change'].forEach(t=>el.dispatchEvent(new Event(t,{bubbles:true})))})})}));
+</script>

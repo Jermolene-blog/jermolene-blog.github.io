@@ -2243,5 +2243,14 @@ setTimeout(()=>{$('hint').style.opacity=0;},6000);
 // test hooks
 window.__sd={hdrStats:()=>{ const W=cv.width,H=cv.height,b=new Uint8Array(W*H*4); gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,b); let n=0,s=0,mx=0; for(let i=3;i<b.length;i+=4){ if(b[i]>2){n++; s+=b[i]; mx=Math.max(mx,b[i]);} } return {frac:n/(W*H), meanBoost:n?s/n/255:0, maxBoost:mx/255}; },hdr,sunsetFeatures,sunsetVerdict,drawRandom,fromN,neighbour,get S(){return S},set S(v){applySettings(v)},render,full:(n)=>{n=Math.max(n||MAXPASS, maxPass());pass=0;render();for(let k=1;k<n;k++){pass=k;render();}},PRESETS,setExplore,randomise,defaults,layout};
 </script>
+<script>
+// double-click the Settings/Display heading to put its checkboxes and menus back to their defaults (toys-src/PANELS.md)
+addEventListener('DOMContentLoaded',()=>document.querySelectorAll('summary').forEach(sm=>{
+  if(!/^(Settings|Display)/.test(sm.textContent.trim()))return;
+  sm.addEventListener('dblclick',e=>{e.preventDefault();sm.parentNode.querySelectorAll('input[type=checkbox],select').forEach(el=>{
+    const box=el.type==='checkbox',was=box?el.checked:el.value;
+    if(box)el.checked=el.defaultChecked;else{const o=[...el.options].find(o=>o.defaultSelected)||el.options[0];if(o)el.value=o.value}
+    if((box?el.checked:el.value)!==was)['input','change'].forEach(t=>el.dispatchEvent(new Event(t,{bubbles:true})))})})}));
+</script>
 
 </body></html>

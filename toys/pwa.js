@@ -25,8 +25,11 @@ zoom their own content with a pinch (such as Flowing Field and Vectorious)
 still get the gesture: CSS touch-action stops browsers zooming the page
 while leaving the pointer events alone, and Safari, which zooms the page
 regardless, has its gesture events cancelled, as do trackpad pinches, which
-arrive as wheel events with the control key held. The toys index itself
-still zooms.
+arrive as wheel events with the control key held. Safari also zooms into
+whatever block is double-tapped, so a quick second tap has its touchend
+cancelled and its click and dblclick sent by hand instead: double-tapping
+still double-clicks (resetting a slider, say), but never zooms. Text fields
+keep their own double-tap. The toys index itself still zooms.
 */
 
 (function() {
@@ -44,6 +47,25 @@ if(script && location.pathname.replace(/\/$/,"") !== new URL("./",script.src).pa
 			event.preventDefault();
 		},{passive: false});
 	});
+	var lastTap = 0, lastX = 0, lastY = 0;
+	document.addEventListener("touchend",function(event) {
+		if(event.touches.length || event.changedTouches.length !== 1) {
+			lastTap = 0;
+			return;
+		}
+		var t = event.changedTouches[0], el = event.target,
+			quick = event.timeStamp - lastTap < 350 && Math.abs(t.clientX - lastX) < 40 && Math.abs(t.clientY - lastY) < 40;
+		lastTap = quick ? 0 : event.timeStamp;
+		lastX = t.clientX;
+		lastY = t.clientY;
+		if(!quick || event.defaultPrevented || !el.closest || el.closest("textarea,select,[contenteditable],input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button])")) {
+			return;
+		}
+		event.preventDefault();
+		["click","dblclick"].forEach(function(type) {
+			el.dispatchEvent(new MouseEvent(type,{bubbles: true, cancelable: true, view: window, detail: 2, clientX: t.clientX, clientY: t.clientY, screenX: t.screenX, screenY: t.screenY}));
+		});
+	},{passive: false});
 	window.addEventListener("wheel",function(event) {
 		if(event.ctrlKey) {
 			event.preventDefault();

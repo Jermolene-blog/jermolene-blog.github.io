@@ -97,7 +97,7 @@
     z-index: 20; opacity: 0; transition: opacity .25s; }
   #hud.on { opacity: 1; transition: none; }
   [hidden] { display: none !important; }
-  @media (max-width: 820px) {   /* panel stacks under the bath */
+  @media (max-width: 820px) and (orientation: portrait) {   /* panel stacks under the bath; a landscape phone keeps it alongside */
     html, body { height: auto; overflow: auto; }
     #app { flex-direction: column; height: auto; }
     #stage { flex: none; height: 62vh; min-height: 300px; }
@@ -644,6 +644,12 @@ function vvUpdate() {
 }
 addEventListener("resize", vvUpdate);
 window.visualViewport && visualViewport.addEventListener("resize", vvUpdate);
+// iOS can fire resize before the page has reflowed for a new orientation, leaving the
+// canvas's backing store at the old shape; follow the stage's own size as well
+if (window.ResizeObserver) {
+  let roFrame = 0;
+  new ResizeObserver(() => { cancelAnimationFrame(roFrame); roFrame = requestAnimationFrame(layout); }).observe(document.getElementById("stage"));
+}
 
 let renderNeeded = true;
 function requestRender() { renderNeeded = true; }
@@ -1900,4 +1906,13 @@ if (location.search.includes("test-export")) {
     } catch (err) { fatal("EXPORT FAIL " + err); }
   })();
 }
+</script>
+<script>
+// double-click the Settings/Display heading to put its checkboxes and menus back to their defaults (toys-src/PANELS.md)
+addEventListener('DOMContentLoaded',()=>document.querySelectorAll('summary').forEach(sm=>{
+  if(!/^(Settings|Display)/.test(sm.textContent.trim()))return;
+  sm.addEventListener('dblclick',e=>{e.preventDefault();sm.parentNode.querySelectorAll('input[type=checkbox],select').forEach(el=>{
+    const box=el.type==='checkbox',was=box?el.checked:el.value;
+    if(box)el.checked=el.defaultChecked;else{const o=[...el.options].find(o=>o.defaultSelected)||el.options[0];if(o)el.value=o.value}
+    if((box?el.checked:el.value)!==was)['input','change'].forEach(t=>el.dispatchEvent(new Event(t,{bubbles:true})))})})}));
 </script>

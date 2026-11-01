@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
 <style>
-/* Layout: one narrow column — rack, word tray, controls, then the word board. Single committed look: a 70s bingo hall at night. */
+/* Layout: one narrow column — word tray, the dial of balls flanked by Clear and Enter, then the word board. Single committed look: a 70s bingo hall at night. */
 :root {
   color-scheme: dark;
   --bg: #24160f;
@@ -60,15 +60,29 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 .seg button:focus-visible, .btn:focus-visible, .ball:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .play { container-type: inline-size; display: flex; flex-direction: column; gap: 14px; min-width: 0;
-  --b: min(60px, calc((100cqi - 58px) / 7)); }
-.rack { display: flex; justify-content: center; gap: 6px; min-height: calc(var(--b) + 16px); padding: 8px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: calc(var(--b) / 2 + 8px); box-shadow: inset 0 3px 8px #0006; }
-.slot { width: var(--b); height: var(--b); border-radius: 50%; background: #0003; box-shadow: inset 0 2px 4px #0007; display: grid; place-items: center; }
+  --d: min(250px, 50cqi); }
+/* The rack is a dial: a ring cut into one segment per ball, each letter on a cream disc in its segment, Shuffle in the hub.
+   Every slot and ball covers the whole dial and is clipped to its own segment, so the shading can be centred on the hub. */
+.dial { position: relative; width: var(--d); aspect-ratio: 1; justify-self: center; }
+.rack { position: absolute; inset: 0; border-radius: 50%; background: var(--panel); border: 1px solid var(--line); box-shadow: inset 0 3px 8px #0006; }
+.slot { position: absolute; inset: 5px; pointer-events: none; filter: drop-shadow(0 2px 0 #0005); }
+.rack .slot::before { content: ""; position: absolute; inset: 0; clip-path: var(--clip); background: #0003; }
+.rack .ball { position: absolute; inset: 0; width: auto; height: auto; border-radius: 0; clip-path: var(--clip); pointer-events: auto; box-shadow: none;
+  background: radial-gradient(circle at 32% 22%, #ffffff38 0, transparent 26%),
+    radial-gradient(circle closest-side, color-mix(in srgb, var(--c) 55%, #000) 40%, var(--c) 58%, var(--c) 82%, color-mix(in srgb, var(--c) 60%, #000) 100%); }
+.rack .ball span { position: absolute; left: var(--x); top: var(--y); width: 23%; translate: -50% -50%; font-size: calc((var(--d) - 10px) * .145); box-shadow: 0 1px 2px #0006; }
+.rack .ball:focus-visible { outline: none; }
+.rack .ball:focus-visible span { outline: 3px solid var(--ink); outline-offset: 2px; }
+.rack .ball.used { transform: scale(.94); }
+.rack .ball:not(.used):active { transform: scale(.97); }
+.dial .shuffle { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: calc((var(--d) - 10px) * .37); aspect-ratio: 1; padding: 0; border-radius: 50%;
+  font-size: clamp(12px, calc(var(--d) * .065), 15px); background: var(--bg); }
 
 .ball { --c: var(--tomato); width: var(--b); height: var(--b); border-radius: 50%; border: 0; padding: 0; cursor: pointer; position: relative;
   background: radial-gradient(circle at 34% 28%, #ffffff70 0 7%, transparent 18%), radial-gradient(circle at 50% 50%, var(--c) 0 55%, color-mix(in srgb, var(--c) 55%, #000) 100%);
   box-shadow: 0 3px 0 #0005; display: grid; place-items: center; transition: transform .15s, opacity .15s, filter .15s; }
-.ball span { width: 62%; aspect-ratio: 1; border-radius: 50%; background: #fbf3e2; color: #2a1810; display: grid; place-items: center;
-  font: 800 calc(var(--b) * .42) / 1 var(--body); text-transform: uppercase; }
+.ball span { width: 74%; aspect-ratio: 1; border-radius: 50%; background: #fbf3e2; color: #2a1810; display: grid; place-items: center;
+  font: 800 calc(var(--b) * .46) / 1 var(--body); text-transform: uppercase; }
 .ball.used { opacity: .22; transform: scale(.86); filter: saturate(.4); }
 .ball:not(.used):active { transform: scale(.92); }
 /* While the balls roam the screen, copies fly in a fixed layer and the real ones wait unseen in their slots */
@@ -81,7 +95,8 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
 .tray.bad { animation: shake .35s; }
 @keyframes shake { 20%, 60% { transform: translateX(-7px) } 40%, 80% { transform: translateX(7px) } }
 
-.controls { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 8px; }
+.controls { display: grid; grid-template-columns: 1fr var(--d) 1fr; align-items: center; gap: 10px; }
+.controls > .btn { padding-block: 14px; }
 .btn { font: 600 15px var(--body); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 11px 10px; cursor: pointer; }
 .btn.primary { background: var(--tomato); border-color: var(--tomato); color: #fff8ea; font-weight: 800; }
 .btn:disabled { opacity: .45; cursor: default; }
@@ -159,19 +174,20 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
   html, body { height: 100%; }
   .wrap { height: 100%; padding-block: 10px 12px; gap: 10px; }
   header { order: 1; } .board { order: 2; } .play { order: 3; }
-  .play { gap: 8px; }
-  .msg { order: 1; min-height: 20px; } .tray { order: 2; min-height: 48px; } .controls { order: 3; } .rack { order: 4; }
-  .board { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px; gap: 8px; }
+  .play { gap: 6px; }
+  .msg { order: 1; min-height: 20px; } .tray { order: 2; min-height: 44px; } .controls { order: 3; }
+  .play { --d: min(190px, 48cqi); }
+  .board { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px; gap: 4px; }
   /* Readable at arm's length: the card's words grow with the screen (about 23px on the largest iPhones) and sit tight together */
   .wrap { padding-inline: max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-right, 0px)); }
-  .w { font-size: clamp(1.25rem, 5.4vw, 1.5rem); height: 1.2em; letter-spacing: .02em; }
+  .w { font-size: clamp(1.25rem, 5.4vw, 1.5rem); height: 1.12em; letter-spacing: .02em; }
   .w .dot { width: .62em; }
   .w .dot::before { width: max(6px, .26em); height: max(6px, .26em); }
-  .words { gap: 4px 14px; padding-block: 8px; }
+  .words { gap: 2px 14px; padding-block: 5px; }
   .chip { font-size: 1.25rem; padding: 7px 12px 6px; }
   .chip.other { font-size: 1.125rem; }
   .chips { gap: 6px; }
-  .bonus { padding: 10px; gap: 8px; }
+  .bonus { padding: 8px 10px; gap: 6px; }
   .count { font-size: 1.6rem; }
   .bonus h3, .legend { font-size: .9375rem; }
 }
@@ -199,14 +215,14 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
   .tools .btn { padding: 4px 10px; font-size: 12px; }
   .tools .icon-btn { width: 28px; height: 28px; padding: 0; }
   .icon-btn svg { width: 16px; height: 16px; }
-  .play { grid-column: 1; grid-row: 2; align-self: center; gap: 8px; --b: min(52px, calc((100cqi - 58px) / 7)); }
+  .play { grid-column: 1; grid-row: 2; align-self: center; gap: 6px; --d: min(48cqi, 100dvh - 136px); }
   .board { grid-column: 2; grid-row: 2; min-height: 0; overflow-y: auto; padding: 10px; gap: 10px; }
   .tray { min-height: 44px; }
   .tray .ball { --b: 34px; }
-  .btn { padding: 8px 10px; }
+  .btn, .controls > .btn { padding: 8px 10px; }
   .count { font-size: 17px; }
   .w { font-size: 1rem; }
-  .words { padding-block: 8px; gap: 4px 14px; }
+  .words { padding-block: 5px; gap: 2px 14px; }
   .chip { font-size: 1rem; padding: 6px 10px 5px; }
   .intro { padding: 16px; }
   .demo, .intro h2 { display: none; }
@@ -232,11 +248,13 @@ input,textarea{-webkit-user-select:text;user-select:text}
   </header>
 
   <div class="play">
-  <div class="rack" id="rack" aria-label="Your letters"></div>
   <div class="tray" id="tray" aria-live="polite" aria-label="Your word"></div>
   <div class="controls">
-    <button class="btn" id="shuffle" disabled>Shuffle</button>
     <button class="btn" id="clear" disabled>Clear</button>
+    <div class="dial">
+      <div class="rack" id="rack" aria-label="Your letters"></div>
+      <button class="btn shuffle" id="shuffle" disabled>Shuffle</button>
+    </div>
     <button class="btn primary" id="enter" disabled>Enter</button>
   </div>
   <div class="msg" id="msg" aria-live="polite"></div>
@@ -281,7 +299,7 @@ input,textarea{-webkit-user-select:text;user-select:text}
 <script>
 (() => {
 const PUZ = JSON.parse(document.getElementById('pz').textContent);
-const COLORS = ['--tomato', '--mustard', '--teal', '--plum', '--olive', '--blue', '--tomato'];
+const COLORS = ['--tomato', '--mustard', '--teal', '--plum', '--olive', '--blue', '--mint'];
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = id => document.getElementById(id);
 const shuffleArr = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -424,10 +442,24 @@ function newGame(n, restore) {
   renderBoard(); renderTray(); say(''); setControls();
   if (!restore) dropIn();
 }
+// One segment of the dial, as a polygon in percentages of the slot so that it scales with the dial.
+// Angles are in degrees clockwise from the top; the gaps between segments are the same width all the way across.
+const R_OUT = 50, R_IN = 20, R_MID = (R_OUT + R_IN) / 2, GAP = 1.3;
+const polar = (r, deg) => { const a = deg * Math.PI / 180; return [50 + r * Math.sin(a), 50 - r * Math.cos(a)]; };
+function segment(a0, a1) {
+  const pts = [], arc = (r, from, to) => { for (let i = 0; i <= 12; i++) pts.push(polar(r, from + (to - from) * i / 12).map(v => v.toFixed(2) + '%').join(' ')); };
+  const go = GAP / R_OUT * 180 / Math.PI, gi = GAP / R_IN * 180 / Math.PI;
+  arc(R_OUT, a0 + go, a1 - go); arc(R_IN, a1 - gi, a0 + gi);
+  return `polygon(${pts.join(', ')})`;
+}
 function buildRack() {
   const rack = $('rack'); rack.innerHTML = '';
+  const n = S.order.length, step = 360 / n;
   S.order.forEach((li, pos) => {
     const L = S.letters[li], slot = document.createElement('div'); slot.className = 'slot';
+    const [x, y] = polar(R_MID, pos * step);
+    slot.style.setProperty('--clip', segment(pos * step - step / 2, pos * step + step / 2));
+    slot.style.setProperty('--x', x + '%'); slot.style.setProperty('--y', y + '%');
     const b = makeBall(L.ch, L.ci); b.dataset.li = li; b.id = 'ball' + pos;
     b.setAttribute('aria-label', 'Letter ' + L.ch.toUpperCase());
     b.addEventListener('click', () => pick(li));
@@ -437,26 +469,28 @@ function buildRack() {
 }
 function syncRack() { rackBalls().forEach(b => b.classList.toggle('used', S.sel.includes(+b.dataset.li))); }
 
-// A new card: the balls drop into the rack one after another and bounce
+// Where a rack ball's letter disc sits on screen: the dial's segments all share a box, so their discs are what to aim at
+const spot = el => el.firstElementChild.getBoundingClientRect();
+// A new card: the segments spin out from the hub one after another and bounce into the ring
 async function dropIn() {
   busy = true; setControls();
-  rackBalls().forEach((el, pos) => { const r = el.getBoundingClientRect(); sfx.plop(r.left + r.width / 2, pos, reduce ? 0 : (pos * 70 + 350) / 1000); });
+  rackBalls().forEach((el, pos) => { const r = spot(el); sfx.plop(r.left + r.width / 2, pos, reduce ? 0 : (pos * 70 + 350) / 1000); });
   await Promise.all(rackBalls().map((el, pos) => animate(el, [
-    { transform: 'translateY(-80px) scale(.5)', opacity: 0 },
-    { transform: 'translateY(0) scale(1.08)', opacity: 1, offset: .62 },
-    { transform: 'translateY(-9px) scale(.96)', offset: .8 },
+    { transform: 'rotate(-50deg) scale(.4)', opacity: 0 },
+    { transform: 'rotate(4deg) scale(1.08)', opacity: 1, offset: .62 },
+    { transform: 'rotate(-2deg) scale(.96)', offset: .8 },
     { transform: 'none' }
   ], { duration: 560, delay: pos * 70, easing: 'ease-out', fill: 'backwards' })));
   busy = false; setControls();
 }
 
 // Shuffle: the rack is broken like a frame of snooker. The balls career round the whole screen,
-// glancing off its edges and each other, and then each rolls home to its new slot.
+// glancing off its edges and each other, and then each rolls home to its new segment of the dial.
 async function reshuffle() {
   if (busy || !S) return;
   busy = true; S.sel = []; renderTray(); syncRack(); setControls();
   const slots = [...$('rack').children], balls = rackBalls();
-  const from = new Map(balls.map(el => [el, el.getBoundingClientRect()]));
+  const from = new Map(balls.map(el => [el, spot(el)]));
   const old = S.order.slice();
   let tries = 0;
   do { shuffleArr(S.order); } while (old.length > 1 && S.order.some((li, i) => li === old[i]) && tries++ < 20);
@@ -468,17 +502,18 @@ async function reshuffle() {
 function snooker(balls, from) {
   return new Promise(done => {
     const layer = document.createElement('div'); layer.className = 'roam'; layer.setAttribute('aria-hidden', 'true');
-    const r = from.get(balls[0]).width / 2;
+    // The flying balls are ordinary round ones whose cream discs match the discs on the dial
+    const r = from.get(balls[0]).width / .74 / 2;
     layer.style.setProperty('--b', 2 * r + 'px');
     document.body.appendChild(layer);
     const W = innerWidth, H = innerHeight, power = Math.hypot(W, H) * rand(2.2, 2.7);
     const T2 = .32, homeOrder = shuffleArr(balls.map((_, i) => i));
     const bodies = balls.map((el, i) => {
-      const a = from.get(el), b = el.getBoundingClientRect(), ang = rand(0, 2 * Math.PI), sp = power * rand(.55, 1);
-      const ghost = el.cloneNode(true); ghost.removeAttribute('id'); ghost.tabIndex = -1; layer.appendChild(ghost);
+      const a = from.get(el), b = spot(el), ang = rand(0, 2 * Math.PI), sp = power * rand(.55, 1), L = S.letters[+el.dataset.li];
+      const ghost = makeBall(L.ch, L.ci); ghost.tabIndex = -1; layer.appendChild(ghost);
       el.classList.add('away');
-      return { el, ghost, x: a.left + r, y: a.top + r, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, rot: 0,
-               hx: b.left + r, hy: b.top + r, leave: .55 + homeOrder[i] * .04, homing: null, done: false };
+      return { el, ghost, x: a.left + a.width / 2, y: a.top + a.height / 2, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, rot: 0,
+               hx: b.left + b.width / 2, hy: b.top + b.height / 2, leave: .55 + homeOrder[i] * .04, homing: null, done: false };
     });
     let t = 0, last = performance.now(), lastKnock = 0;
     const knock = (kind, v, x) => { const ts = performance.now(); if (v < 60 || ts - lastKnock < 28) return; lastKnock = ts; sfx[kind](Math.min(1, v / 2400), x); };
@@ -528,7 +563,7 @@ function snooker(balls, from) {
           B.rot = hm.rot + (hm.rotEnd - hm.rot) * h01;
           if (s === 1) {
             B.done = true; B.ghost.remove(); B.el.classList.remove('away');
-            B.el.animate([{ transform: 'scale(1.18, .82)' }, { transform: 'scale(.94, 1.06)' }, { transform: 'none' }], { duration: 240 });
+            B.el.animate([{ transform: 'scale(1.06)' }, { transform: 'scale(.97)' }, { transform: 'none' }], { duration: 240 });
             sfx.plop(B.hx, +B.el.id.slice(4));
             continue;
           }
@@ -672,8 +707,8 @@ function celebrate(big) {
     g.fillStyle = c; g.beginPath(); g.arc(R, R, R, 0, 7); g.fill();
     const shade = g.createRadialGradient(R, R, R * .55, R, R, R); shade.addColorStop(0, '#0000'); shade.addColorStop(1, '#00000073');
     g.fillStyle = shade; g.fill();
-    g.fillStyle = '#fbf3e2'; g.beginPath(); g.arc(R, R, R * .62, 0, 7); g.fill();
-    g.fillStyle = '#2a1810'; g.font = `800 ${R * .84}px ${css.getPropertyValue('--body')}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#fbf3e2'; g.beginPath(); g.arc(R, R, R * .74, 0, 7); g.fill();
+    g.fillStyle = '#2a1810'; g.font = `800 ${R * .92}px ${css.getPropertyValue('--body')}`; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillText(ch.toUpperCase(), R, R + R * .05);
     const hl = g.createRadialGradient(R * .68, R * .56, 0, R * .68, R * .56, R * .36); hl.addColorStop(0, '#ffffffa0'); hl.addColorStop(1, '#ffffff00');
     g.fillStyle = hl; g.beginPath(); g.arc(R, R, R, 0, 7); g.fill();

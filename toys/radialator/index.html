@@ -116,7 +116,7 @@ input[type=checkbox]{accent-color:var(--accent);margin:0}
       <div class="sel"><label for="palette">Palette</label><select id="palette"></select></div>
     </div></details>
     <details data-g="D"><summary class="lbl">Dots</summary><div class="ctrls" id="ctrlsD">
-      <div class="sel"><label for="dots">Dot layout</label><select id="dots"><option value="0">Off: solid</option><option value="1">Grid</option><option value="2">Hex</option><option value="3">Rings</option></select></div>
+      <div class="sel"><label for="dots">Dot layout</label><select id="dots"><option value="0">Off: solid</option><option value="1">Grid</option><option value="2">Hex</option><option value="3">Rings</option><option value="4">Sunflower spiral</option></select></div>
     </div></details>
     <details><summary class="lbl">Display</summary><div class="ctrls">
       <label class="tick" for="showFps"><input type="checkbox" id="showFps"> Show frame rate</label>
@@ -172,7 +172,7 @@ const gl=glc.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
 const FS=`precision highp float;
 uniform vec2 uRes;uniform float uHub,uInv,uWarp,uRim,uNotch,uPx,uLine,uN,uD,uR,uP,uAsp,uSpin,uTilt,uTwist,uRings,uSectors,uLayers,uLS,uPhase,uExtent,uClip;
 uniform vec3 uInk,uPaper;uniform vec2 uPan;uniform float uZoom;
-uniform float uDots,uDotN,uDotSize,uLight,uLightAng;
+uniform float uDots,uDotN,uDotSize,uLight,uLightAng;uniform float uFF[20],uFE[20];
 mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);}
 float sampleAt(vec2 p){
   vec2 p0=p;float rad0=length(p);
@@ -214,8 +214,24 @@ float sampleAt(vec2 p){
   if(uClip==2.&&rad0>uExtent)return 0.;
   return par;
 }
-// Dots: the nearest dot centre on a grid, a hex lattice, or rings that keep the pattern's N-fold symmetry (dotCentres() in JS matches)
+// Dots: the nearest dot centre on a grid, a hex lattice, rings that keep the pattern's N-fold symmetry, or a sunflower spiral (buildDotsSVG() matches)
+// sunflower: dot n at radius c·√(n+½), turned n golden angles. Locally the dots form a lattice spanned by two consecutive
+// Fibonacci neighbours, so invert that lattice and test the 16 nearby candidates (uFE holds F·g − round(F·g) in double precision)
+const float GA=.381966011250105;
+vec2 fibDot(float n,float t,float c){return c*sqrt(n+.5)*vec2(cos(6.2831853*t),sin(6.2831853*t));}
+vec2 spiralCentre(vec2 p,float h){
+  float c=h*.5641896,u=max(0.,dot(p,p)/(c*c)-.5),t=fract(atan(p.y,p.x)/6.2831853);
+  vec2 best=vec2(0.);float bd=1e9;
+  if(u<12.){for(int n=0;n<20;n++){vec2 q=fibDot(float(n),fract(float(n)*GA),c);float d=dot(q-p,q-p);if(d<bd){bd=d;best=q;}}return best;}
+  float a0=1.,b0=2.,ea=0.,eb=0.,tg=sqrt(2.5*u);
+  for(int i=0;i<19;i++){if(uFF[i]<=tg){a0=uFF[i];b0=uFF[i+1];ea=uFE[i];eb=uFE[i+1];}}
+  float det=a0*eb-b0*ea,A=floor((u*eb-b0*t)/det),B=floor((a0*t-u*ea)/det);
+  for(int i=-1;i<=2;i++)for(int j=-1;j<=2;j++){float a=A+float(i),b=B+float(j),n=a*a0+b*b0;if(n<0.)continue;
+    vec2 q=fibDot(n,a*ea+b*eb,c);float d=dot(q-p,q-p);if(d<bd){bd=d;best=q;}}
+  return best;
+}
 vec2 dotCentre(vec2 p,float h){
+  if(uDots>3.5)return spiralCentre(p,h);
   if(uDots<1.5)return (floor(p/h)+.5)*h;
   if(uDots<2.5){vec2 s=vec2(h,h*1.7320508);vec2 a=(floor(p/s)+.5)*s;vec2 b=(floor((p-s*.5)/s)+.5)*s+s*.5;return dot(p-a,p-a)<dot(p-b,p-b)?a:b;}
   float i=floor(length(p)/h+.5);if(i<.5)return vec2(0.);float rho=i*h;
@@ -244,6 +260,7 @@ void main(){
 }`;
 let prog,U={};
 function hex(h){return [1,3,5].map(i=>parseInt(h.substr(i,2),16)/255)}
+const GOLD=(3-Math.sqrt(5))/2;
 function initGL(){
   const vs=gl.createShader(gl.VERTEX_SHADER);gl.shaderSource(vs,'attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}');gl.compileShader(vs);
   const fs=gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(fs,FS);gl.compileShader(fs);
@@ -252,6 +269,8 @@ function initGL(){
   const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
   'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uInk uPaper uPan uZoom uDots uDotN uDotSize uLight uLightAng'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+  const FF=[1,2];while(FF.length<20)FF.push(FF[FF.length-1]+FF[FF.length-2]);
+  gl.uniform1fv(gl.getUniformLocation(prog,'uFF'),FF);gl.uniform1fv(gl.getUniformLocation(prog,'uFE'),FF.map(f=>f*GOLD-Math.round(f*GOLD)));
 }
 function extent(p){
   if(p.clip==3)return p.rim;
@@ -432,6 +451,7 @@ function buildDotsSVG(p,ph){
   if(p.dots==1){const n=Math.ceil(V/h);for(let i=-n;i<n;i++)for(let j=-n;j<n;j++)cs.push([(i+.5)*h,(j+.5)*h])}
   else if(p.dots==2){const sy=h*Math.sqrt(3),n=Math.ceil(V/h)+1,m=Math.ceil(V/sy)+1;
     for(let i=-n;i<n;i++)for(let j=-m;j<m;j++){cs.push([(i+.5)*h,(j+.5)*sy]);cs.push([(i+1)*h,(j+1)*sy])}}
+  else if(p.dots==4){const c=h/Math.sqrt(Math.PI);for(let n=0;c*Math.sqrt(n+.5)<V*1.42;n++){const r=c*Math.sqrt(n+.5),t=2*Math.PI*((n*GOLD)%1);cs.push([r*Math.cos(t),r*Math.sin(t)])}}
   else{cs.push([0,0]);for(let i=1;i*h<V*1.42;i++){const rho=i*h,n=p.count*Math.max(1,Math.round(2*Math.PI*rho/(h*p.count)));
     for(let j=0;j<n;j++)cs.push([rho*Math.cos(2*Math.PI*j/n),rho*Math.sin(2*Math.PI*j/n)])}}
   let d='';
@@ -517,4 +537,13 @@ try{
   initGL();syncUI();drawMain();
   let rt;new ResizeObserver(()=>{clearTimeout(rt);rt=setTimeout(()=>exploring?buildGrid(false):drawMain(),120)}).observe($('stage'));
 }catch(e){$('stage').innerHTML='<p class="err">'+e.message+'</p>'}
+</script>
+<script>
+// double-click the Settings/Display heading to put its checkboxes and menus back to their defaults (toys-src/PANELS.md)
+addEventListener('DOMContentLoaded',()=>document.querySelectorAll('summary').forEach(sm=>{
+  if(!/^(Settings|Display)/.test(sm.textContent.trim()))return;
+  sm.addEventListener('dblclick',e=>{e.preventDefault();sm.parentNode.querySelectorAll('input[type=checkbox],select').forEach(el=>{
+    const box=el.type==='checkbox',was=box?el.checked:el.value;
+    if(box)el.checked=el.defaultChecked;else{const o=[...el.options].find(o=>o.defaultSelected)||el.options[0];if(o)el.value=o.value}
+    if((box?el.checked:el.value)!==was)['input','change'].forEach(t=>el.dispatchEvent(new Event(t,{bubbles:true})))})})}));
 </script>
