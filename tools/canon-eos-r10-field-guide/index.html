@@ -73,8 +73,8 @@ nav.views a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:fo
 .seg{display:flex;flex-wrap:wrap;gap:4px}
 .seg button{font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);background:transparent;color:var(--muted);padding:6px 11px;border-radius:7px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.three{position:relative;width:100%;min-height:320px;border-radius:10px;overflow:hidden;background:radial-gradient(90% 80% at 50% 38%, var(--stage-hi), var(--stage-lo))}
-.three canvas{display:block;touch-action:none;cursor:grab}
+.three{position:relative;-webkit-user-select:none;user-select:none;width:100%;min-height:320px;border-radius:10px;overflow:hidden;background:radial-gradient(90% 80% at 50% 38%, var(--stage-hi), var(--stage-lo))}
+.three canvas{display:block;touch-action:none;cursor:grab;outline:none;-webkit-tap-highlight-color:transparent}
 .three canvas:active{cursor:grabbing}
 .tag3d{position:absolute;transform:translate(12px,-130%);pointer-events:none;font:600 12px var(--f-mono);background:var(--ink);color:var(--bg);padding:3px 7px;border-radius:5px;white-space:nowrap}
 .tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
@@ -312,6 +312,7 @@ function pickCtl(id,fly){
   selCtl=id;
   if(c.id==="ring"&&R3&&!R3.lensOn) R3.setLens(true);
   if(c.f!==face){face=c.f; if(fly&&R3) R3.fly(face);}
+  if(fly&&R3) R3.focus(id);
   drawLegend(); showCtl(c); if(R3) R3.tint();
 }
 function showCtl(c){
@@ -512,6 +513,7 @@ function build3D(){
     return null;
   }
   renderer.domElement.addEventListener("pointerdown",function(e){down=[e.clientX,e.clientY]});
+  host.addEventListener("selectstart",function(e){e.preventDefault()}); // a trackpad drag would otherwise select the page
   renderer.domElement.addEventListener("pointerup",function(e){
     if(!down) return; var moved=Math.hypot(e.clientX-down[0],e.clientY-down[1]); down=null;
     if(moved<6){var h=hit(e); if(h) pickCtl(h.id,false);}
@@ -540,9 +542,20 @@ function build3D(){
   var anims=[];
   function tween(dur,fn,done){if(reduce||dur<=0){fn(1);if(done)done();need=true;return}anims.push({t0:performance.now(),dur:dur,fn:fn,done:done})}
   var ease=function(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2};
-  function fly(f){
-    var p0=cam.position.clone(),t0=ctl.target.clone(),p1=new THREE.Vector3().fromArray(V[f][0]),t1=new THREE.Vector3().fromArray(V[f][1]);
+  function flyTo(p1,t1){
+    var p0=cam.position.clone(),t0=ctl.target.clone();
     tween(750,function(k){k=ease(k);cam.position.lerpVectors(p0,p1,k);ctl.target.lerpVectors(t0,t1,k);});
+  }
+  function fly(f){flyTo(new THREE.Vector3().fromArray(V[f][0]),new THREE.Vector3().fromArray(V[f][1]))}
+  // Swing round to a control: look from its face's preset, turned towards the control and aimed halfway to it
+  function focus(id){
+    var c=C.find(function(x){return x.id===id}), ms=byId[id]; if(!c||!ms) return;
+    var box=new THREE.Box3(); ms.forEach(function(m){if(m.geometry)box.expandByObject(m)}); if(box.isEmpty()) return;
+    var at=box.getCenter(new THREE.Vector3()), p=new THREE.Vector3().fromArray(V[c.f][0]), t=new THREE.Vector3().fromArray(V[c.f][1]);
+    var dist=p.distanceTo(t), dir=p.sub(t).normalize(), out=at.clone().sub(t); out.addScaledVector(dir,-out.dot(dir));
+    // A control centred on the view, like a lens ring, is seen three-quarters on from the left instead
+    dir.addScaledVector(out.length()>1.5?out.normalize():new THREE.Vector3(-1,0.4,0).normalize(),out.length()>1.5?0.45:0.9).normalize();
+    var t1=t.lerp(at,0.5); flyTo(t1.clone().addScaledVector(dir,dist),t1);
   }
   var scr={swing:0,flip:0};
   function setScreen(swing,fl){
@@ -571,7 +584,7 @@ function build3D(){
   }
   requestAnimationFrame(loop);
 
-  R3={fly:fly,tint:tint,setScreen:setScreen,setLens:setLens,lensOn:true};
+  R3={fly:fly,focus:focus,tint:tint,setScreen:setScreen,setLens:setLens,lensOn:true};
   document.querySelectorAll("[data-scr]").forEach(function(b){b.onclick=function(){
     var v=b.dataset.scr.split(",").map(Number); setScreen(v[0],v[1]);
     document.querySelectorAll("[data-scr]").forEach(function(x){x.setAttribute("aria-pressed",x===b)});

@@ -129,6 +129,9 @@ h1 { font-family: var(--display); font-weight: 400; font-size: 30px; line-height
   gap: 2px 14px; list-style: none; margin: 0; padding: 0; }
 .w { display: flex; align-items: center; height: 1.25em; font: 800 1.125rem / 1 var(--body); text-transform: uppercase; }
 .w > span { width: .74em; height: 100%; display: grid; place-items: center; }
+/* A shown word's letters are spaced as type, so a narrow I or a wide W sits right, and the word keeps the width of its dots */
+.w.found, .w.missed { min-width: calc(var(--n) * .74em); letter-spacing: .03em; }
+.w > .ch { width: auto; }
 .w .dot::before { content: ""; width: .48em; height: .48em; border-radius: 50%; background: color-mix(in srgb, var(--ink) 72%, var(--panel)); }
 .w.found { color: var(--mustard); }
 .w.missed { color: color-mix(in srgb, var(--ink) 48%, var(--panel)); }
@@ -618,7 +621,7 @@ function renderBoard() {
   byLength(S.targets).forEach(w => {
     const el = document.createElement('li');
     const found = S.found.has(w), missed = S.gaveUp && !found, shown = found || missed;
-    el.className = 'w' + (found ? ' found' : '') + (missed ? ' missed' : ''); el.dataset.w = w;
+    el.className = 'w' + (found ? ' found' : '') + (missed ? ' missed' : ''); el.dataset.w = w; el.style.setProperty('--n', w.length);
     el.setAttribute('aria-label', found ? w : missed ? `${w}, not found` : `hidden ${w.length}-letter word`);
     [...w].forEach((ch, i) => { const c = document.createElement('span'); c.className = shown ? 'ch' : 'dot'; c.setAttribute('aria-hidden', 'true');
       if (shown) c.textContent = ch; el.appendChild(c); });
