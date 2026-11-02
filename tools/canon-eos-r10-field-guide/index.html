@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jermolene">
+<meta property="og:title" content="EOS R10 Field Guide">
+<meta property="og:description" content="An interactive guide to the Canon EOS R10 with the RF-S18-150mm lens: a 3D body to turn over and click on, every control explained, the full menu tree to step through with the arrow keys, the shooting screen's readouts and the changes in firmware 1.7.0">
+<meta property="og:url" content="https://jermolene.com/tools/canon-eos-r10-field-guide/">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://jermolene.com/social/tools/canon-eos-r10-field-guide.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="EOS R10 Field Guide: A clickable 3D camera body and its full menu tree">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>R10 Field Guide</title>
+<meta name="toy-title" content="EOS R10 Field Guide">
+<meta name="toy-short-title" content="R10 Guide">
+<meta name="description" content="An interactive guide to the Canon EOS R10 with the RF-S18-150mm lens: a 3D body to turn over and click on, every control explained, the full menu tree to step through with the arrow keys, the shooting screen's readouts and the changes in firmware 1.7.0">
+<meta name="toy-tagline" content="A clickable 3D camera body and its full menu tree">
+<meta name="toy-category" content="tools">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#eceeef">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../pwa.js" defer></script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;800&family=Chivo+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a camera-body bench. Left = the object (body face, live view, menu screen); right = the reference card for whatever is selected. Stacks on phones. */
+:root{
+  --bg:#eceeef; --panel:#f8f9f9; --ink:#17191b; --muted:#5d6468; --line:#cfd4d7;
+  --body:#2a2d30; --body-hi:#3b3f43; --body-lo:#1c1e20; --btn:#4a4f54; --btn-ink:#d9dde0;
+  --hot:#d2201a; --hot-soft:rgba(210,32,26,.14); --stage-hi:#ffffff; --stage-lo:#dde1e4;
+  --scr:#0b0c0d; --scr-ink:#f1f1f1; --scr-dim:#8b9095; --scr-sel:#f2b705;
+  --t-shoot:#d23a32; --t-af:#9c3fb3; --t-play:#2f6fd0; --t-wifi:#c4469a; --t-setup:#d9a50b; --t-cfn:#e2741f; --t-my:#3f9a3f;
+  --f-ui:"Chivo", "Segoe UI", system-ui, sans-serif; --f-mono:"Chivo Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141617; --panel:#1d2022; --ink:#e7eaec; --muted:#9aa2a7; --line:#33383c;
+  --body:#3a3e42; --body-hi:#4b5055; --body-lo:#2a2d30; --btn:#5a6066; --btn-ink:#eef0f1;
+  --hot:#ff5148; --hot-soft:rgba(255,81,72,.18); --stage-hi:#3a3f44; --stage-lo:#16181a; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#141617; --panel:#1d2022; --ink:#e7eaec; --muted:#9aa2a7; --line:#33383c;
+  --body:#3a3e42; --body-hi:#4b5055; --body-lo:#2a2d30; --btn:#5a6066; --btn-ink:#eef0f1;
+  --hot:#ff5148; --hot-soft:rgba(255,81,72,.18); --stage-hi:#3a3f44; --stage-lo:#16181a; color-scheme:dark }
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-ui);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+h1{font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-.02em;margin:0;line-height:1.05;text-wrap:balance}
+h1 .red{color:var(--hot)}
+.sub{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-top:6px}
+nav.views{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px}
+nav.views a{font-family:var(--f-mono);font-size:13px;text-decoration:none;color:var(--muted);padding:7px 12px;border-radius:7px}
+nav.views a:hover{color:var(--ink)}
+nav.views a[aria-current="page"]{background:var(--ink);color:var(--bg)}
+nav.views a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 20px;min-width:0;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:860px){.card{position:static}}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.card h2{font-size:22px;font-weight:800;margin:4px 0 10px;line-height:1.15;text-wrap:balance}
+.card p{margin:0 0 10px;max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.chip{font-family:var(--f-mono);font-size:11px;padding:3px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.chip.new{border-color:var(--hot);color:var(--hot);background:var(--hot-soft)}
+.chip.ok{color:var(--ink)}
+.path{font-family:var(--f-mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 10px;overflow-x:auto;white-space:nowrap}
+.tip{border-left:3px solid var(--hot);padding:2px 0 2px 10px;color:var(--muted);font-size:14px}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);background:transparent;color:var(--muted);padding:6px 11px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.three{position:relative;width:100%;min-height:320px;border-radius:10px;overflow:hidden;background:radial-gradient(90% 80% at 50% 38%, var(--stage-hi), var(--stage-lo))}
+.three canvas{display:block;touch-action:none;cursor:grab}
+.three canvas:active{cursor:grabbing}
+.tag3d{position:absolute;transform:translate(12px,-130%);pointer-events:none;font:600 12px var(--f-mono);background:var(--ink);color:var(--bg);padding:3px 7px;border-radius:5px;white-space:nowrap}
+.tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.tools .lbl{font:11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.tools .grp{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.legend button{font:13px var(--f-ui);border:1px solid var(--line);background:transparent;color:var(--ink);padding:5px 10px;border-radius:7px;cursor:pointer}
+.legend button.sel{border-color:var(--hot);color:var(--hot);background:var(--hot-soft)}
+.note{font-size:12.5px;color:var(--muted)}
+[hidden]{display:none!important}
+kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px}
+
+/* camera screen: always black, like the real LCD */
+.lcd{background:var(--scr);color:var(--scr-ink);border-radius:10px;border:6px solid var(--body-lo);font-family:var(--f-ui);overflow:hidden}
+.tabs{display:flex;gap:2px;padding:6px 6px 0;overflow-x:auto}
+.tabs button{flex:1 0 auto;min-width:44px;border:0;cursor:pointer;font:600 12px var(--f-mono);color:#fff;padding:7px 8px;border-radius:6px 6px 0 0;opacity:.45;background:var(--c)}
+.tabs button[aria-selected="true"]{opacity:1}
+.pages{display:flex;gap:2px;padding:6px 8px;border-bottom:1px solid #2a2d30;align-items:center;overflow-x:auto}
+.pages .pn{font:600 12px var(--f-mono);color:var(--scr-dim);border:0;background:transparent;padding:4px 8px;border-radius:4px;cursor:pointer}
+.pages .pn[aria-selected="true"]{background:var(--c);color:#fff}
+.pages .tabname{margin-left:auto;font:12px var(--f-mono);color:var(--scr-dim);white-space:nowrap;padding-left:10px}
+.items{list-style:none;margin:0;padding:6px 0;min-height:290px}
+.items li{display:flex;gap:10px;justify-content:space-between;padding:8px 14px;cursor:pointer;font-size:14.5px;border-left:3px solid transparent}
+.items li .v{font-family:var(--f-mono);font-size:12px;color:var(--scr-dim);white-space:nowrap}
+.items li[aria-selected="true"]{background:#24272a;border-left-color:var(--scr-sel)}
+.items li[aria-selected="true"] .n{color:var(--scr-sel)}
+.lcdfoot{display:flex;justify-content:space-between;gap:10px;padding:6px 12px;border-top:1px solid #2a2d30;font:11px var(--f-mono);color:var(--scr-dim);flex-wrap:wrap}
+.search{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search input{flex:1 1 220px;min-width:0;font:14px var(--f-ui);padding:8px 11px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;max-height:300px;overflow:auto}
+.results li button{width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:14px var(--f-ui);padding:6px 8px;border-radius:6px;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.results li button:hover{background:var(--bg)}
+.results .tag{font:600 10.5px var(--f-mono);color:#fff;padding:1px 6px;border-radius:4px;background:var(--c);white-space:nowrap}
+
+/* live view */
+.lv{position:relative;aspect-ratio:3/2;max-width:100%;border-radius:8px;overflow:hidden;background:
+  radial-gradient(120% 90% at 70% 30%, #6b7f8c 0%, #3c4b55 40%, #1d2328 100%)}
+.lv .scene{position:absolute;inset:0;background:
+  radial-gradient(18% 26% at 52% 55%, rgba(220,190,160,.55), transparent 70%),
+  linear-gradient(180deg, transparent 62%, rgba(20,28,22,.65) 63%, rgba(10,14,12,.9))}
+.lvh{position:absolute;transform:translate(-50%,-50%);font:600 clamp(9px,1.6vw,13px) var(--f-mono);color:#fff;text-shadow:0 1px 2px #000;background:transparent;border:1.5px solid transparent;border-radius:5px;padding:2px 4px;cursor:pointer;white-space:nowrap;line-height:1.15}
+.lvh:hover,.lvh:focus{border-color:rgba(255,255,255,.7);outline:none}
+.lvh.sel{border-color:var(--scr-sel);color:var(--scr-sel)}
+.afbox{position:absolute;left:52%;top:52%;width:15%;height:22%;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.afbox.sel{border-color:var(--scr-sel)}
+.lvbar{position:absolute;left:0;right:0;bottom:0;height:13%;background:rgba(0,0,0,.55)}
+.fw{display:flex;flex-direction:column;gap:10px;padding:0;margin:0;list-style:none}
+.fw li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px}
+.fw .no{font:800 20px var(--f-mono);color:var(--hot)}
+.fw b{display:block}
+.fw span{color:var(--muted);font-size:14px}
+footer{font-size:12.5px;color:var(--muted)}
+footer a{color:inherit}
+@media (prefers-reduced-motion:no-preference){.hs .ring,.lvh,.items li{transition:all .12s ease}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>EOS R10 <span class="red">Field Guide</span></h1>
+      <div class="sub">3D body · Menus · Live view · Firmware 1.7.0</div>
+    </div>
+    <nav class="views" aria-label="Sections">
+      <a href="#controls" data-v="controls">Controls</a>
+      <a href="#menus" data-v="menus">Menus</a>
+      <a href="#display" data-v="display">Screen</a>
+      <a href="#firmware" data-v="firmware">1.7.0</a>
+    </nav>
+  </header>
+
+  <!-- CONTROLS -->
+  <section id="v-controls" class="grid" hidden>
+    <div class="stage">
+      <div class="tools">
+        <div class="grp seg" role="group" aria-label="View"><span class="lbl">View</span>
+          <button id="face-back" data-face="back" aria-pressed="true">Back</button>
+          <button id="face-top" data-face="top" aria-pressed="false">Top</button>
+          <button id="face-front" data-face="front" aria-pressed="false">Front</button>
+          <button id="face-side" data-face="side" aria-pressed="false">Side &amp; base</button>
+        </div>
+        <div class="grp seg" role="group" aria-label="Screen position"><span class="lbl">Screen</span>
+          <button id="scr-n" data-scr="0,0" aria-pressed="true">Normal</button>
+          <button id="scr-o" data-scr="90,0" aria-pressed="false">Open</button>
+          <button id="scr-s" data-scr="180,0" aria-pressed="false">Selfie</button>
+          <button id="scr-c" data-scr="0,180" aria-pressed="false">Stowed</button>
+        </div>
+        <div class="grp seg"><button id="lensbtn" aria-pressed="true">Lens on</button></div>
+      </div>
+      <div class="three" id="three"></div>
+      <div class="legend" id="legend"></div>
+      <div class="note">Drag to orbit, scroll or pinch to zoom, click a part. A simplified model, not to scale: proportions and positions are approximate. Names and part numbers follow Canon's Part Names (Advanced User Guide, fw 1.7.0).</div>
+    </div>
+    <aside class="card" id="ctlcard" aria-live="polite"></aside>
+  </section>
+
+  <!-- MENUS -->
+  <section id="v-menus" class="grid" hidden>
+    <div class="stage">
+      <div class="seg" role="group" aria-label="Menu set">
+        <button id="ms-photo" data-ms="photo" aria-pressed="true">Stills (P/Tv/Av/M…)</button>
+        <button id="ms-movie" data-ms="movie" aria-pressed="false">Movie mode</button>
+      </div>
+      <div class="lcd" id="lcd">
+        <div class="tabs" id="tabs" role="tablist" aria-label="Main tabs"></div>
+        <div class="pages" id="pages"></div>
+        <ul class="items" id="items" role="listbox" aria-label="Menu items" tabindex="0"></ul>
+        <div class="lcdfoot"><span><kbd>←</kbd><kbd>→</kbd> page (Main dial) · <kbd>↑</kbd><kbd>↓</kbd> item (Q dial)</span><span><kbd>[</kbd><kbd>]</kbd> main tab (Q button)</span></div>
+      </div>
+      <div class="search">
+        <input id="q" type="search" placeholder="Find a setting… e.g. zebra, eye, silent, peaking" autocomplete="off">
+      </div>
+      <ul class="results" id="results"></ul>
+    </div>
+    <aside class="card" id="menucard" aria-live="polite"></aside>
+  </section>
+
+  <!-- DISPLAY -->
+  <section id="v-display" class="grid" hidden>
+    <div class="stage">
+      <div class="lcd" style="padding:0;border-width:8px">
+        <div class="lv" id="lv"><div class="scene"></div><div class="lvbar"></div></div>
+      </div>
+      <div class="note">Representative stills display in a Creative Zone mode with full info shown. Tap any readout. Press <b>INFO</b> on the camera to cycle displays; choose which ones appear in Shooting 9 › Shooting info. disp.</div>
+    </div>
+    <aside class="card" id="lvcard" aria-live="polite"></aside>
+  </section>
+
+  <!-- FIRMWARE -->
+  <section id="v-firmware" class="grid" hidden>
+    <div class="stage">
+      <div class="eyebrow">Firmware 1.7.0 · released July 2025</div>
+      <ol class="fw">
+        <li><div class="no">1</div><div><b>Stronger security: set a password first</b><span>The camera asks for a password to be set up. It lives in Set-up 6 › Manage password.</span></div></li>
+        <li><div class="no">2</div><div><b>Software development kit support</b><span>Adds support for Canon's EDSDK / CCAPI, so third-party and custom software can control the camera.</span></div></li>
+        <li><div class="no">3</div><div><b>Online firmware updates</b><span>With an internet connection, the camera can fetch new firmware from Canon's servers (Set-up 5 › Firmware).</span></div></li>
+        <li><div class="no">4</div><div><b>Fix: freeze with AF switching</b><span>Fixed a freeze when the One-Shot AF→Servo AF button and the shutter button are pressed together.</span></div></li>
+        <li><div class="no">5</div><div><b>Fix: EF lens stabilisation</b><span>Fixed image stabilisation sometimes stopping with EF lenses on an adapter.</span></div></li>
+      </ol>
+    </div>
+    <aside class="card">
+      <div class="eyebrow">Check your version</div>
+      <h2>Set-up 5 › Firmware</h2>
+      <p>Shows the body (and attached RF lens) firmware. 1.7.0 is the current R10 release; it includes every earlier fix, so there's nothing in between to install.</p>
+      <div class="path">MENU › Set-up (yellow) › 5 › Firmware</div>
+      <p class="tip">Updating firmware can clear registered settings. Save camera settings first if you rely on custom button or dial setups.</p>
+      <div class="chips"><span class="chip new">new in 1.7.0</span><span class="chip">marks items this release touched</span></div>
+    </aside>
+  </section>
+
+  <footer>Menu structure taken from Canon's EOS R10 Advanced User Guide for firmware 1.7.0 (cam.start.canon/C006). Descriptions are summaries; the manual is the authority on details and limits.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+
+/* ---------------- CONTROLS ---------------- */
+var CUST="Reassignable in C.Fn3 › Customize buttons";
+var C=[
+ // back
+ {id:"menu",f:"back",n:"MENU button",no:"B4",x:150,y:70,r:17,d:"Opens and closes the menus. Inside the menus, press it again to back out one level or exit.",tip:"Half-press the shutter to leave the menu and return straight to shooting."},
+ {id:"evf",f:"back",n:"Viewfinder eyepiece",no:"B3",shape:"rect",x:250,y:20,w:150,h:84,d:"2.36M-dot OLED electronic viewfinder. The sensor beside it switches from screen to viewfinder when your eye approaches.",tip:"Set-up 3 › Screen/viewfinder display can lock output to one or the other."},
+ {id:"eyes",f:"back",n:"Viewfinder sensor",no:"B10",x:420,y:44,r:10,d:"Detects your eye and switches display to the viewfinder. Disabled while the vari-angle screen is swung out."},
+ {id:"diop",f:"back",n:"Dioptric adjustment slider",no:"F27",shape:"rect",x:404,y:66,w:30,h:22,d:"Slide until the viewfinder display looks sharp for your eye."},
+ {id:"screen",f:"back",n:"Screen (vari-angle touch LCD)",no:"B5",shape:"rect",x:40,y:130,w:430,h:290,d:"3-inch vari-angle touchscreen. Flip out, tilt or face it forward. Tap to focus, shoot (Touch Shutter), operate menus and Quick Control.",tip:"Touch & drag AF (AF4) lets you move the AF point with your thumb while using the viewfinder."},
+ {id:"qdial",f:"back",n:"Quick Control dial",no:"B6",shape:"dial",x:640,y:24,w:92,h:18,d:"Thumb dial on the rear top edge. Sets aperture in M, exposure compensation in P/Tv/Av, moves through menu items and Quick Control settings.",tip:CUST.replace("buttons","dials")},
+ {id:"power",f:"back",n:"Power switch",no:"B7",shape:"rect",x:500,y:52,w:56,h:20,d:"ON / OFF. Turning off while an image is being written shows \"Saving…\" and powers down when finished. STM lenses can retract on power-off (C.Fn4)."},
+ {id:"afon",f:"back",n:"AF-ON button",no:"B8",x:600,y:100,r:17,d:"Starts autofocus without the shutter button. Set it up with shutter half-press AF off for back-button focusing.",tip:CUST},
+ {id:"ael",f:"back",n:"AE lock button ✱",no:"B17",x:660,y:100,r:17,d:"Locks exposure. In playback it is the index/reduce control together with the AF point button.",tip:CUST},
+ {id:"afpt",f:"back",n:"AF point selection / magnify button",no:"B18",x:720,y:100,r:17,d:"Selects the AF point or zone directly. In playback: magnify (and with ✱, reduce/index). Press M-Fn while pressing this to change the AF area.",tip:CUST},
+ {id:"joy",f:"back",n:"Multi-controller",no:"B9",x:620,y:170,r:16,d:"8-way joystick. Moves the AF point directly while shooting; also navigates menus and Quick Control. Press in to centre the AF point.",tip:"Speed is set in AF4 › Multi-controller sensitivity- AF pt select."},
+ {id:"info",f:"back",n:"INFO button",no:"B12",x:540,y:205,r:15,d:"Cycles the shooting information display and, in playback, the playback info screens (histograms, shooting data)."},
+ {id:"qset",f:"back",n:"Quick Control / SET button",no:"B13",x:660,y:290,r:22,d:"While shooting: opens the Quick Control screen. In menus: confirms a selection (SET).",tip:"Shooting 8 › Customize Quick Controls changes which items appear."},
+ {id:"up",f:"back",n:"Up / ISO",no:"B19",x:660,y:236,r:15,d:"ISO speed setting. Navigates up in menus.",tip:CUST},
+ {id:"right",f:"back",n:"Right / flash",no:"B20",x:714,y:290,r:15,d:"Flash control: pops up the built-in flash in Creative Zone modes and opens flash function settings.",tip:CUST},
+ {id:"down",f:"back",n:"Down / erase",no:"B15",x:660,y:344,r:15,d:"Erase in playback. Navigates down in menus. Default erase option is set in C.Fn4.",tip:CUST},
+ {id:"left",f:"back",n:"Left / drive / self-timer",no:"B14",x:606,y:290,r:15,d:"Drive mode: single, high-speed+ (up to 15 fps mechanical / 23 fps electronic), high, low, self-timers.",tip:CUST},
+ {id:"play",f:"back",n:"Playback button",no:"B16",x:720,y:395,r:16,d:"Reviews images. Half-press the shutter to return to shooting."},
+ {id:"lamp",f:"back",n:"Access lamp",no:"B22",x:600,y:400,r:7,d:"Lit or blinking while the card is being read or written. Don't open the card door or remove the battery while it's on."},
+ // top
+ {id:"mode",f:"top",n:"Mode dial",no:"F1",shape:"dial",x:560,y:96,w:96,h:96,round:1,d:"A+ Scene Intelligent Auto, SCN, Creative filters (Basic Zone); Fv, P, Tv, Av, M, B (Creative Zone); C1, C2 custom modes; and Movie.",tip:"Register C1/C2 in Set-up 5 › Custom shooting mode (C1, C2)."},
+ {id:"lock",f:"top",n:"Multi-function lock button",no:"F2",x:560,y:96,r:13,d:"Locks selected controls against accidental changes. Choose which in Set-up 4 › Multi function lock. Press again to release."},
+ {id:"main",f:"top",n:"Main dial",no:"F3",shape:"dial",x:690,y:180,w:72,h:20,d:"Index-finger dial behind the shutter. Sets shutter speed in Tv/M, program shift in P, aperture in Av; turns menu pages; jumps images in playback.",tip:"C.Fn3 can reverse direction or swap Main and Quick Control dial roles."},
+ {id:"mfn",f:"top",n:"M-Fn (multi-function) button",no:"F4",x:640,y:150,r:13,d:"Press, then turn the Main dial to pick ISO, drive mode, AF operation, white balance or flash exposure compensation. Combined with the AF point button it changes AF area.",tip:CUST},
+ {id:"shutter",f:"top",n:"Shutter button",no:"F5",x:740,y:225,r:20,d:"Half-press to meter and focus, full press to shoot. In Movie mode its function is set in Shooting › Shutter btn function for movies."},
+ {id:"movie",f:"top",n:"Movie shooting button",no:"F6",x:610,y:200,r:13,d:"Starts and stops movie recording from any stills mode, with movie settings applied.",tip:CUST},
+ {id:"shoe",f:"top",n:"Multi-function shoe",no:"B2",shape:"rect",x:300,y:60,w:110,h:48,d:"Hot shoe for Speedlites, flash transmitters, microphones and other shoe accessories (multi-function contacts plus standard flash sync contacts)."},
+ {id:"flash",f:"top",n:"Built-in flash",no:"F13",shape:"rect",x:290,y:116,w:130,h:30,d:"Pop-up flash. Raised with the Right/flash key in Creative Zone modes; may pop up automatically in Basic Zone."},
+ {id:"mic",f:"top",n:"Stereo microphone",no:"F14",x:250,y:132,r:9,d:"Built-in stereo mics. Recording level in Shooting › Sound recording (movie mode)."},
+ {id:"fp",f:"top",n:"Focal plane mark",no:"F16",x:470,y:150,r:8,d:"Marks the sensor plane, for measuring exact subject distance (macro, close focus)."},
+ // front
+ {id:"mount",f:"front",n:"RF lens mount",no:"F12",shape:"dial",x:380,y:250,w:240,h:240,round:1,d:"Canon RF mount (APS-C sensor, 1.6× crop). Takes RF and RF-S lenses natively; EF/EF-S via mount adapter.",tip:"Release shutter w/o lens is in C.Fn4."},
+ {id:"rel",f:"front",n:"Lens release button",no:"F20",x:525,y:310,r:15,d:"Press and turn the lens anticlockwise (from the front) to remove it."},
+ {id:"lampF",f:"front",n:"AF-assist / self-timer lamp",no:"F7",x:190,y:120,r:12,d:"Fires an AF-assist beam in low light, blinks for self-timer and remote. AF-assist settings in AF3.",tip:"AF3 › AF-assist beam firing."},
+ {id:"dof",f:"front",n:"Depth-of-field preview button",no:"F9",x:220,y:330,r:12,d:"Stops the lens down so you can preview depth of field.",tip:CUST},
+ {id:"fsw",f:"front",n:"Focus mode switch (AF/MF)",no:"F10",shape:"rect",x:198,y:370,w:44,h:24,d:"Lever around the DOF button: AF or MF for lenses without their own switch. Set-up 4 › Focus mode switch can make it switch MF only, or disable it."},
+ {id:"lens",f:"front",n:"RF-S18-150mm F3.5-6.3 IS STM",no:"–",d:"Your kit zoom: 29–240mm full-frame equivalent on the R10's 1.6× crop, optical image stabiliser, quiet STM focus motor, 55mm filter thread.",tip:"Lens IS works alongside the R10's digital movie IS (Shooting › IS mode)."},
+ {id:"zoom",f:"front",n:"Zoom ring (RF-S18-150mm)",no:"–",d:"The wide ring behind the front ring. Turn it to zoom from 18mm to 150mm; focal length markings are on the barrel."},
+ {id:"ring",f:"front",n:"Focus/control ring (RF-S18-150mm)",no:"–",d:"The narrow ring at the front of the lens. One ring serves as either the control ring or the manual focus ring. Choose which in AF6 › Focus/control ring.",tip:"As a control ring, assign ISO, exposure compensation, aperture etc. in C.Fn3 › Customize dials."},
+ {id:"grip",f:"front",n:"Grip",no:"F8",shape:"rect",x:70,y:150,w:90,h:260,d:"Deep handgrip. The card/battery door is under it on the base."},
+ // side/base
+ {id:"hdmi",f:"side",n:"HDMI micro OUT",no:"F23",shape:"rect",x:110,y:70,w:70,h:28,d:"Type D. Clean or info output to a monitor or recorder; resolution in Set-up 3 › HDMI resolution."},
+ {id:"usb",f:"side",n:"Digital terminal (USB-C)",no:"F25",shape:"rect",x:110,y:120,w:70,h:28,d:"Charging/power via USB PD (compatible chargers), tethering and webcam use. App choice in Set-up 4 › Choose USB connection app."},
+ {id:"rem",f:"side",n:"Remote control terminal",no:"F24",shape:"rect",x:110,y:170,w:70,h:28,d:"For the RS-60E3 wired remote switch (E3-type)."},
+ {id:"micin",f:"side",n:"External mic IN (3.5mm)",no:"F26",shape:"rect",x:110,y:220,w:70,h:28,d:"Stereo mini-jack for external microphones. There is no headphone jack on the R10."},
+ {id:"door",f:"side",n:"Card/battery compartment",no:"F29",shape:"rect",x:420,y:110,w:210,h:120,d:"LP-E17 battery and one SD card (UHS-II supported). Battery status in Set-up 5 › Battery info."},
+ {id:"tripod",f:"side",n:"Tripod socket",no:"F28",x:360,y:300,r:14,d:"Standard 1/4-20 socket, on the lens axis."}
+];
+
+/* ---------------- CONTROLS: 3D BODY ---------------- */
+// Coordinates in cm. Origin = body centre. +x = grip side (your right, from behind), +y = up, +z = towards you (rear).
+var face="back", selCtl="qset", hoverId=null;
+var FACE_NAME={back:"Back",top:"Top plate",front:"Front",side:"Side / base"};
+var V={ // camera presets: position, target
+  back:[[3.5,4.5,25],[0,0.6,0]], top:[[0,27,5],[0,1.5,-2.5]], front:[[-9,4,-31],[-0.5,0.2,-3]], side:[[-25,-7,3],[-0.5,-0.6,-2]]
+};
+var R3=null;
+function drawLegend(){
+  var lg=$("#legend"); lg.innerHTML="";
+  C.filter(function(c){return c.f===face}).forEach(function(c){
+    var b=document.createElement("button"); b.textContent=c.n.replace(/ \(.*\)/,""); b.className=c.id===selCtl?"sel":"";
+    b.onclick=function(){pickCtl(c.id,true)}; lg.appendChild(b);
+  });
+  document.querySelectorAll("[data-face]").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.face===face)});
+}
+function pickCtl(id,fly){
+  var c=C.find(function(x){return x.id===id}); if(!c) return;
+  selCtl=id;
+  if(c.id==="ring"&&R3&&!R3.lensOn) R3.setLens(true);
+  if(c.f!==face){face=c.f; if(fly&&R3) R3.fly(face);}
+  drawLegend(); showCtl(c); if(R3) R3.tint();
+}
+function showCtl(c){
+  var custom=c.tip===CUST||(c.tip&&c.tip.indexOf("Customize")>=0);
+  $("#ctlcard").innerHTML='<div class="eyebrow">'+FACE_NAME[c.f]+(c.no&&c.no!=="–"?" · part "+esc(c.no):"")+'</div><h2>'+esc(c.n)+'</h2><div class="chips">'+(custom?'<span class="chip ok">customisable</span>':'')+'</div><p>'+esc(c.d)+'</p>'+(c.tip?'<p class="tip">'+esc(c.tip)+'</p>':'');
+}
+document.querySelectorAll("[data-face]").forEach(function(b){b.onclick=function(){
+  face=b.dataset.face; if(R3) R3.fly(face);
+  var first=C.find(function(c){return c.f===face}); selCtl=first.id; drawLegend(); showCtl(first); if(R3) R3.tint();
+}});
+
+function build3D(){
+  var host=$("#three");
+  if(!window.THREE||!THREE.OrbitControls){host.innerHTML='<p class="note" style="padding:24px">The 3D model needs three.js, which didn\'t load. Reload the page to try again; the list of parts below still works.</p>';return}
+  var renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true})}catch(e){host.innerHTML='<p class="note" style="padding:24px">This browser can\'t start WebGL, so the 3D model is unavailable. The list of parts below still works.</p>';return}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.domElement.setAttribute("aria-label","3D model of the EOS R10. Drag to rotate, scroll or pinch to zoom, click a part.");
+  host.appendChild(renderer.domElement);
+  var tag=document.createElement("div"); tag.className="tag3d"; tag.hidden=true; host.appendChild(tag);
+
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(30,4/3,1,300);
+  var ctl=new THREE.OrbitControls(cam,renderer.domElement);
+  ctl.enableDamping=true; ctl.dampingFactor=0.09; ctl.enablePan=false; ctl.minDistance=10; ctl.maxDistance=70;
+  if(THREE.RoomEnvironment){try{var pm=new THREE.PMREMGenerator(renderer);scene.environment=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture;}catch(e){}}
+  cam.position.fromArray(V.back[0]); ctl.target.fromArray(V.back[1]); ctl.update();
+
+  scene.add(new THREE.HemisphereLight(0xf4f6ff,0x3a3630,0.65));
+  var key=new THREE.DirectionalLight(0xffffff,0.8); key.position.set(10,16,18); scene.add(key);
+  var fill=new THREE.DirectionalLight(0xcfdcff,0.45); fill.position.set(-16,4,-14); scene.add(fill);
+  var low=new THREE.DirectionalLight(0xffffff,0.25); low.position.set(-6,-14,6); scene.add(low);
+
+  var M=function(c,r,m){var x=new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m||0});x.color.convertSRGBToLinear();return x};
+  var mBody=M(0x2b2e31,0.72,0.12), mGrip=M(0x18191b,0.96), mBtn=M(0x45494e,0.45,0.25), mBtnDk=M(0x232527,0.6,0.1),
+      mMetal=M(0xc3c8ce,0.3,0.92), mGlass=M(0x0d1016,0.08,0.6), mRubber=M(0x141516,1), mRed=M(0xc8231b,0.45,0.1);
+  var pick=[], byId={};
+  function reg(mesh,id){
+    mesh.material=mesh.material.clone(); mesh.userData.id=id; pick.push(mesh); (byId[id]=byId[id]||[]).push(mesh); return mesh;
+  }
+  function add(geo,mat,pos,parent){var m=new THREE.Mesh(geo,mat);if(pos)m.position.fromArray(pos);(parent||scene).add(m);return m}
+  function slab(w,h,d,r,b){
+    w-=2*b;h-=2*b;r=Math.max(0.05,r-b);
+    var s=new THREE.Shape(),x=-w/2,y=-h/2;
+    s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);
+    var g=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.01,d-2*b),bevelEnabled:true,bevelThickness:b,bevelSize:b,bevelSegments:4,curveSegments:12});
+    g.translate(0,0,-Math.max(0.01,d-2*b)/2); return g;
+  }
+  function cyl(r,h,seg){return new THREE.CylinderGeometry(r,r,h,seg||32)}
+  function cylZ(r,h,seg){var g=cyl(r,h,seg);g.rotateX(Math.PI/2);return g} // axis along z
+  function cylX(r,h,seg){var g=cyl(r,h,seg);g.rotateZ(Math.PI/2);return g}
+  function knurl(r,h,n){ // dial with ridges
+    var g=new THREE.CylinderGeometry(r,r,h,n*2,1); var p=g.attributes.position;
+    for(var i=0;i<p.count;i++){var x=p.getX(i),z=p.getZ(i),a=Math.atan2(z,x),rr=Math.hypot(x,z);if(rr>r*0.98){var k=(Math.round((a/(Math.PI*2))*n*2)%2)?0.94:1;p.setX(i,x*k);p.setZ(i,z*k)}}
+    g.computeVertexNormals(); return g;
+  }
+  // text decal: face 'z' (rear), 'y' (top), '-z' (front), '-x' (left side), '-y' (base)
+  function decal(text,w,h,pos,facing,opt){
+    opt=opt||{}; var px=128, cw=Math.round(w*px), ch=Math.round(h*px);
+    var cv=document.createElement("canvas"); cv.width=cw; cv.height=ch; var g=cv.getContext("2d");
+    g.fillStyle=opt.fg||"#e9ecef"; g.textAlign="center"; g.textBaseline="middle";
+    g.font=(opt.weight||"700")+" "+Math.round(ch*(opt.scale||0.62))+"px 'Chivo Mono', ui-monospace, monospace";
+    g.fillText(text,cw/2,ch/2+1);
+    var tex=new THREE.CanvasTexture(cv); tex.encoding=THREE.sRGBEncoding; tex.anisotropy=4;
+    var m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+    if(facing==="y") m.rotation.x=-Math.PI/2; else if(facing==="-z") m.rotation.y=Math.PI; else if(facing==="-x") m.rotation.y=-Math.PI/2; else if(facing==="-y") m.rotation.x=Math.PI/2;
+    m.position.fromArray(pos); m.renderOrder=2; (opt.parent||scene).add(m); return m;
+  }
+
+  /* --- shell --- */
+  var body=reg(add(slab(12.2,7.0,3.6,1.05,0.38),mBody,[0,0,0]),"body");
+  var grip=reg(add(slab(2.7,6.8,3.5,1.15,0.45),mGrip,[4.75,-0.1,-2.55]),"grip");
+  var hump=add(slab(3.5,2.0,3.3,0.55,0.3),mBody,[-1.9,4.15,0.1]); reg(hump,"body");
+  // strap lugs
+  [[-6.15,2.4,0.2],[6.15,2.4,0.2]].forEach(function(p){var l=add(new THREE.TorusGeometry(0.28,0.08,8,16),mMetal,p);l.rotation.y=Math.PI/2});
+
+  /* --- top --- */
+  reg(add(new THREE.BoxGeometry(2.6,0.06,0.62),mGlass,[-1.9,4.62,-1.52]),"flash");
+  reg(add(new THREE.BoxGeometry(2.7,0.5,0.06),mGlass,[-1.9,4.45,-1.55]),"flash");
+  var shoe=reg(add(new THREE.BoxGeometry(1.95,0.14,1.85),mMetal,[-1.9,5.2,0.25]),"shoe");
+  for(var i=0;i<7;i++) reg(add(new THREE.BoxGeometry(0.08,0.03,0.5),M(0xd8b46a,0.3,0.9),[-2.3+i*0.13,5.28,-0.1]),"shoe");
+  [-3.25,-0.55].forEach(function(x){for(var k=0;k<3;k++) reg(add(cyl(0.07,0.04,10),mRubber,[x+(k-1)*0.2,5.17,0.9]),"mic")});
+  reg(add(new THREE.TorusGeometry(0.16,0.035,8,24),M(0xe8e8e8,0.5),[-4.6,3.52,0.4]),"fp").rotation.x=Math.PI/2;
+  reg(add(new THREE.BoxGeometry(0.5,0.02,0.04),M(0xe8e8e8,0.5),[-4.6,3.52,0.4]),"fp");
+  // mode dial
+  var mode=reg(add(knurl(1.05,0.55,40),mBtn,[1.85,3.78,0.15]),"mode");
+  (function(){
+    var s=512,cv=document.createElement("canvas");cv.width=cv.height=s;var g=cv.getContext("2d");
+    g.fillStyle="#2a2d30";g.beginPath();g.arc(s/2,s/2,s/2,0,7);g.fill();
+    var L=["A+","SCN","FX","Fv","P","Tv","Av","M","B","C1","C2","REC"];
+    g.fillStyle="#f0f2f4";g.textAlign="center";g.textBaseline="middle";g.font="700 50px 'Chivo Mono', monospace";
+    L.forEach(function(t,i){var a=-Math.PI/2+i*Math.PI*2/L.length;g.save();g.translate(s/2+Math.cos(a)*190,s/2+Math.sin(a)*190);g.rotate(a+Math.PI/2);g.fillStyle=t==="REC"?"#ff5148":"#f0f2f4";g.fillText(t,0,0);g.restore()});
+    var tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;
+    var top=reg(add(new THREE.CircleGeometry(1.0,48),new THREE.MeshStandardMaterial({map:tex,roughness:.6}),[1.85,4.065,0.15]),"mode");top.rotation.x=-Math.PI/2;
+  })();
+  reg(add(cyl(0.36,0.14),mBtnDk,[1.85,4.12,0.15]),"lock"); byId.lock.push(decal("LOCK",0.62,0.2,[1.85,4.2,0.15],"y",{scale:.8}));
+  reg(add(knurl(0.82,0.36,28),mBtn,[3.65,3.56,1.25]),"qdial");
+  reg(add(cyl(0.3,0.2),mBtn,[3.55,3.6,-0.55]),"mfn"); decal("M-Fn",0.6,0.2,[3.55,3.71,-0.55],"y");
+  reg(add(cyl(0.3,0.2),mBtn,[2.65,3.6,-0.8]),"movie"); reg(add(cyl(0.11,0.03),mRed,[2.65,3.71,-0.8]),"movie");
+  reg(add(knurl(0.78,0.36,28),mBtn,[4.7,3.42,-1.75]),"main");
+  reg(add(new THREE.CylinderGeometry(0.58,0.62,0.32,40),mMetal,[4.85,3.45,-3.45]),"shutter");
+  /* power switch on rear top-right */
+  reg(add(new THREE.BoxGeometry(0.85,0.32,0.3),mBtnDk,[2.55,3.15,1.95]),"power");
+  reg(add(new THREE.BoxGeometry(0.22,0.36,0.22),mBtn,[2.75,3.15,2.12]),"power");
+  decal("ON  OFF",0.9,0.18,[2.55,2.85,1.81],"z",{scale:.75});
+
+  /* --- rear --- */
+  var eye=reg(add(slab(2.7,2.0,0.9,0.5,0.22),mRubber,[-1.9,4.15,2.1]),"evf");
+  reg(add(new THREE.BoxGeometry(1.7,1.15,0.04),mGlass,[-1.9,4.1,2.57]),"evf");
+  reg(add(new THREE.BoxGeometry(0.6,0.16,0.04),M(0x050505,0.1,0.4),[-1.9,4.88,2.57]),"eyes");
+  reg(add(new THREE.BoxGeometry(0.18,0.55,0.34),mBtn,[-0.5,4.15,2.0]),"diop");
+  function rb(id,x,y,r,lab,mat){reg(add(cylZ(r,0.24),mat||mBtn,[x,y,1.9]),id); if(lab) {var d=decal(lab,r*2.4,r*0.9,[x,y,2.03],"z",{scale:.7});byId[id].push(d);} }
+  rb("menu",-5.2,2.55,0.32,"MENU");
+  rb("afon",3.15,2.25,0.31,"AF-ON");
+  rb("ael",4.15,2.25,0.31,"✱");
+  rb("afpt",5.15,2.25,0.31,"⊞");
+  reg(add(cylZ(0.36,0.12),mBtnDk,[2.85,1.05,1.86]),"joy"); reg(add(cylZ(0.13,0.42),mBtn,[2.85,1.05,2.05]),"joy"); reg(add(cylZ(0.27,0.16),mBtn,[2.85,1.05,2.28]),"joy");
+  rb("info",2.35,-0.25,0.25,"INFO");
+  var cx=4.3,cy=-0.75; add(cylZ(1.08,0.08,40),mBtnDk,[cx,cy,1.82]);
+  rb("qset",cx,cy,0.42,"Q");
+  rb("up",cx,cy+0.76,0.27,"ISO"); rb("down",cx,cy-0.76,0.27,"DEL"); rb("left",cx-0.76,cy,0.27,"DRV"); rb("right",cx+0.76,cy,0.27,"FL");
+  rb("play",5.2,-2.55,0.3,"▶");
+  reg(add(new THREE.BoxGeometry(0.22,0.22,0.06),new THREE.MeshStandardMaterial({color:0x2a5a30,emissive:0x0b3a10,roughness:.3}),[3.1,-2.75,1.82]),"lamp");
+
+  /* vari-angle screen: hinge on left edge */
+  var hinge=new THREE.Group(); hinge.position.set(-5.75,-0.95,1.98); scene.add(hinge);
+  var flip=new THREE.Group(); flip.position.set(3.7,0,0); hinge.add(flip);
+  var panel=reg(add(slab(7.4,4.75,0.32,0.28,0.08),mBody,[0,0,0],flip),"screen");
+  var scv=document.createElement("canvas"); scv.width=900; scv.height=578; drawLCD(scv);
+  var stex=new THREE.CanvasTexture(scv); stex.encoding=THREE.sRGBEncoding;
+  var lcd=reg(add(new THREE.PlaneGeometry(6.95,4.45),new THREE.MeshBasicMaterial({map:stex}),[0,0,0.165],flip),"screen");
+  reg(add(cylX(0.18,0.6),mBody,[-5.75,-0.95,1.98]),"screen"); // hinge barrel
+  function drawLCD(cv){
+    var g=cv.getContext("2d"),w=cv.width,h=cv.height;
+    var gr=g.createRadialGradient(w*.7,h*.3,10,w*.6,h*.4,w*.8);gr.addColorStop(0,"#7c8f9a");gr.addColorStop(.45,"#3d4c56");gr.addColorStop(1,"#141a1e");
+    g.fillStyle=gr;g.fillRect(0,0,w,h);
+    g.fillStyle="rgba(15,22,18,.85)";g.fillRect(0,h*.64,w,h*.36);
+    g.fillStyle="rgba(222,190,160,.45)";g.beginPath();g.ellipse(w*.52,h*.52,w*.08,h*.14,0,0,7);g.fill();
+    g.strokeStyle="#fff";g.lineWidth=4;g.strokeRect(w*.445,h*.4,w*.15,h*.24);
+    g.fillStyle="rgba(0,0,0,.6)";g.fillRect(0,h-78,w,78);
+    g.fillStyle="#fff";g.font="600 38px 'Chivo Mono', monospace";g.textBaseline="middle";
+    g.fillText("1/250",34,h-39);g.fillText("F5.6",210,h-39);g.fillText("-2..1..0..1..+2",330,h-39);g.fillText("ISO 400",w-200,h-39);
+    g.font="600 34px 'Chivo Mono', monospace";g.fillText("M",30,46);g.fillText("ONE SHOT",30,104);g.fillText("AWB",30,160);g.fillText("RAW+L",w-150,104);g.fillText("[485]",w-140,160);
+    g.fillStyle="#9fd39a";g.fillRect(w-120,30,80,30);
+  }
+
+  /* --- front --- */
+  var mx=-0.55,my=-0.3;
+  reg(add(cylZ(2.78,0.22,64),mMetal,[mx,my,-1.9]),"mount");
+  reg(add(cylZ(2.42,0.3,64),M(0x0b0b0c,0.9),[mx,my,-1.86]),"mount");
+  var sensor=add(new THREE.PlaneGeometry(2.3,1.55),new THREE.MeshStandardMaterial({color:0x3b2f5a,roughness:.15,metalness:.7}),[mx,my,-1.5]); sensor.rotation.y=Math.PI;
+  reg(add(new THREE.SphereGeometry(0.11,12,8),mRed,[mx+0.0,my+2.95,-1.9]),"mount");
+  reg(add(cylZ(0.34,0.2),mBtn,[-3.95,-1.25,-1.92]),"rel");
+  reg(add(cylZ(0.24,0.1),new THREE.MeshStandardMaterial({color:0xd27a2a,emissive:0x3a1a00,roughness:.2}),[2.95,2.25,-1.86]),"lampF");
+  reg(add(new THREE.BoxGeometry(0.55,0.9,0.2),mBtnDk,[2.85,-2.35,-1.9]),"fsw"); decal("AF MF",0.7,0.2,[2.85,-2.95,-1.81],"-z",{scale:.8});
+  reg(add(cylZ(0.22,0.24),mBtn,[2.85,-2.2,-2.02]),"dof");
+  decal("EOS R10",1.6,0.32,[-4.35,2.95,-1.81],"-z",{scale:.8});
+
+  // lens: RF-S18-150mm F3.5-6.3 IS STM (approx. 69mm Ø × 84.5mm), toggleable
+  var lens=new THREE.Group(); scene.add(lens);
+  var mLens=M(0x1d1f21,0.65,0.1);
+  reg(add(cylZ(2.8,0.6,64),M(0x26282b,0.6,0.15),[mx,my,-2.3],lens),"lens");
+  reg(add(new THREE.CylinderGeometry(3.15,2.85,0.5,64).rotateX(Math.PI/2),mLens,[mx,my,-2.85],lens),"lens");
+  reg(add(knurl(3.32,4.4,72).rotateX(Math.PI/2),mRubber,[mx,my,-5.35],lens),"zoom");
+  reg(add(cylZ(3.2,0.9,64),mLens,[mx,my,-8.0],lens),"lens");
+  reg(add(knurl(3.25,0.9,90).rotateX(Math.PI/2),M(0x202224,0.75,0.1),[mx,my,-9.0],lens),"ring");
+  reg(add(cylZ(3.1,0.8,64),mLens,[mx,my,-9.85],lens),"lens");
+  reg(add(new THREE.TorusGeometry(2.85,0.14,10,64),M(0x161718,0.5,0.2),[mx,my,-10.25],lens),"lens");
+  reg(add(new THREE.CircleGeometry(2.8,64),mGlass,[mx,my,-10.2],lens),"lens").rotation.y=Math.PI;
+  add(new THREE.TorusGeometry(3.17,0.03,6,64),mRed,[mx,my,-3.1],lens);
+  lens.add(decal("RF-S18-150mm F3.5-6.3 IS STM",3.6,0.3,[mx-3.37,my+0.9,-8.0],"-x",{scale:.7}));
+  lens.add(decal("18   35   50   70   100   150",3.4,0.28,[mx,my+3.23,-8.0],"y",{scale:.75}));
+
+  /* --- left side & base --- */
+  reg(add(new THREE.BoxGeometry(0.1,4.3,2.5),mRubber,[-6.12,0.1,0.2]),"body");
+  [["hdmi","HDMI",1.55],["usb","USB-C",0.55],["rem","REMOTE",-0.45],["micin","MIC",-1.45]].forEach(function(t){
+    reg(add(new THREE.BoxGeometry(0.06,0.7,1.9),M(0x2d3034,0.8),[-6.19,t[2],0.2]),t[0]);
+    var d=decal(t[1],1.7,0.4,[-6.23,t[2],0.2],"-x",{scale:.7}); byId[t[0]].push(d);
+  });
+  reg(add(new THREE.BoxGeometry(2.6,0.06,3.0),mBtnDk,[4.6,-3.53,-1.4]),"door");
+  reg(add(new THREE.BoxGeometry(0.5,0.08,0.5),mBtn,[4.6,-3.56,0.35]),"door");
+  reg(add(cylZ(0.34,0.05).rotateX(Math.PI/2),mMetal,[mx,-3.53,0.0]),"tripod");
+  reg(add(cylZ(0.19,0.06).rotateX(Math.PI/2),M(0x111111,0.5),[mx,-3.55,0.0]),"tripod");
+
+
+  try{indexedDB.deleteDatabase("r10-field-guide")}catch(e){} // clears any scan saved by an earlier version
+
+  /* ---- interaction ---- */
+  var ray=new THREE.Raycaster(), ptr=new THREE.Vector2(), down=null;
+  function hit(ev){
+    var r=renderer.domElement.getBoundingClientRect();
+    ptr.x=((ev.clientX-r.left)/r.width)*2-1; ptr.y=-((ev.clientY-r.top)/r.height)*2+1;
+    ray.setFromCamera(ptr,cam);
+    var hs=ray.intersectObjects(pick.filter(function(m){var o=m;while(o){if(!o.visible)return false;o=o.parent}return true}),false);
+    for(var i=0;i<hs.length;i++){var id=hs[i].object.userData.id;if(id&&id!=="body")return {id:id,x:ev.clientX-r.left,y:ev.clientY-r.top}; if(id==="body")return null}
+    return null;
+  }
+  renderer.domElement.addEventListener("pointerdown",function(e){down=[e.clientX,e.clientY]});
+  renderer.domElement.addEventListener("pointerup",function(e){
+    if(!down) return; var moved=Math.hypot(e.clientX-down[0],e.clientY-down[1]); down=null;
+    if(moved<6){var h=hit(e); if(h) pickCtl(h.id,false);}
+  });
+  renderer.domElement.addEventListener("pointermove",function(e){
+    if(e.pointerType!=="mouse"){return}
+    var h=hit(e), id=h?h.id:null;
+    if(id!==hoverId){hoverId=id;tint();}
+    renderer.domElement.style.cursor=id?"pointer":"grab";
+    if(h){var c=C.find(function(x){return x.id===id});tag.textContent=c?c.n:id;tag.style.left=h.x+"px";tag.style.top=h.y+"px";tag.hidden=false}else tag.hidden=true;
+  });
+  renderer.domElement.addEventListener("pointerleave",function(){hoverId=null;tag.hidden=true;tint()});
+
+  var RED=new THREE.Color(0xff3b30);
+  function tint(){
+    Object.keys(byId).forEach(function(id){byId[id].forEach(function(m){
+      var mat=m.material; var k=id===selCtl?0.55:(id===hoverId?0.22:0);
+      if(mat.emissive){ if(!mat.userData.e0) mat.userData.e0=mat.emissive.clone(); mat.emissive.copy(mat.userData.e0).lerp(RED,k); }
+      else if(mat.color){ if(!mat.userData.c0) mat.userData.c0=mat.color.clone(); mat.color.copy(mat.userData.c0).lerp(RED,k*0.8); }
+    })});
+    need=true;
+  }
+
+  /* animation helpers */
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var anims=[];
+  function tween(dur,fn,done){if(reduce||dur<=0){fn(1);if(done)done();need=true;return}anims.push({t0:performance.now(),dur:dur,fn:fn,done:done})}
+  var ease=function(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2};
+  function fly(f){
+    var p0=cam.position.clone(),t0=ctl.target.clone(),p1=new THREE.Vector3().fromArray(V[f][0]),t1=new THREE.Vector3().fromArray(V[f][1]);
+    tween(750,function(k){k=ease(k);cam.position.lerpVectors(p0,p1,k);ctl.target.lerpVectors(t0,t1,k);});
+  }
+  var scr={swing:0,flip:0};
+  function setScreen(swing,fl){
+    var s0=scr.swing,f0=scr.flip;
+    tween(900,function(k){k=ease(k);scr.swing=s0+(swing-s0)*k;scr.flip=f0+(fl-f0)*k;hinge.rotation.y=-scr.swing*Math.PI/180;flip.rotation.x=scr.flip*Math.PI/180;});
+  }
+  var lensOn=true;
+  function setLens(on){lensOn=on;lens.visible=on;sensor.visible=!on;var b=$("#lensbtn");if(b)b.setAttribute("aria-pressed",on);need=true;R3.lensOn=on}
+
+  var need=true;
+  ctl.addEventListener("change",function(){need=true});
+  function size(){
+    var w=host.clientWidth; if(!w) return; var h=Math.round(Math.max(320,Math.min(560,w*0.72)));
+    renderer.setSize(w,h,false); renderer.domElement.style.width=w+"px"; renderer.domElement.style.height=h+"px";
+    cam.aspect=w/h; cam.updateProjectionMatrix(); need=true;
+  }
+  if(window.ResizeObserver) new ResizeObserver(size).observe(host); else window.addEventListener("resize",size);
+  size();
+  function loop(now){
+    requestAnimationFrame(loop);
+    if(view!=="controls") return;
+    if(anims.length){anims=anims.filter(function(a){var k=Math.min(1,(now-a.t0)/a.dur);a.fn(k);if(k>=1&&a.done)a.done();return k<1});need=true}
+    if(ctl.update()) need=true;
+    if(need){
+      renderer.render(scene,cam);need=false}
+  }
+  requestAnimationFrame(loop);
+
+  R3={fly:fly,tint:tint,setScreen:setScreen,setLens:setLens,lensOn:true};
+  document.querySelectorAll("[data-scr]").forEach(function(b){b.onclick=function(){
+    var v=b.dataset.scr.split(",").map(Number); setScreen(v[0],v[1]);
+    document.querySelectorAll("[data-scr]").forEach(function(x){x.setAttribute("aria-pressed",x===b)});
+  }});
+  $("#lensbtn").onclick=function(){setLens(!lensOn)};
+  tint();
+}
+
+/* ---------------- MENUS ---------------- */
+// item: [name, description, flag]  flag: "new" = touched by 1.7.0
+var T=[
+ {k:"shoot",n:"Shooting",s:"SHOOT",c:"var(--t-shoot)",photo:[
+  [["Image quality","RAW, C-RAW (compact RAW) and JPEG/HEIF size and quality. HEIF appears when HDR PQ is on."],["Dual Pixel RAW","Records extra sensor data in RAW files for Dual Pixel adjustments in DPP. Slows continuous shooting."],["Still img aspect ratio","3:2, 4:3, 16:9 or 1:1. RAW keeps the full 3:2 frame with the crop recorded."]],
+  [["Expo.comp./AEB","Exposure compensation and auto exposure bracketing. Bracket count and order are in C.Fn1."],["ISO speed settings","Manual ISO range, Auto ISO range and Auto ISO minimum shutter speed."],["HDR shooting HDR PQ","Records 10-bit HEIF stills in the HDR PQ format."],["HDR Mode","Merges three exposures in-camera into one JPEG for high-contrast scenes."],["Auto Lighting Optimizer","Automatic brightness and contrast correction: Off, Low, Standard, High."],["Highlight tone priority","Protects highlight detail. Raises the lowest ISO to 200."],["Anti-flicker shoot.","Times exposures to the peak of flickering artificial light."]],
+  [["Flash control","Built-in and external Speedlite settings: firing, E-TTL metering, flash exposure compensation, sync speed in Av."],["Metering mode","Evaluative, Partial, Spot, Center-weighted average."]],
+  [["White balance","AWB (ambience or white priority), presets, Custom and colour temperature (K)."],["Custom White Balance","Sets WB from a photo of a white or grey reference."],["WB Shift/Bkt.","Fine colour shift on a blue/amber, magenta/green grid, plus WB bracketing."],["Color space","sRGB or Adobe RGB."],["Picture Style","Auto, Standard, Portrait, Landscape, Fine Detail, Neutral, Faithful, Monochrome, User Def. 1–3. Includes Customization and Registration."],["Clarity","Local contrast around edges, −4 to +4."],["Shooting creative filters","Grainy B/W, Soft focus, Fish-eye, Water painting, Toy camera, Miniature and more, applied as you shoot (JPEG)."]],
+  [["Lens aberration correction","Peripheral illumination, distortion, Digital Lens Optimizer, chromatic aberration and diffraction correction."],["Long exp. noise reduction","Dark-frame subtraction for exposures of 1 s or longer: Off, Auto, On."],["High ISO speed NR","Noise reduction strength; Multi Shot NR merges four shots."],["Dust Delete Data","Records sensor dust positions for removal in Digital Photo Professional."]],
+  [["Multiple exposure","Combines several shots in-camera (additive, average, bright, dark)."],["RAW burst mode","30 fps RAW bursts with optional pre-shooting up to 0.5 s before full press."],["Focus bracketing","Shifts focus step by step across frames for focus stacking."]],
+  [["Drive mode","Single, High speed+ (up to 15 fps mechanical / 23 fps electronic), High, Low, self-timers."],["Interval timer","Shoots at set intervals for a set count."],["Bulb timer","Sets a bulb exposure duration (B mode)."],["Silent shutter function","Electronic shutter with no sound or AF-assist/flash."],["Shutter mode","Mechanical, Electronic 1st-curtain, or Electronic."],["Release shutter w/o card","Whether the shutter fires with no card inserted."]],
+  [["IS (Image Stabilizer) mode","Digital IS settings for lenses that support it."],["Customize Quick Controls","Chooses and arranges the items on the Q screen."],["Touch Shutter","Tap the screen to focus and shoot."],["Image review","How long the shot appears after capture."],["High speed display","Smoother display during high-speed continuous shooting."],["Metering timer","How long exposure readouts stay active after a half-press."]],
+  [["Display simulation","Live view simulates exposure and depth of field, or not."],["OVF sim. view assist","Wider dynamic range in live view, like an optical finder."],["Shooting info. disp.","Which INFO screens appear, grid, histogram, level, and VF vertical display."],["Reverse display","Mirror image on a front-facing screen."],["VF display format","Viewfinder layout: full or smaller display."],["Disp. performance","Smooth or Power saving refresh."]]
+ ],movie:[
+  [["Shooting mode","Movie exposure: Auto, P, Tv, Av, M."],["Movie rec. size","Resolution, frame rate, compression (IPB standard or light). 4K from 6K oversample or crop."],["High Frame Rate","120/100 fps Full HD slow motion (no sound)."],["Digital zoom","Approx. 3–10× digital zoom in Full HD."],["Sound recording","Auto or manual level, wind filter, attenuator."]],
+  [["Exposure comp.","Movie exposure compensation."],["ISO speed settings","ISO range and maximum for movies."],["HDR shooting HDR PQ","HDR PQ movie recording."],["Auto Lighting Optimizer","As for stills."],["Highlight tone priority","Protects highlights; minimum ISO 200."],["Av 1/8-stop incr.","Finer, smoother aperture steps during movies."],["Auto slow shutter","Lets the shutter slow down in low light in Auto/P."]],
+  [["White balance","As for stills."],["Custom White Balance","Register a custom WB."],["WB correction","Colour shift."],["Picture Style","Selection, customization, registration."],["Clarity","Local contrast."],["Shooting creative filters","Movie filters: Dream, Old Movies, Memory, Dramatic B&W, Miniature."]],
+  [["Lens aberration correction","Peripheral illumination, distortion, chromatic aberration."],["High ISO speed NR","Noise reduction strength."]],
+  [["Time-lapse movie","Shoots stills at intervals and joins them into a 4K or Full HD movie."],["Movie self-timer","Delay before recording starts."],["Remote control","Allow BR-E1 Bluetooth remote."]],
+  [["IS (Image Stabilizer) mode","Movie digital IS: Off, On, Enhanced."],["Customize Quick Controls","Q screen items for movies."],["Shutter btn function for movies","What half/full press does: metering+AF, or start/stop recording."],["Metering timer","Readout duration."],["Zebra settings","Overexposure stripes: pattern and level."],["Shooting info. disp.","Movie info screens."],["Reverse display","Mirror front-facing screen."]],
+  [["VF display format","Viewfinder layout."],["Standby: Low res.","Lower display resolution while not recording to save power."],["HDMI display","Information on HDMI output and whether the camera screen stays on."],["Time code","Count-up, starting point, drop frame."]]
+ ]},
+ {k:"af",n:"AF",s:"AF",c:"var(--t-af)",photo:[
+  [["AF operation","One-Shot, Servo. (AI Focus appears in some modes.)"],["AF area","Spot, 1-point, Expand (cross/around), Flexible zone 1–3, Whole area."],["Subject tracking","Keep following a detected subject across the frame."],["Subject to detect","People, Animals, Vehicles, or No priority."],["Eye detection","On or Off for eyes of people and animals."],["Switching tracked subjects","How readily tracking jumps to another subject: 0–2."]],
+  [["Case 1","Servo preset: versatile, multi-purpose."],["Case 2","Keeps tracking through obstacles."],["Case 3","Instantly focuses on subjects entering the AF point."],["Case 4","Subjects accelerating or decelerating quickly."],["Case A","Auto: camera adapts tracking automatically."],["Tracking sensitivity","How fast Servo AF responds to obstacles or new subjects."],["Accel./decel. tracking","Response to sudden speed changes."]],
+  [["One-Shot AF release prior.","Focus or release priority in One-Shot."],["Preview AF","Keeps focusing roughly before half-press (more battery)."],["Lens drive when AF impossible","Keep hunting or stop."],["AF-assist beam firing","Enable, LED only, or disable."]],
+  [["Touch & drag AF settings","Move the AF point on the screen while using the viewfinder; absolute or relative; active area."],["Limit AF areas","Hide AF areas you never use."],["Multi-controller sensitivity- AF pt select","Normal or high joystick speed."],["Orientation linked AF point","Separate AF point for vertical and horizontal."]],
+  [["MF peaking settings","Peaking on/off, level, colour."],["Focus guide","On-screen indicator of focus direction and distance in MF."],["Movie Servo AF","Continuous AF in movies (shown for both stills and movies)."]],
+  [["Electronic full-time MF","Turn the focus ring to override AF after focusing."],["Lens electronic MF","MF override behaviour for focus-by-wire lenses."],["Focus/control ring","Switches the role of a combined focus/control ring."],["Focus ring rotation","Normal or reversed."],["RF lens MF focus ring sensitivity","Varies with speed, or linked to rotation degree."]]
+ ],movie:null},
+ {k:"play",n:"Playback",s:"PLAY",c:"var(--t-play)",photo:[
+  [["Protect images","Guards selected images against erasure (not formatting)."],["Erase images","Erase selected, a range, or all."],["Rotate stills","Rotate stills for display."],["Change mov rotate info","Fix movie orientation metadata."],["Rating","1–5 star ratings, readable in most software."],["Print order","DPOF print selection."],["Photobook Set-up","Mark images for a photobook."]],
+  [["RAW image processing","In-camera RAW development to JPEG/HEIF."],["Creative Assist","Simplified RAW looks: brightness, contrast, colour presets."],["Quick Control RAW processing","Fast RAW conversion from the Q screen."],["Cloud RAW image processing","Upload RAW to image.canon for cloud processing (subscription)."],["Playback creative filters","Apply filters to existing JPEGs."],["Red-eye correction","Fix red-eye in JPEGs."],["Resize","Save a smaller JPEG copy."]],
+  [["Cropping","Crop and straighten JPEGs as a copy."],["HEIF→JPEG conversion","Convert HDR HEIF stills to JPEG."]],
+  [["Slide show","Automatic playback with timing and repeat."],["Set image search conditions","Filter playback by rating, date, folder, protect, file type."],["View from last seen","Start playback from the last image you viewed."],["Magnification","Initial zoom level and position."],["Image jump w/ Main Dial","Skip by 10, 100, date, folder, rating, etc."]],
+  [["Playback information display","Which info screens and histograms appear."],["Highlight alert","Blink overexposed areas."],["AF point disp.","Show the AF points used."],["Playback grid","Overlay a grid in playback."],["Movie play count","Recording time or time code."],["HDMI HDR output","Output HDR images as HDR via HDMI."]]
+ ]},
+ {k:"wifi",n:"Wireless",s:"WIRELESS",c:"var(--t-wifi)",photo:[
+  [["Wi-Fi/Bluetooth connection","Connect to a smartphone (Camera Connect), computer, printer, image.canon, or remote."],["Airplane mode","Turns all wireless off."],["Wi-Fi settings","Wi-Fi on/off, password, MAC address, and (since 1.6.0) WPA2/WPA3 choice."],["Bluetooth settings","Bluetooth on/off, pairing info."],["Nickname","The camera name shown to other devices."],["GPS device settings","Location from a paired smartphone."],["Reset communication settings","Clears all wireless settings."]]
+ ]},
+ {k:"setup",n:"Set-up",s:"SET-UP",c:"var(--t-setup)",photo:[
+  [["Select folder","Choose or create a folder."],["File numbering","Continuous, Auto reset, Manual reset; file name prefix."],["Format card","Format the card (use Low level format to fully wipe)."],["Auto rotate","Rotate verticals on camera and computer."],["Add movie rotate info","Record orientation in movies."],["Date/Time/Zone","Clock, time zone, daylight saving."],["Language","Menu language."]],
+  [["Video system","PAL or NTSC (sets 25/50 vs 30/60 frame rates)."],["Help text size","Size of help text."],["Mode guide","Description shown when you turn the mode dial."],["Beep","Focus and touch confirmation beeps."],["Volume","Speaker volume."],["Power saving","Screen dim, screen off, auto power off, viewfinder off timings."]],
+  [["Screen/viewfinder display","Auto switching, or lock to screen or viewfinder."],["Screen brightness","LCD brightness."],["Viewfinder brightness","EVF brightness."],["Fine-tune VF color tone","Warm/cool tint of the EVF."],["UI magnification","Enlarge menus with a two-finger double tap."],["HDMI resolution","Auto or 1080p output."]],
+  [["Touch control","Standard, Sensitive, or Disable."],["Multi function lock","Which controls the lock button locks."],["Focus mode switch (AF/MF)","How the body AF/MF switch behaves."],["Sensor cleaning","Clean now, auto clean at power on/off, manual clean."],["Choose USB connection app","EOS Utility, Image Transfer Utility, or webcam use."]],
+  [["Reset camera","Reset shooting or all settings."],["Custom shooting mode (C1, C2)","Register current settings to C1/C2; optional auto update."],["Battery info.","Remaining charge, shot count, recharge performance."],["Copyright information","Author and copyright written to every file."],["Manual/software URL","QR code linking to manuals."],["Certification Logo Display","Regulatory logos."],["Firmware","Version display and update. From 1.7.0, can download updates from Canon over the internet.","new"]],
+  [["Manage password","Set or change the camera password. Firmware 1.7.0 requires a password to be set first.","new"],["Show log","Displays the camera's recorded log entries.","new"]]
+ ]},
+ {k:"cfn",n:"Custom Functions",s:"C.Fn",c:"var(--t-cfn)",photo:[
+  [["Exposure level increments","1/3- or 1/2-stop steps for shutter, aperture, exposure comp, AEB, FEC."],["ISO speed setting increments","1/3-stop or whole-stop manual ISO."],["Speed from metering/ISO Auto","Restore Auto ISO after metering, or keep the metered value."],["Bracketing auto cancel","Cancel AEB/WB bracketing at power-off."],["Bracketing sequence","0−+, −0+ or +0−."],["Number of bracketed shots","2, 3, 5 or 7."],["Safety shift","Auto-adjust Tv/Av or ISO when correct exposure is out of reach."]],
+  [["Same expo. for new aperture","Keeps exposure in M when max aperture changes (lens swap, zoom), via ISO and/or Tv."],["AE lock meter. mode after focus","Which metering modes lock exposure on One-Shot focus."],["Set shutter speed range","Limit usable shutter speeds per shutter mode."],["Set aperture range","Limit usable apertures."]],
+  [["Main Dial/Quick Control Dial direction to set Tv/Av","Normal or reversed."],["Control ring direction to set Tv/Av","Normal or reversed."],["Switch Main Dial/Quick Control Dial when shooting","Swap the two dials' roles."],["Customize buttons","Assign functions to shutter half-press, AF-ON, ✱, AF point, DOF, lens, M-Fn, Movie, SET, cross keys and multi-controller; separate stills and movie settings."],["Customize dials","Assign functions to Main dial, Quick Control dial and lens control ring."],["Clear customized settings","Reset buttons and dials to defaults."]],
+  [["Add cropping information","Record crop guides (6:6, 3:4, 4:5, 6:7, 5:6, 5:7) for DPP. Needs 3:2 aspect."],["Default Erase option","Pre-selected choice in the erase dialog."],["Release shutter w/o lens","Allow shooting with no lens (e.g. manual adapters)."],["Retract lens on power off","Retract gear-type STM lenses when switched off."]],
+  [["Clear all Custom Func. (C.Fn)","Reset all C.Fn except button and dial customization."]]
+ ]},
+ {k:"my",n:"My Menu",s:"MY MENU",c:"var(--t-my)",photo:[
+  [["Add My Menu tab","Create up to five My Menu tabs."],["Configure","Register up to six items per tab, sort, rename tabs, clear."],["Menu display","Normal, show My Menu tab first, or show only My Menu."]]
+ ]}
+];
+
+var mset="photo", ti=0, pi=0, ii=0;
+function pagesOf(t){return (mset==="movie"&&t.movie)?t.movie:t.photo}
+function drawMenu(){
+  var tabs=T, t=tabs[ti], pgs=pagesOf(t);
+  if(pi>=pgs.length) pi=pgs.length-1;
+  var its=pgs[pi]; if(ii>=its.length) ii=its.length-1; if(ii<0) ii=0;
+  $("#tabs").innerHTML=tabs.map(function(x,i){return '<button role="tab" aria-selected="'+(i===ti)+'" style="--c:'+x.c+'" data-ti="'+i+'" title="'+esc(x.n)+'">'+esc(x.s)+'</button>'}).join("");
+  $("#pages").style.setProperty("--c",t.c);
+  $("#pages").innerHTML=pgs.map(function(p,i){return '<button class="pn" aria-selected="'+(i===pi)+'" data-pi="'+i+'">'+(i+1)+'</button>'}).join("")+'<span class="tabname">'+esc(t.n)+' '+(pi+1)+(mset==="movie"&&t.k==="shoot"?" · movie":"")+'</span>';
+  $("#items").innerHTML=its.map(function(it,i){return '<li role="option" aria-selected="'+(i===ii)+'" data-ii="'+i+'"><span class="n">'+esc(it[0])+'</span>'+(it[2]==="new"?'<span class="v" style="color:var(--hot)">1.7.0</span>':'')+'</li>'}).join("");
+  $("#tabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){ti=+b.dataset.ti;pi=0;ii=0;drawMenu()}});
+  $("#pages").querySelectorAll(".pn").forEach(function(b){b.onclick=function(){pi=+b.dataset.pi;ii=0;drawMenu()}});
+  $("#items").querySelectorAll("li").forEach(function(li){li.onclick=function(){ii=+li.dataset.ii;drawMenu()}});
+  var it=its[ii];
+  var movieNote=(mset==="movie"&&t.k!=="shoot"&&t.k!=="my")?'<p class="note">Shown with the stills layout; in Movie mode some of these items are hidden or greyed.</p>':'';
+  $("#menucard").innerHTML='<div class="eyebrow" style="color:'+t.c+'">'+esc(t.n)+' '+(pi+1)+'</div><h2>'+esc(it[0])+'</h2><div class="chips">'+(it[2]==="new"?'<span class="chip new">new in 1.7.0</span>':'')+'</div><p>'+esc(it[1])+'</p><div class="path">MENU › '+esc(t.n)+' › '+(pi+1)+' › '+esc(it[0])+'</div>'+movieNote+'<p class="note">Basic Zone modes (A+, SCN, filters) show fewer pages, so page numbers shift there.</p>';
+}
+document.querySelectorAll("[data-ms]").forEach(function(b){b.onclick=function(){mset=b.dataset.ms;document.querySelectorAll("[data-ms]").forEach(function(x){x.setAttribute("aria-pressed",x===b)});pi=0;ii=0;drawMenu()}});
+document.addEventListener("keydown",function(e){
+  if(view!=="menus"||e.target.tagName==="INPUT") return;
+  var t=T[ti], pgs=pagesOf(t);
+  if(e.key==="ArrowDown"){ii=(ii+1)%pgs[pi].length}
+  else if(e.key==="ArrowUp"){ii=(ii-1+pgs[pi].length)%pgs[pi].length}
+  else if(e.key==="ArrowRight"){pi++;ii=0;if(pi>=pgs.length){ti=(ti+1)%T.length;pi=0}}
+  else if(e.key==="ArrowLeft"){pi--;ii=0;if(pi<0){ti=(ti-1+T.length)%T.length;pi=pagesOf(T[ti]).length-1}}
+  else if(e.key==="]"){ti=(ti+1)%T.length;pi=0;ii=0}
+  else if(e.key==="["){ti=(ti-1+T.length)%T.length;pi=0;ii=0}
+  else return;
+  e.preventDefault(); drawMenu();
+});
+$("#q").addEventListener("input",function(){
+  var q=this.value.trim().toLowerCase(), out=[];
+  if(q.length>=2){
+    T.forEach(function(t,ti2){["photo","movie"].forEach(function(ms){var pg=t[ms];if(!pg) return;pg.forEach(function(p,pi2){p.forEach(function(it,ii2){
+      if((it[0]+" "+it[1]).toLowerCase().indexOf(q)>=0) out.push({t:t,ti:ti2,pi:pi2,ii:ii2,ms:ms,it:it});
+    })})})});
+  }
+  $("#results").innerHTML=out.slice(0,40).map(function(r,i){return '<li><button data-r="'+i+'"><span class="tag" style="--c:'+r.t.c+'">'+esc(r.t.s)+' '+(r.pi+1)+(r.ms==="movie"?" movie":"")+'</span><span>'+esc(r.it[0])+'</span></button></li>'}).join("")+(q.length>=2&&!out.length?'<li class="note" style="padding:6px 8px">No setting matches “'+esc(q)+'”.</li>':'');
+  $("#results").querySelectorAll("button").forEach(function(b){b.onclick=function(){var r=out[+b.dataset.r];mset=r.ms;document.querySelectorAll("[data-ms]").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.ms===mset)});ti=r.ti;pi=r.pi;ii=r.ii;drawMenu()}});
+});
+
+/* ---------------- LIVE VIEW ---------------- */
+var L=[
+ {id:"mode",x:5,y:7,t:"M",n:"Shooting mode",d:"Current mode from the mode dial (here Manual exposure). C1/C2 show the registered mode."},
+ {id:"afop",x:5,y:20,t:"ONE SHOT",n:"AF operation",d:"One-Shot or Servo. Change via Q screen, M-Fn + Main dial, or AF1."},
+ {id:"afarea",x:5,y:31,t:"[ ⁘ ]",n:"AF area",d:"Spot, 1-point, Expand, Flexible zone or Whole area. Change with M-Fn + AF point button, the Q screen or AF1."},
+ {id:"subj",x:5,y:42,t:"☺",n:"Subject to detect",d:"People, Animals, Vehicles or No priority. AF1."},
+ {id:"drive",x:5,y:53,t:"▣H+",n:"Drive mode",d:"Single, H+/H/L continuous, self-timer. Left/drive key."},
+ {id:"meter",x:5,y:64,t:"(◉)",n:"Metering mode",d:"Evaluative shown. Shooting 3."},
+ {id:"wb",x:5,y:75,t:"AWB",n:"White balance",d:"AWB ambience priority by default. Shooting 4 or Q screen."},
+ {id:"ps",x:14,y:7,t:"A",n:"Picture Style",d:"Auto Picture Style. Shooting 4."},
+ {id:"alo",x:22,y:7,t:"ALO",n:"Auto Lighting Optimizer",d:"Shooting 2. Off in M with Auto ISO unless enabled."},
+ {id:"qual",x:95,y:20,t:"RAW+L",n:"Image quality",d:"RAW + JPEG Large shown. Shooting 1."},
+ {id:"bat",x:94,y:7,t:"▮▮▮",n:"Battery level",d:"LP-E17 charge. Set-up 5 › Battery info. for detail."},
+ {id:"shots",x:93,y:31,t:"[485]",n:"Shots remaining / burst",d:"Shots that fit on the card; during continuous shooting it shows the maximum burst."},
+ {id:"bt",x:84,y:7,t:"ᛒ",n:"Wireless status",d:"Bluetooth/Wi-Fi connection icons. Wireless menu."},
+ {id:"is",x:93,y:42,t:"((✋))",n:"Image stabilisation",d:"Lens IS / digital IS status. Shooting 8."},
+ {id:"af",x:52,y:52,t:"",n:"AF point / detected subject",d:"White frame = AF point or tracked subject. Turns green (One-Shot) or blue (Servo) when focused.",box:1},
+ {id:"tv",x:10,y:93,t:"1/250",n:"Shutter speed",d:"Set with the Main dial in Tv and M."},
+ {id:"av",x:24,y:93,t:"F5.6",n:"Aperture",d:"Set with the Quick Control dial in M, or Main dial in Av."},
+ {id:"scale",x:50,y:93,t:"-3‥2‥1‥0‥1‥2‥+3",n:"Exposure level indicator",d:"In M: metered offset from standard exposure. In P/Tv/Av: exposure compensation and AEB range."},
+ {id:"iso",x:78,y:93,t:"ISO 400",n:"ISO speed",d:"Up/ISO key, M-Fn + Main dial, or Q screen. Shooting 2 for ranges."},
+ {id:"hist",x:91,y:93,t:"▁▃▆▃",n:"Histogram",d:"Brightness or RGB histogram; enable in Shooting 9 › Shooting info. disp."},
+ {id:"q",x:95,y:78,t:"Q",n:"Quick Control icon",d:"Tap to open Quick Control (same as the Q/SET button)."}
+];
+var selLv="scale";
+function drawLv(){
+  var lv=$("#lv"); lv.querySelectorAll(".lvh,.afbox").forEach(function(n){n.remove()});
+  L.forEach(function(h){
+    if(h.box){var b=document.createElement("button");b.className="afbox lvh"+(h.id===selLv?" sel":"");b.style.cssText="left:52%;top:52%;width:15%;height:22%;transform:translate(-50%,-50%)";b.setAttribute("aria-label",h.n);b.onclick=function(){selLv=h.id;drawLv()};lv.appendChild(b);return}
+    var b=document.createElement("button"); b.className="lvh"+(h.id===selLv?" sel":""); b.style.left=h.x+"%"; b.style.top=h.y+"%"; b.textContent=h.t; b.setAttribute("aria-label",h.n);
+    b.onclick=function(){selLv=h.id;drawLv()}; lv.appendChild(b);
+  });
+  var h=L.find(function(x){return x.id===selLv});
+  $("#lvcard").innerHTML='<div class="eyebrow">Shooting screen</div><h2>'+esc(h.n)+'</h2><p>'+esc(h.d)+'</p><p class="note">Icons drawn here are stand-ins for Canon\'s glyphs; positions follow the default full-info layout.</p>';
+}
+
+/* ---------------- ROUTER ---------------- */
+var view="controls";
+function route(){
+  var h=(location.hash||"#controls").slice(1); if(["controls","menus","display","firmware"].indexOf(h)<0) h="controls";
+  view=h;
+  ["controls","menus","display","firmware"].forEach(function(v){$("#v-"+v).hidden=v!==h});
+  document.querySelectorAll("nav.views a").forEach(function(a){if(a.dataset.v===h)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+}
+window.addEventListener("hashchange",route);
+route(); drawLegend(); showCtl(C.find(function(c){return c.id===selCtl})); build3D(); drawMenu(); drawLv();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+	"name": "EOS R10 Field Guide",
+	"short_name": "R10 Guide",
+	"description": "An interactive guide to the Canon EOS R10 with the RF-S18-150mm lens: a 3D body to turn over and click on, every control explained, the full menu tree to step through with the arrow keys, the shooting screen's readouts and the changes in firmware 1.7.0",
+	"id": "/tools/canon-eos-r10-field-guide/",
+	"start_url": "/tools/canon-eos-r10-field-guide/",
+	"scope": "/tools/canon-eos-r10-field-guide/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#eceeef",
+	"background_color": "#eceeef",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

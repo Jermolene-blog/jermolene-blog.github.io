@@ -30,7 +30,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "9e3044245749278e",
+	"version": "d7dbb4c61e24fcc2",
 	"urls": [
 		"/games/",
 		"/toys/",
@@ -200,6 +200,12 @@ self.PRECACHE = {
 		"/toys/sunthesis/",
 		"/toys/sunthesis/manifest.webmanifest",
 		"/tools/apple-touch-icon.png",
+		"/tools/canon-eos-r10-field-guide/apple-touch-icon.png",
+		"/tools/canon-eos-r10-field-guide/icon-192.png",
+		"/tools/canon-eos-r10-field-guide/icon-512.png",
+		"/tools/canon-eos-r10-field-guide/icon.svg",
+		"/tools/canon-eos-r10-field-guide/",
+		"/tools/canon-eos-r10-field-guide/manifest.webmanifest",
 		"/tools/icon-192.png",
 		"/tools/icon-512.png",
 		"/tools/jpegulator/apple-touch-icon.png",
@@ -245,6 +251,7 @@ self.PRECACHE = {
 		"/screenshots/games/bowling-bear.webp",
 		"/screenshots/games/catflap.webp",
 		"/screenshots/toys/engravery.webp",
+		"/screenshots/tools/canon-eos-r10-field-guide.webp",
 		"/screenshots/toys/flowing-field.webp",
 		"/screenshots/toys/fractaliser.webp",
 		"/screenshots/tools/jpegulator.webp",
@@ -275,6 +282,9 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",
+		"https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;800&family=Chivo+Mono:wght@400;600&display=swap",
+		"https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
+		"https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js",
 		"https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap",
