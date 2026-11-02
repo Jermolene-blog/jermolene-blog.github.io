@@ -4,21 +4,22 @@ tools at /tools/, and by every toy beneath them, which include it with
 `<script src="../pwa.js" defer></script>`. build-pwa.js copies it from
 static-assets/toys into the other sections.
 
-It registers the service worker `sw.js` next to this script, whose scope
-covers the section's index and all of its toys, so that whichever page is visited first
-makes the whole section available offline and installable.
+It registers the service worker `/sw.js`, whose scope covers all three
+sections, so that whichever page is visited first makes every toy available
+offline and the indexes installable as one app. The earlier workers that each
+looked after one section are unregistered.
 
-When the index has been installed as an app, each toy opened from it shows a
-small button in the bottom-left corner that returns to the index. The button
-only appears inside the installed index app: a toy installed as an app in its
-own right, or viewed in an ordinary browser tab, is left alone. The index app
-marks its window in sessionStorage when it runs in standalone mode, and that
+When the indexes have been installed as an app, each toy opened from it shows
+a small button in the bottom-left corner that returns to the toy's index. The
+button only appears inside the installed app: a toy installed as an app in its
+own right, or viewed in an ordinary browser tab, is left alone. The indexes
+mark their window in sessionStorage when they run in standalone mode, and that
 mark is still present when the user navigates on to a toy within the same
 window.
 
-The site's menu links to the index as /toys without a trailing slash, which
-lies outside the worker's scope and so cannot be served offline, so such links
-are given their trailing slash on the pages this script runs on.
+The site's menu links to the indexes as /toys and so on, without a trailing
+slash, so such links are given their trailing slash on the pages this script
+runs on, to match the precached copies of the indexes.
 
 When a toy is opened from disk the rest has nothing to do.
 
@@ -89,7 +90,14 @@ if("serviceWorker" in navigator) {
 	// The worker is always fetched from the network when checking for updates.
 	// An app on an iPad home screen is resumed rather than reloaded, so it also
 	// checks whenever it comes back into view
-	navigator.serviceWorker.register(new URL("sw.js",script.src).href,{updateViaCache: "none"}).then(function(registration) {
+	navigator.serviceWorker.getRegistrations().then(function(registrations) {
+		registrations.forEach(function(registration) {
+			if(/^\/(games|toys|tools)\/$/.test(new URL(registration.scope).pathname)) {
+				registration.unregister();
+			}
+		});
+	}).catch(function() {});
+	navigator.serviceWorker.register(new URL("/sw.js",script.src).href,{updateViaCache: "none"}).then(function(registration) {
 		document.addEventListener("visibilitychange",function() {
 			if(document.visibilityState === "visible") {
 				registration.update().catch(function() {});
@@ -125,8 +133,8 @@ function normaliseHubLinks() {
 	var links = document.querySelectorAll("a[href]");
 	for(var i = 0; i < links.length; i++) {
 		var link = links[i];
-		if(link.origin === location.origin && link.pathname === hubPath.replace(/\/$/,"")) {
-			link.pathname = hubPath;
+		if(link.origin === location.origin && /^\/(games|toys|tools)$/.test(link.pathname)) {
+			link.pathname += "/";
 		}
 	}
 }

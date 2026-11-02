@@ -839,5 +839,28 @@ html h1, html h2, html h3, html h4, html h5, html h6 {
 }
 
 
+.jermolene-install {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5em 1em;
+	margin: 1em 0;
+}
+
+.jermolene-install button {
+	font: inherit;
+	font-weight: bold;
+	color: #fff;
+	background: #5c59a7;
+	border: none;
+	border-radius: 2em;
+	padding: 0.5em 1.25em;
+	cursor: pointer;
+}
+
+.jermolene-install span {
+	color: #666661;
+}
+
 
 

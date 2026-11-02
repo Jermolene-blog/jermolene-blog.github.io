@@ -1,15 +1,17 @@
 /*
-Service worker for one section of the site, the toys at /toys/, the games at
-/games/ or the tools at /tools/: its index and every toy beneath it. build-pwa.js
-copies it into each section, and it is registered by pwa.js, which the index
-pages and each toy include. The workers share the origin's caches, so each
-names its caches after its own section and only ever deletes its own.
+Service worker for the toys at /toys/, the games at /games/ and the tools at
+/tools/: their index pages and every toy beneath them. It is served from the
+root of the site, so that its scope covers all three sections and they can be
+installed together as one app, and it is registered by pwa.js, which the
+index pages and each toy include. Its scope also covers the rest of the site,
+whose pages and resources it leaves alone.
 
 build-pwa.js replaces the importScripts() line below with the list of files
 to cache, along with a version derived from their contents. Any change to a
 toy therefore changes the bytes of this worker, so the browser notices the
 change when it checks for updates. The new version is installed into a fresh
-cache, and the old one is discarded on activation.
+cache, and the old one is discarded on activation, along with the caches of
+the earlier workers that each looked after one section.
 
 The toys' own files are fetched from the network first, so that a visit when
 online always shows the latest version, even before an updated worker has
@@ -28,9 +30,11 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "d76024685228dac5",
+	"version": "9e3044245749278e",
 	"urls": [
 		"/games/",
+		"/toys/",
+		"/tools/",
 		"/games/animal-island/apple-touch-icon.png",
 		"/games/animal-island/icon-192.png",
 		"/games/animal-island/icon-512.png",
@@ -86,7 +90,6 @@ self.PRECACHE = {
 		"/games/lala-yala/icon.svg",
 		"/games/lala-yala/",
 		"/games/lala-yala/manifest.webmanifest",
-		"/games/manifest.webmanifest",
 		"/games/marble-flick/apple-touch-icon.png",
 		"/games/marble-flick/icon-192.png",
 		"/games/marble-flick/icon-512.png",
@@ -119,39 +122,191 @@ self.PRECACHE = {
 		"/games/trundle-world/icon.svg",
 		"/games/trundle-world/",
 		"/games/trundle-world/manifest.webmanifest",
+		"/toys/apple-touch-icon.png",
+		"/toys/bear-beat/apple-touch-icon.png",
+		"/toys/bear-beat/bear-model.js",
+		"/toys/bear-beat/icon-192.png",
+		"/toys/bear-beat/icon-512.png",
+		"/toys/bear-beat/icon.svg",
+		"/toys/bear-beat/",
+		"/toys/bear-beat/manifest.webmanifest",
+		"/toys/blobbles/apple-touch-icon.png",
+		"/toys/blobbles/icon-192.png",
+		"/toys/blobbles/icon-512.png",
+		"/toys/blobbles/icon.svg",
+		"/toys/blobbles/",
+		"/toys/blobbles/manifest.webmanifest",
+		"/toys/engravery/apple-touch-icon.png",
+		"/toys/engravery/icon-192.png",
+		"/toys/engravery/icon-512.png",
+		"/toys/engravery/icon.svg",
+		"/toys/engravery/",
+		"/toys/engravery/manifest.webmanifest",
+		"/toys/flowing-field/apple-touch-icon.png",
+		"/toys/flowing-field/icon-192.png",
+		"/toys/flowing-field/icon-512.png",
+		"/toys/flowing-field/icon.svg",
+		"/toys/flowing-field/",
+		"/toys/flowing-field/manifest.webmanifest",
+		"/toys/fractaliser/apple-touch-icon.png",
+		"/toys/fractaliser/icon-192.png",
+		"/toys/fractaliser/icon-512.png",
+		"/toys/fractaliser/icon.svg",
+		"/toys/fractaliser/",
+		"/toys/fractaliser/manifest.webmanifest",
+		"/toys/icon-192.png",
+		"/toys/icon-512.png",
+		"/toys/knottery/apple-touch-icon.png",
+		"/toys/knottery/icon-192.png",
+		"/toys/knottery/icon-512.png",
+		"/toys/knottery/icon.svg",
+		"/toys/knottery/",
+		"/toys/knottery/manifest.webmanifest",
+		"/toys/marblelous/apple-touch-icon.png",
+		"/toys/marblelous/icon-192.png",
+		"/toys/marblelous/icon-512.png",
+		"/toys/marblelous/icon.svg",
+		"/toys/marblelous/",
+		"/toys/marblelous/manifest.webmanifest",
+		"/toys/mimic/apple-touch-icon.png",
+		"/toys/mimic/icon-192.png",
+		"/toys/mimic/icon-512.png",
+		"/toys/mimic/icon.svg",
+		"/toys/mimic/",
+		"/toys/mimic/manifest.webmanifest",
+		"/toys/pwa.js",
+		"/toys/radialator/apple-touch-icon.png",
+		"/toys/radialator/icon-192.png",
+		"/toys/radialator/icon-512.png",
+		"/toys/radialator/icon.svg",
+		"/toys/radialator/",
+		"/toys/radialator/manifest.webmanifest",
+		"/toys/rug-addict/apple-touch-icon.png",
+		"/toys/rug-addict/icon-192.png",
+		"/toys/rug-addict/icon-512.png",
+		"/toys/rug-addict/icon.svg",
+		"/toys/rug-addict/",
+		"/toys/rug-addict/manifest.webmanifest",
+		"/toys/spotty-sphericle/apple-touch-icon.png",
+		"/toys/spotty-sphericle/icon-192.png",
+		"/toys/spotty-sphericle/icon-512.png",
+		"/toys/spotty-sphericle/icon.svg",
+		"/toys/spotty-sphericle/",
+		"/toys/spotty-sphericle/manifest.webmanifest",
+		"/toys/sunthesis/apple-touch-icon.png",
+		"/toys/sunthesis/icon-192.png",
+		"/toys/sunthesis/icon-512.png",
+		"/toys/sunthesis/icon.svg",
+		"/toys/sunthesis/",
+		"/toys/sunthesis/manifest.webmanifest",
+		"/tools/apple-touch-icon.png",
+		"/tools/icon-192.png",
+		"/tools/icon-512.png",
+		"/tools/jpegulator/apple-touch-icon.png",
+		"/tools/jpegulator/icon-192.png",
+		"/tools/jpegulator/icon-512.png",
+		"/tools/jpegulator/icon.svg",
+		"/tools/jpegulator/",
+		"/tools/jpegulator/manifest.webmanifest",
+		"/tools/lenticulator/app.js",
+		"/tools/lenticulator/apple-touch-icon.png",
+		"/tools/lenticulator/icon-192.png",
+		"/tools/lenticulator/icon-512.png",
+		"/tools/lenticulator/icon.svg",
+		"/tools/lenticulator/",
+		"/tools/lenticulator/manifest.webmanifest",
+		"/tools/lenticulator/pico.min.css",
+		"/tools/lenticulator/styles.css",
+		"/tools/over-underiser/apple-touch-icon.png",
+		"/tools/over-underiser/icon-192.png",
+		"/tools/over-underiser/icon-512.png",
+		"/tools/over-underiser/icon.svg",
+		"/tools/over-underiser/",
+		"/tools/over-underiser/manifest.webmanifest",
+		"/tools/pwa.js",
+		"/tools/tunerful/apple-touch-icon.png",
+		"/tools/tunerful/icon-192.png",
+		"/tools/tunerful/icon-512.png",
+		"/tools/tunerful/icon.svg",
+		"/tools/tunerful/",
+		"/tools/tunerful/manifest.webmanifest",
+		"/tools/vectorious/apple-touch-icon.png",
+		"/tools/vectorious/icon-192.png",
+		"/tools/vectorious/icon-512.png",
+		"/tools/vectorious/icon.svg",
+		"/tools/vectorious/",
+		"/tools/vectorious/manifest.webmanifest",
 		"/static/static.css",
 		"/images/banner.jpg",
 		"/favicon.ico",
 		"/screenshots/games/animal-island.webp",
+		"/screenshots/toys/bear-beat.webp",
+		"/screenshots/toys/blobbles.webp",
 		"/screenshots/games/bowling-bear.webp",
 		"/screenshots/games/catflap.webp",
+		"/screenshots/toys/engravery.webp",
+		"/screenshots/toys/flowing-field.webp",
+		"/screenshots/toys/fractaliser.webp",
+		"/screenshots/tools/jpegulator.webp",
 		"/screenshots/games/jumbleword.webp",
+		"/screenshots/toys/knottery.webp",
 		"/screenshots/games/lala-yala.webp",
 		"/screenshots/games/marble-flick.webp",
+		"/screenshots/toys/marblelous.webp",
 		"/screenshots/games/meadow-games.webp",
+		"/screenshots/toys/mimic.webp",
+		"/screenshots/tools/over-underiser.webp",
 		"/screenshots/games/quizbuzz.webp",
+		"/screenshots/toys/radialator.webp",
+		"/screenshots/toys/rug-addict.webp",
+		"/screenshots/toys/spotty-sphericle.webp",
+		"/screenshots/toys/sunthesis.webp",
+		"/screenshots/tools/lenticulator.webp",
 		"/screenshots/games/trackaholic.webp",
-		"/screenshots/games/trundle-world.webp"
+		"/screenshots/games/trundle-world.webp",
+		"/screenshots/tools/tunerful.webp",
+		"/screenshots/tools/vectorious.webp"
 	],
 	"external": [
 		"https://fonts.googleapis.com/css2?family=Grandstander:wght@700;900&family=Nunito:wght@600;800&display=swap",
 		"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+		"https://fonts.googleapis.com/css2?family=Monoton&family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",
+		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",
+		"https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap",
 		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap",
+		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@400;500;700&family=Cutive+Mono&display=swap",
+		"https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Familjen+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Chakra+Petch:wght@500;700&display=swap",
 		"https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js",
-		"https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"
+		"https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js",
+		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
 	]
 };
 
-const SECTION = new URL(self.registration.scope).pathname.split("/").filter(Boolean)[0] || "toys",
-	PRECACHE = SECTION + "-precache-" + self.PRECACHE.version,
-	RUNTIME = SECTION + "-runtime";
+const PRECACHE = "apps-precache-" + self.PRECACHE.version,
+	RUNTIME = "apps-runtime",
+	SECTIONS = /^\/(games|toys|tools)(\/|$)/,
+	PRECACHED_PATHS = new Set(self.PRECACHE.urls);
+
+// Whether a cross-origin request was made by one of the toys or their
+// indexes, rather than by a page elsewhere on the site
+async function isFromToy(event,url) {
+	if(self.PRECACHE.external.includes(url.href)) {
+		return true;
+	}
+	const client = event.clientId && await self.clients.get(event.clientId);
+	return !!client && SECTIONS.test(new URL(client.url).pathname);
+}
 
 self.addEventListener("install",event => {
 	event.waitUntil((async () => {
@@ -176,7 +331,7 @@ self.addEventListener("activate",event => {
 	event.waitUntil((async () => {
 		const keys = await caches.keys();
 		await Promise.all(keys
-			.filter(key => key.startsWith(SECTION + "-") && key !== PRECACHE && key !== RUNTIME)
+			.filter(key => /^(apps|games|toys|tools)-/.test(key) && key !== PRECACHE && key !== RUNTIME)
 			.map(key => caches.delete(key)));
 		await self.clients.claim();
 	})());
@@ -220,7 +375,16 @@ self.addEventListener("fetch",event => {
 		return;
 	}
 	const url = new URL(request.url);
+	// The rest of the site is left to the browser. Third party resources
+	// can only be told apart once the page that asked for them has been
+	// looked up, and those of other pages are then fetched as normal
+	if(url.origin === self.location.origin && !SECTIONS.test(url.pathname) && !PRECACHED_PATHS.has(url.pathname)) {
+		return;
+	}
 	event.respondWith((async () => {
+		if(url.origin !== self.location.origin && !await isFromToy(event,url)) {
+			return fetch(request);
+		}
 		const precache = await caches.open(PRECACHE),
 			runtime = await caches.open(RUNTIME),
 			matchOptions = {ignoreSearch: true, ignoreVary: true};

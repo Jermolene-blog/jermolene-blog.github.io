@@ -1,0 +1,75 @@
+{
+	"name": "Jermolene's Games, Toys and Tools",
+	"short_name": "Jermolene",
+	"description": "Games, toys and tools from jermolene.com, all in one app that works offline",
+	"id": "/apps",
+	"start_url": "/games/",
+	"scope": "/",
+	"display": "standalone",
+	"theme_color": "#5c59a7",
+	"background_color": "#ffffff",
+	"icons": [
+		{
+			"src": "/toys/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/toys/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/toys/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/toys/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Games",
+			"description": "Games and kids games",
+			"url": "/games/",
+			"icons": [
+				{
+					"src": "/toys/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Toys",
+			"description": "Trifles to play with",
+			"url": "/toys/",
+			"icons": [
+				{
+					"src": "/toys/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "Tools",
+			"description": "Useful things",
+			"url": "/tools/",
+			"icons": [
+				{
+					"src": "/toys/icon-192.png",
+					"sizes": "192x192",
+					"type": "image/png"
+				}
+			]
+		}
+	]
+}
