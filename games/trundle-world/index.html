@@ -499,8 +499,30 @@ if(riverPts.length){
 /* ---------- scenery ---------- */
 const tappables=[];
 function tappable(o,fn){o.userData.tap=fn;tappables.push(o);return o;}
-const wiggles=[];
-function wiggle(o,amt=1){o.userData.wig=1;o.userData.wigAmt=amt;if(!wiggles.includes(o))wiggles.push(o);}
+// Pokes: a damped spring after a short fading push, evaluated against the town clock `time` (after mrdoob's
+// Codevember 2026/05). Each starts at rest, peaks soon after, rocks back a few times and is gone by `dur`.
+// They add up, and tanh keeps each component under its limit however fast the taps come.
+function makePokes(limits,{decay=2.9,freq=5.5,push=25,dur=2.4}={}){
+  const r=freq/(push-decay),raw=t=>Math.exp(-decay*t)*(Math.sin(freq*t)-r*Math.cos(freq*t))+r*Math.exp(-push*t);
+  let peak=0;for(let t=0;t<dur;t+=0.002)peak=Math.max(peak,raw(t));
+  const tail=t=>{const k=Math.min(1,Math.max(0,t-dur+0.5)/0.5);return 1-k*k*k*(k*(k*6-15)+10);};
+  const n=limits.length,list=[],out=new Float32Array(n);
+  return{out,get busy(){return list.length>0;},
+    kick(t,v){list.push({t,v:v.slice()});},
+    at(t){out.fill(0);
+      for(let i=list.length-1;i>=0;i--){const a=t-list[i].t;if(a>=dur||a<0){list.splice(i,1);continue;}const w=raw(a)/peak*tail(a);for(let k=0;k<n;k++)out[k]+=list[i].v[k]*w;}
+      for(let k=0;k<n;k++)out[k]=limits[k]*Math.tanh(out[k]/limits[k]);return out;}};
+}
+// wiggle(o,amt): stretch and rock o on a spring. A tap rocks it away from the finger (tapDir, set while a tap
+// is being handled); a wiggle with no tap behind it, such as a dinosaur passing a tree, rocks a random way.
+const wiggles=[],tapDir=new THREE.Vector3(),wigQ=new THREE.Quaternion(),wigV=new THREE.Vector3();let tapLive=false;
+window.__trundle={tappables,wiggles,camera,get trees(){return trees;}}; // for headless checks
+function wiggle(o,amt=1){
+  const u=o.userData;if(!u.pokes)u.pokes=makePokes([0.25,0.3],{decay:3.5,freq:9,push:30,dur:1.6});
+  let side=Math.random()<0.5?-1:1;
+  if(tapLive){o.getWorldQuaternion(wigQ).invert();const lx=wigV.copy(tapDir).applyQuaternion(wigQ).x;if(Math.abs(lx)>0.15)side=lx>0?-1:1;}
+  u.pokes.kick(time,[0.15*amt,0.14*amt*side]);u.wig=1;if(!wiggles.includes(o))wiggles.push(o);
+}
 
 // volcano: claim the roomiest open spot before the houses go in
 const volcano=!CFG.volcano?null:(function(){
@@ -1077,7 +1099,10 @@ canvas.addEventListener('pointerup',e=>{
   const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);
   ray.setFromCamera(ndc,camera);
   const hits=ray.intersectObjects([...tappables,cliff.group],true);
-  for(const h of hits){let o=h.object;while(o&&!o.userData.tap)o=o.parent;if(o){o.userData.tap();sparkle(h.point);hideHint();return;}}
+  for(const h of hits){let o=h.object;while(o&&!o.userData.tap)o=o.parent;if(o){
+    // push along the tap, or straight away from where it touched when the view looks down on it
+    tapDir.copy(ray.ray.direction).setY(0);if(tapDir.lengthSq()<0.04)o.getWorldPosition(tapDir).sub(h.point).setY(0);tapDir.normalize();
+    tapLive=true;try{o.userData.tap();}finally{tapLive=false;}sparkle(h.point);hideHint();return;}}
 },sig);
 function sparkle(p){const cs=[0xffd23f,0xff7ad1,0x5ab0ff,0xffffff];for(let i=0;i<6;i++){const q=p.clone().add(new THREE.Vector3(rr(-0.4,0.4),rr(0,0.4),rr(-0.4,0.4)));puff(q,0.6,pick(cs),0.5,1.6);}}
 
@@ -1265,11 +1290,11 @@ function frame(dt){
     if(d<0.05){s.wait-=dt;s.body.rotation.x=Math.sin(time*2)*0.08+0.12;if(s.wait<=0){for(let k=0;k<10;k++){const a=rr(0,6.28),r=rr(0,2.2);const x=s.home.x+Math.cos(a)*r,z=s.home.y+Math.sin(a)*r;if(trackDistLow(x,z,1.2)>1.8*K+RX&&riverDist(x,z)>1.5&&railGap(x,z)>1.4*K){s.target.set(x,z);break;}}s.wait=rr(2,5);}}
     else{tv.normalize();p.x+=tv.x*dt*0.5;p.z+=tv.z*dt*0.5;s.g.rotation.y=Math.atan2(tv.x,tv.z);s.body.rotation.x=0;s.body.position.y+=Math.abs(Math.sin(time*10))*0.04;}
   }
-  for(let i=wiggles.length-1;i>=0;i--){const o=wiggles[i];o.userData.wig=Math.max(0,o.userData.wig-dt*1.6);const w=o.userData.wig,a=o.userData.wigAmt;
-    const base=o.userData.baseScale||(o.userData.baseScale=o.scale.x);const sq=Math.sin((1-w)*Math.PI*4)*0.15*w*a;
-    if(o.userData.baseY===undefined)o.userData.baseY=o.scale.y/base;
-    o.scale.set(base*(1-sq),base*o.userData.baseY*(1+sq),base*(1-sq));o.rotation.z=Math.sin((1-w)*Math.PI*5)*0.12*w*a;
-    if(w===0){o.scale.set(base,base*o.userData.baseY,base);o.rotation.z=0;wiggles.splice(i,1);}}
+  for(let i=wiggles.length-1;i>=0;i--){const o=wiggles[i],u=o.userData;
+    const base=u.baseScale||(u.baseScale=o.scale.x);if(u.baseY===undefined)u.baseY=o.scale.y/base;
+    const P=u.pokes.at(time),sq=P[0];
+    if(!u.pokes.busy){o.scale.set(base,base*u.baseY,base);o.rotation.z=0;u.wig=0;wiggles.splice(i,1);continue;}
+    o.scale.set(base*(1-sq*0.6),base*u.baseY*(1+sq),base*(1-sq*0.6));o.rotation.z=P[1];}
   for(const q of puffs){if(!q.m.visible)continue;q.life+=dt;const f=q.life/q.max;if(f>=1){q.m.visible=false;continue;}q.m.position.y+=q.vy*dt;q.m.scale.setScalar(0.6+f*q.grow);q.m.material.opacity=(1-f)*0.85;}
 
   nightT+=((night?1:0)-nightT)*Math.min(1,dt*1.5);
