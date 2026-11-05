@@ -408,7 +408,9 @@ scene.background = new THREE.Color('#10231c');
 const camera = new THREE.PerspectiveCamera(30, 1, 1, 200);
 camera.up.set(0, 0, -1);
 
-// environment for glossy reflections
+// environment for glossy reflections: a studio of soft panels (roomEnv), which captureTable() then uses as the
+// backdrop for the real board and table
+let roomEnv;
 (function makeEnv() {
   const pm = new THREE.PMREMGenerator(renderer);
   const es = new THREE.Scene();
@@ -418,8 +420,22 @@ camera.up.set(0, 0, -1);
   panel(8, 8, 0xfff0d8, 12, 12, -8);
   panel(20, 3, 0x9fd0ff, 0, 6, -18);
   panel(6, 12, 0xffe2b0, 18, 4, 8);
-  scene.environment = pm.fromScene(es, 0.04).texture;
+  scene.environment = roomEnv = pm.fromScene(es, 0.04).texture;
 })();
+// The marbles reflect the board they roll on and the felt table round it (after mrdoob's Codevember 2026/05):
+// a cube camera high over the middle of the board (so the light board is a patch in the felt, not a floor that
+// washes the marbles out) sees the real scene, with the studio panels behind it and the
+// marbles hidden, whenever the board is built
+const envCube = new THREE.CubeCamera(0.1, 400, new THREE.WebGLCubeRenderTarget(256, { type: THREE.HalfFloatType }));
+envCube.position.set(0, 10, 0);
+let tableEnv = null;
+function captureTable() {
+  const shown = [...meshes.values()].map(e => [e.mesh, e.mesh.visible]), bg = scene.background;
+  shown.forEach(([m]) => { m.visible = false; }); scene.background = roomEnv;
+  try { envCube.update(renderer, scene); } finally { shown.forEach(([m, v]) => { m.visible = v; }); scene.background = bg; }
+  const pm = new THREE.PMREMGenerator(renderer), next = pm.fromCubemap(envCube.renderTarget.texture); pm.dispose();
+  scene.environment = next.texture; if (tableEnv) tableEnv.dispose(); tableEnv = next;
+}
 
 scene.add(new THREE.HemisphereLight(0xfff4e2, 0x1e3a2e, 0.55));
 const sun = new THREE.DirectionalLight(0xfff1dc, 1.5);
@@ -561,6 +577,7 @@ function buildBoard() {
   boardMesh = new THREE.Mesh(geo, [top, side]);
   boardMesh.receiveShadow = true; boardMesh.castShadow = true;
   scene.add(boardMesh);
+  captureTable();
 }
 // hole interior
 (function () {

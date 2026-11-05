@@ -223,12 +223,13 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(32, 1, 5, 8000);
+let studioEnv;   // soft panels in a blue room; captureModel() then puts the movement itself in front of them
 (function env() {
   const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene();
   es.add(new THREE.Mesh(new THREE.BoxGeometry(40, 40, 40), new THREE.MeshBasicMaterial({ color: 0x1b2c44, side: THREE.BackSide })));
   const panel = (w, h, c, x, y, z) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); es.add(m); };
   panel(16, 6, 0xffffff, -8, 16, 6); panel(8, 8, 0xffe8c8, 12, 10, -8); panel(20, 3, 0x9fc6ff, 0, 5, -18); panel(6, 14, 0xfff0d0, 18, 2, 10);
-  scene.environment = pm.fromScene(es, 0.04).texture;
+  scene.environment = studioEnv = pm.fromScene(es, 0.04).texture;
 })();
 scene.add(new THREE.HemisphereLight(0xdfe9ff, 0x1a2333, 0.5));
 const sun = new THREE.DirectionalLight(0xfff2dc, 1.4); sun.position.set(-500, 900, 400); sun.castShadow = true;
@@ -617,6 +618,19 @@ function readout() {
     `<b>Arbor</b> ${f(rpm(W_SHAFT), 1)} rpm · <b>Fly</b> ${f(rpm(W_FLY), 0)} rpm <span class="hot">(shown 1/12)</span><br>` +
     `<b>Spring</b> ${Math.max(0, 8 - barrelTurns % 8).toFixed(1)} of 8 turns left${surgeK > 1.05 ? ' · <span class="hot">surge ×' + surgeK.toFixed(1) + '</span>' : ''}`;
 }
+// The brass and steel reflect the movement itself (after mrdoob's Codevember 2026/05): once, at load, a cube
+// camera above the middle of the deck sees the model with the studio panels behind it and the marbles hidden
+function captureModel() {
+  const box = new THREE.Box3().setFromObject(model), c = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+  const cube = new THREE.CubeCamera(1, 20000, new THREE.WebGLCubeRenderTarget(256, { type: THREE.HalfFloatType }));
+  cube.position.set(c.x, box.max.y + size.y * 0.5, c.z);
+  const hidden = []; model.traverse(o => { if (o.isMesh && o.visible && marbleMats.includes(o.material)) { o.visible = false; hidden.push(o); } });
+  scene.background = studioEnv;
+  try { cube.update(renderer, scene); } finally { hidden.forEach(o => { o.visible = true; }); scene.background = null; }
+  const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromCubemap(cube.renderTarget.texture).texture;
+  pm.dispose(); cube.renderTarget.dispose();
+}
+captureModel();
 resize(); applyCam(); requestAnimationFrame(frame);
 
 /* ======================= DRAWINGS ======================= */
