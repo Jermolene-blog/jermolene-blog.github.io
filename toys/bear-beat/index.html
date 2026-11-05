@@ -268,6 +268,24 @@ under.rotation.x = -Math.PI / 2; under.position.y = -0.045; under.receiveShadow 
 const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 3), new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 1, roughness: 0.12, flatShading: true }));
 ball.position.set(0, 4.6, 0); scene.add(ball);
 const ballLight = new THREE.PointLight(0xffffff, 6, 8, 2); ballLight.position.copy(ball.position).y -= 0.6; scene.add(ballLight);
+// The bears' reflections and soft fill come from the club itself (after mrdoob's Codevember 2026/05): a small cube
+// camera in the middle of the floor sees the glowing tiles and the mirror ball in front of the room environment,
+// and is filtered again 20 times a second as the floor changes. The bears are hidden from it, and the shadow maps
+// are reused from the last frame. The capture keeps the disco map as the environment (switching to the room's,
+// a different size, would recompile every material), so the ball and tiles see a frame-old copy of themselves.
+const roomEnv = scene.environment;
+const discoCube = new THREE.CubeCamera(0.1, 40, new THREE.WebGLCubeRenderTarget(64, { type: THREE.HalfFloatType }));
+discoCube.position.set(0, 1.2, 0);
+const discoPm = new THREE.PMREMGenerator(renderer);
+let discoEnv = null, discoT = 0;
+function captureDisco() {
+  const shown = bears.map(b => b.root.visible), bg = scene.background, auto = renderer.shadowMap.autoUpdate;
+  bears.forEach(b => { b.root.visible = false; }); scene.background = roomEnv; renderer.shadowMap.autoUpdate = false;
+  try { discoCube.update(renderer, scene); }
+  finally { bears.forEach((b, i) => { b.root.visible = shown[i]; }); scene.background = bg; renderer.shadowMap.autoUpdate = auto; }
+  discoEnv = discoPm.fromCubemap(discoCube.renderTarget.texture, discoEnv);
+  scene.environment = discoEnv.texture;
+}
 
 const PAL = [new THREE.Color(0xff3d9a), new THREE.Color(0x3dd8ff), new THREE.Color(0xffc24b), new THREE.Color(0x9b5cff), new THREE.Color(0x4dff9a)];
 const tc = new THREE.Color();
@@ -1313,6 +1331,7 @@ function loop() {
   // floor, lights, HUD
   const live = clock.active || fz != null;
   paintFloor(beat, live ? clock.energy : 0.15, state.pos);
+  discoT -= dt; if (discoT <= 0) { discoT = 0.05; captureDisco(); }
   const pulse = live ? Math.exp(-frac(beat) * 4) : 0;
   rimA.intensity = 40 + 90 * pulse; rimB.intensity = 40 + 90 * (live ? Math.exp(-frac(beat + 0.5) * 4) : 0);
   ball.rotation.y += dt * 0.6; ballLight.intensity = 3 + 6 * pulse;
