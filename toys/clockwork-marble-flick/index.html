@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jermolene">
+<meta property="og:title" content="Clockwork Marble Flick">
+<meta property="og:description" content="Blueprints for a wind-up tabletop Marble Flick: a working 3D model of the movement to turn, take apart and wind, six drawing sheets, and the schedules of wheels, speeds and parts">
+<meta property="og:url" content="https://jermolene.com/toys/clockwork-marble-flick/">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://jermolene.com/social/toys/clockwork-marble-flick.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Clockwork Marble Flick: Blueprints for a wind-up Marble Flick, with a working model of its clockwork">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a1a30">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../pwa.js" defer></script>
+<title>Clockwork Marble Flick</title>
+<meta name="description" content="Blueprints for a wind-up tabletop Marble Flick: a working 3D model of the movement to turn, take apart and wind, six drawing sheets, and the schedules of wheels, speeds and parts">
+<meta name="toy-tagline" content="Blueprints for a wind-up Marble Flick, with a working model of its clockwork">
+<meta name="toy-category" content="trifles">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Barlow+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a drawing office. Live 3D model as the opening plate, then numbered drawing sheets, then the schedules. Single dark blueprint world by design. */
+:root{
+  --ground:#0a1a30;      /* table under the sheets */
+  --paper:#123b6e;       /* blueprint ground */
+  --paper-2:#0f3360;
+  --line:#e6efff;        /* drawn line */
+  --faint:rgba(230,239,255,.18);
+  --dim:#9fb6d8;
+  --brass:#e0b052;       /* highlight, brass */
+  --red:#ff8f7a;         /* section hatching / warnings */
+  --f-display:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  --f-label:"Barlow Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--ground);color:var(--line)}
+body{font-family:var(--f-label);font-size:17px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;display:flex;flex-direction:column;gap:40px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 32px}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(40px,6vw,72px);line-height:.95;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 em{font-style:italic;color:var(--brass);font-weight:500}
+.kicker{font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.lede{max-width:62ch;color:var(--dim);margin:12px 0 0;font-size:18px}
+.lede a{color:var(--brass)}
+.meta{font-family:var(--f-mono);font-size:12px;color:var(--dim);text-align:right;line-height:1.7}
+h2{font-family:var(--f-display);font-weight:600;font-size:34px;margin:0 0 6px;text-wrap:balance}
+h2 small{font-family:var(--f-label);font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);display:block;margin-bottom:2px;font-weight:500}
+.sec-intro{color:var(--dim);max-width:70ch;margin:0 0 18px}
+
+/* model plate */
+.plate{position:relative;border:1px solid var(--faint);border-radius:6px;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#163f73,#0b1f3a 70%)}
+#view{display:block;width:100%;height:min(72vh,680px);min-height:380px;touch-action:none;cursor:grab}
+#view:active{cursor:grabbing}
+.hud{position:absolute;left:12px;right:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;pointer-events:none}
+.hud>*{pointer-events:auto}
+.grp{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-radius:6px;background:rgba(8,22,42,.82);border:1px solid var(--faint);align-items:center}
+.grp .t{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);padding:0 6px}
+button{font:inherit;font-size:15px;color:var(--line);background:transparent;border:1px solid var(--faint);border-radius:4px;padding:4px 10px;cursor:pointer}
+button:hover{border-color:var(--dim)}
+button[aria-pressed="true"]{background:var(--brass);color:#1c1405;border-color:var(--brass)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+input[type=range]{accent-color:var(--brass);width:120px}
+.readout{position:absolute;top:12px;left:12px;font-family:var(--f-mono);font-size:12px;line-height:1.7;background:rgba(8,22,42,.82);border:1px solid var(--faint);border-radius:6px;padding:8px 10px;color:var(--dim);font-variant-numeric:tabular-nums;pointer-events:none}
+.readout b{color:var(--line);font-weight:500}
+.readout .hot{color:var(--brass)}
+.tip{position:absolute;top:12px;right:12px;font-size:13px;color:var(--dim);background:rgba(8,22,42,.7);padding:4px 10px;border-radius:4px;pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font-size:15px;color:var(--dim)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:0;background:var(--c)}
+
+/* sheets */
+.sheets{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));gap:24px}
+.sheet{margin:0;background:var(--paper);border:1px solid var(--faint);border-radius:3px;box-shadow:0 18px 40px rgba(0,0,0,.35);min-width:0;
+  background-image:linear-gradient(var(--faint) 1px,transparent 1px),linear-gradient(90deg,var(--faint) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
+.sheet.wide{grid-column:1/-1}
+.sheet .scroll{overflow-x:auto}
+.sheet svg{display:block;width:100%;height:auto;min-width:520px}
+.sheet figcaption{padding:10px 16px 14px;color:var(--dim);font-size:15px;border-top:1px solid var(--faint);background:var(--paper-2)}
+.sheet figcaption b{color:var(--line);font-weight:500}
+svg text{font-family:var(--f-label);fill:var(--line);font-size:calc(var(--k,1) * 13px)}
+svg line,svg rect,svg circle,svg path{vector-effect:non-scaling-stroke}
+svg .ln{stroke:var(--line);fill:none;stroke-width:1.3}
+svg .thin{stroke:var(--line);fill:none;stroke-width:.6}
+svg .hid{stroke:var(--line);fill:none;stroke-width:.8;stroke-dasharray:5 3;opacity:.75}
+svg .ctr{stroke:var(--line);fill:none;stroke-width:.5;stroke-dasharray:14 3 2 3;opacity:.7}
+svg .cut{stroke:var(--red);fill:none;stroke-width:1.4;stroke-dasharray:18 4 3 4}
+svg .brass{stroke:var(--brass);fill:none;stroke-width:1.4}
+svg .fillb{fill:rgba(224,176,82,.16);stroke:var(--brass);stroke-width:1.2}
+svg .dim{stroke:var(--line);stroke-width:.55;fill:none}
+svg .dimt{font-size:calc(var(--k,1) * 11px);font-family:var(--f-mono);fill:var(--line)}
+svg .lbl{font-size:calc(var(--k,1) * 13px);letter-spacing:.03em}
+svg .note{font-size:calc(var(--k,1) * 12px);fill:var(--dim)}
+svg .ttl{font-family:var(--f-display);font-size:calc(var(--k,1) * 22px);font-weight:600}
+
+/* tables */
+.tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:24px}
+.tbl{overflow-x:auto;border:1px solid var(--faint);border-radius:4px;background:var(--paper-2)}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+caption{text-align:left;padding:12px 14px 6px;font-family:var(--f-display);font-size:22px;font-weight:600}
+th,td{padding:6px 12px;border-top:1px solid var(--faint);text-align:left;vertical-align:top}
+th{font-weight:500;color:var(--dim);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+td.n{font-family:var(--f-mono);font-size:13px;text-align:right;white-space:nowrap}
+.notes{columns:2 320px;column-gap:40px;color:var(--dim);max-width:none}
+.notes p{margin:0 0 12px;break-inside:avoid}
+.notes b{color:var(--line);font-weight:500}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Drawing set CMF · rev A</div>
+      <h1>Clockwork <em>Marble Flick</em></h1>
+      <p class="lede">A wind-up tabletop version of <a href="../../games/marble-flick/">Marble Flick</a>. One mainspring turns three nested rings at the game's own speed ratios, a fan fly keeps the pace steady, and the four hotspots trip spring-driven automata like the strike train of a clock.</p>
+    </div>
+    <div class="meta">Board 500 × 500 × 150mm<br>Module 1 gearing · brass on steel<br>Run ≈ 10 min per wind<br>Marbles ⌀25 · giants ⌀45</div>
+  </header>
+
+  <section>
+    <h2><small>Plate 1</small>The working model</h2>
+    <p class="sec-intro">Drag to turn, pinch or scroll to zoom. Spread the parts with the explode slider, take the walls off to see the movement, wind it to watch everything turn at the real ratios, and drop a marble in a hotspot to run the next event.</p>
+    <div class="plate">
+      <canvas id="view"></canvas>
+      <div class="readout" id="readout"></div>
+      <div class="tip">Drag · zoom</div>
+      <div class="hud">
+        <div class="grp"><button id="run" aria-pressed="true">Running</button></div>
+        <div class="grp"><label class="t" for="explode">Explode</label><input type="range" id="explode" min="0" max="1" step="0.01" value="0"></div>
+        <div class="grp"><label class="t" for="tscale">Time ×</label><input type="range" id="tscale" min="0.25" max="6" step="0.25" value="1"></div>
+        <div class="grp"><button id="walls" aria-pressed="false">Walls off</button><button id="deckBtn" aria-pressed="false">Deck off</button></div>
+        <div class="grp"><span class="t">Hotspot</span><button id="trip">Drop a marble in</button><span class="t" id="nextEv"></span></div>
+        <div class="grp"><label class="t">View</label><button data-v="hero">¾</button><button data-v="top">Plan</button><button data-v="train">Movement</button></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span style="--c:#d6a84a">Brass: gears, rings' crown teeth, automata</span>
+      <span style="--c:#a9b3bf">Steel: arbors, ball races, springs</span>
+      <span style="--c:#6a4326">Walnut cabinet</span>
+      <span style="--c:#e6cf9f">Maple-veneered deck and rings</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><small>Sheets 1–6</small>Drawings</h2>
+    <p class="sec-intro">Dimensions in millimetres. All six sheets are drawn from the same numbers as the model above. The scales hold when a sheet is printed to fill A3 landscape; always work from the figures, not from measuring the drawing.</p>
+    <div class="sheets" id="sheets"></div>
+  </section>
+
+  <section>
+    <h2><small>Schedules</small>Gears, speeds and parts</h2>
+    <div class="tables">
+      <div class="tbl"><table id="gearTable"><caption>Wheel and pinion count</caption></table></div>
+      <div class="tbl"><table id="partsTable"><caption>Parts schedule</caption></table></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><small>Notes</small>How the mechanism plays the game</h2>
+    <div class="notes">
+      <p><b>Ring drive.</b> Each ring carries a crown wheel on its underside. One steel arbor runs radially beneath them along the diagonal, with three pinions of 15, 16 and 10 leaves meshing the crowns of 100, 220 and 350 teeth. All three sit on top of the arbor, so every ring turns the same way, at 0.315, 0.153 and 0.060 rad/s: the game's 0.32 : 0.15 : 0.06 within 2%.</p>
+      <p><b>Power and pace.</b> A mainspring barrel of 100 teeth drives the ring arbor up through 10 and 2.5 to one, so eight turns of the spring give about ten minutes of play. The same arbor drives up 60 to one into a two-vane fan fly at about 1,200 rpm, as in a music box. Drag on the vanes rises with the square of their speed, so the fly takes up most of the change in the spring's pull, though not all of it: a stopwork lets the spring use only the middle eight of its ten turns, where its pull is steadiest, and the rings still slow a little towards the end of a wind. The winding arbor stays still while the barrel turns, held by a click, and comes out through the east wall. The ring arbor stops at 224 from the centre in a cock, an L-shaped potence screwed to the inside of the outer plate, so arbor 2's 60T wheel can turn just beyond its end. The movement is self-contained: two plates joined by four pillars, standing on the floor. Lantern pinions have pins 2mm longer than the teeth they meet, so their flanges stand clear either side of the wheel. Sheet 6 places every arbor and wheel.</p>
+      <p><b>Rings and seams.</b> The rings float 1mm apart with their tops flush with the deck, and the seam edges get a 0.3mm chamfer so marbles cross without a click. Solid maple moves with the seasons by more than that 1mm, so the deck and rings are birch ply with maple veneer on both faces. Each ring runs on two caged races of ⌀6 balls, on hardened race wires let into its underside: a V-grooved race under its inner edge keeps it centred, and a flat race under its outer edge only carries it, so a ring a hair out of round can't bind. The races stand on threaded posts from the bed plate, which is cut back square under the movement. Setting the posts so the rings run level to about 0.1mm is the hardest part to make well.</p>
+      <p><b>Hotspot gates.</b> Each hotspot is a ⌀34 aperture with a sprung flap 17mm below the surface. A marble crossing the middle of it faster than about 0.7 m/s bridges the gap before it can drop in; slower ones fall onto the flap. This is the game's speed rule done by gravity. A marble crossing near the edge of the aperture meets a shorter gap and gets away at a lower speed, so try the aperture on a test piece before cutting the deck. The weight of one ⌀25 marble, about 22g, is all the flap has to work with, so its Bowden cable pulls a light trip rather than a lever. The trip fires once as the flap goes down. The marble stays in the pocket, out of play, until a player lifts it out, and only then can that gate fire again.</p>
+      <p><b>Event release.</b> All four cables go to the same trip, which lifts the warning lever of a separate small spring train with its own fly, like a clock's strike. The released train turns a four-cam drum a quarter turn, and a locking plate with four notches stops it there. Each cam has its lobe in a different quarter, so each release fires the next event in a fixed order: earthquake, spin surge, cat, paw. The train can't tell which gate fired, so this fixed order stands in for the game's shuffle, where each hotspot has its own event.</p>
+      <p><b>The four events.</b> Earthquake: a cam lifts a weighted hammer that raps the deck underside eight times. Spin surge: a cam slides a collar along the fly arbor that feathers the vanes nearly edge-on, cutting their drag about fourteen-fold, so the rings run faster for the rest of the quarter turn. That is up to 3.7 times faster, and less in practice, since the friction of the rings doesn't drop with the vanes. Cat: an arm 60mm above the deck, high enough to clear a giant, swings an original brass cat across the board on a 240mm radius while a cam flicks its paw. A crank through the back wall drives it through a slipping clutch, so a marble in the cat's way can stop it without harm. Paw: a curved brass arm ending in a paw lies flush in a groove in the fixed collar round the hole. Its pin lifts it 12mm, a lever swings it out across the 5 ring and back, and it drops into its groove, raking whatever it catches over the collar and into the hole. Nothing stands in the bore, so sunk marbles always fall clear.</p>
+      <p><b>Giants.</b> Real ⌀45 shooter marbles play the part of the game's giants: heavy, and too wide for the ⌀38 hole. They don't shrink back, so the rule becomes "one giant per player per game".</p>
+      <p><b>What stays manual.</b> Scoring, turn order and the launch-pad penalty are counted by the players. Sunk marbles fall straight down the tube into a long drawer that runs back under the hole and pulls out at the front; its felt-lined floor falls 5° to the front, so each marble rolls clear of the tube's end.</p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script>
+/* ======================= SHARED DIMENSIONS (mm) ======================= */
+const D = {
+  B: 500, deckT: 12, cabH: 150, wallT: 10, floorT: 12,
+  holeR: 19, hubR: 25,
+  rings: [ {ri: 25.5, ro: 64.5, pts: 5, col: '#c2694a'}, {ri: 65.5, ro: 124.5, pts: 3, col: '#e1b071'}, {ri: 125.5, ro: 190, pts: 1, col: '#f1e2c2'} ],
+  deckHoleR: 191,
+  crown: [ {Z: 100, r: 50, Np: 15}, {Z: 220, r: 110, Np: 16}, {Z: 350, r: 175, Np: 10} ],
+  bedR: 200, bedCut: 186, bedBore: 26, pillarR: 190,
+  shaftY: -40, shaftR: 3, shaftX0: 30, shaftX1: 224,
+  tubeEnd: 104, drawerL: 270,
+  pad: 207.5, padR: 21, spot: 222, spotR: 17,
+  marble: 12.5, giant: 22.5,
+};
+// going train, arbors parallel to the ring arbor, positions in the drive's local (x along arbor, y up, z across)
+const TRAIN = {
+  barrel: { y: -82, z: -55, x: 207, Z: 100 },
+  a1: { y: -82, z: 0, wheel: { Z: 60, x: 196 }, pinion: { Z: 10, x: 207 } },
+  shaft: { pinionToA1: { Z: 24, x: 196 }, wheel: { Z: 36, x: 218 } },
+  a2: { y: -50.5, z: 18.2, pinion: { Z: 6, x: 218 }, wheel: { Z: 60, x: 227 } },
+  fly: { y: -74, z: 41.37, pinion: { Z: 6, x: 227 }, vaneX: 210 },   // vanes inboard of the pinion, where nothing else turns
+};
+const DRIVE_ANGLE = Math.PI / 4;             // arbor runs along the board diagonal, towards a corner
+// speeds (rad/s) from the outer ring's game speed
+const W_OUTER = 0.06;
+const W_SHAFT = W_OUTER * D.crown[2].Z / D.crown[2].Np;   // 2.1
+const ringW = D.crown.map(c => W_SHAFT * c.Np / c.Z);
+const W_A1 = W_SHAFT * TRAIN.shaft.pinionToA1.Z / TRAIN.a1.wheel.Z;
+const W_BARREL = W_A1 * TRAIN.a1.pinion.Z / TRAIN.barrel.Z;
+const W_A2 = W_SHAFT * TRAIN.shaft.wheel.Z / TRAIN.a2.pinion.Z;
+const W_FLY = W_A2 * TRAIN.a2.wheel.Z / TRAIN.fly.pinion.Z;
+const SURGE = 3.7;
+const rpm = w => w * 60 / (2 * Math.PI);
+
+/* ======================= 3D MODEL ======================= */
+const canvas = document.getElementById('view');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setClearColor(0x000000, 0);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.78;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, 5, 8000);
+(function env() {
+  const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene();
+  es.add(new THREE.Mesh(new THREE.BoxGeometry(40, 40, 40), new THREE.MeshBasicMaterial({ color: 0x1b2c44, side: THREE.BackSide })));
+  const panel = (w, h, c, x, y, z) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); es.add(m); };
+  panel(16, 6, 0xffffff, -8, 16, 6); panel(8, 8, 0xffe8c8, 12, 10, -8); panel(20, 3, 0x9fc6ff, 0, 5, -18); panel(6, 14, 0xfff0d0, 18, 2, 10);
+  scene.environment = pm.fromScene(es, 0.04).texture;
+})();
+scene.add(new THREE.HemisphereLight(0xdfe9ff, 0x1a2333, 0.5));
+const sun = new THREE.DirectionalLight(0xfff2dc, 1.4); sun.position.set(-500, 900, 400); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -450, right: 450, top: 450, bottom: -450, near: 100, far: 2500 }); sun.shadow.bias = -0.0005;
+scene.add(sun);
+
+const M = {
+  brass: new THREE.MeshStandardMaterial({ color: 0xd6a84a, metalness: 0.95, roughness: 0.32 }),
+  brassDark: new THREE.MeshStandardMaterial({ color: 0xa77d2e, metalness: 0.95, roughness: 0.4 }),
+  steel: new THREE.MeshStandardMaterial({ color: 0xa9b3bf, metalness: 0.95, roughness: 0.25 }),
+  walnut: new THREE.MeshStandardMaterial({ color: 0x5e3b22, roughness: 0.6 }),
+  maple: new THREE.MeshPhysicalMaterial({ color: 0xcfae7a, roughness: 0.45, clearcoat: 0.5 }),
+  dark: new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.9 }),
+  spring: new THREE.MeshStandardMaterial({ color: 0x3a4a5a, metalness: 0.9, roughness: 0.3 }),
+};
+const shadowAll = o => o.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+
+// tooth profile gear in local XY plane, axis along Z, centred on z
+function gearGeo(Z, m, width, bore = 0) {
+  const rp = m * Z / 2, ra = rp + m, rf = Math.max(rp - 1.25 * m, 0.6), a = 2 * Math.PI / Z, s = new THREE.Shape();
+  for (let i = 0; i < Z; i++) {
+    const t = i * a, P = (r, f) => [Math.cos(t + f * a) * r, Math.sin(t + f * a) * r];
+    const pts = [P(rf, 0), P(rf, 0.12), P(ra, 0.3), P(ra, 0.47), P(rf, 0.65), P(rf, 1)];
+    pts.forEach(([x, y], k) => (i === 0 && k === 0) ? s.moveTo(x, y) : s.lineTo(x, y));
+  }
+  if (bore) { const h = new THREE.Path(); h.absarc(0, 0, bore, 0, Math.PI * 2, true); s.holes.push(h); }
+  const g = new THREE.ExtrudeGeometry(s, { depth: width, bevelEnabled: false, curveSegments: 4 });
+  g.translate(0, 0, -width / 2); return g;
+}
+function annulus(ri, ro, h, seg = 128) {
+  const s = new THREE.Shape(); s.absarc(0, 0, ro, 0, Math.PI * 2, false);
+  const p = new THREE.Path(); p.absarc(0, 0, ri, 0, Math.PI * 2, true); s.holes.push(p);
+  const g = new THREE.ExtrudeGeometry(s, { depth: h, bevelEnabled: false, curveSegments: seg });
+  g.rotateX(-Math.PI / 2); return g;   // occupies y 0..h
+}
+function cyl(r, len, mat, axis = 'y') {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 24), mat);
+  if (axis === 'x') m.rotation.z = Math.PI / 2; if (axis === 'z') m.rotation.x = Math.PI / 2; return m;
+}
+
+const model = new THREE.Group(); scene.add(model);
+const layers = {};   // name -> {group, lift}
+function layer(name, lift) { const g = new THREE.Group(); model.add(g); layers[name] = { group: g, lift }; return g; }
+
+/* --- cabinet --- */
+const cab = layer('cabinet', -1.4);
+const walls = [];
+(function () {
+  const H = D.cabH - D.deckT, y = -D.deckT - H / 2, L = D.B, t = D.wallT;
+  [[0, L / 2 - t / 2, L, t], [0, -L / 2 + t / 2, L, t], [L / 2 - t / 2, 0, t, L - 2 * t], [-L / 2 + t / 2, 0, t, L - 2 * t]].forEach(([x, z, w, d], i) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, H, d), M.walnut); m.position.set(x, y, z); cab.add(m); walls.push(m);
+  });
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(L - 2 * t, D.floorT, L - 2 * t), M.walnut); floor.position.y = -D.cabH + D.floorT / 2; cab.add(floor);
+  // drawer front at -z
+  const drw = new THREE.Mesh(new THREE.BoxGeometry(120, 30, D.drawerL), M.walnut.clone()); drw.material.color.set(0x704a2c);
+  drw.position.set(0, -D.cabH + D.floorT + 15, -L / 2 + D.drawerL / 2); cab.add(drw);   // runs back under the hole
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(7, 16, 12), M.brass); knob.position.set(0, -D.cabH + D.floorT + 15, -L / 2 - 4); cab.add(knob);
+  // feet
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const f = cyl(14, 14, M.brassDark); f.position.set(sx * 210, -D.cabH - 7, sz * 210); cab.add(f); }
+  shadowAll(cab);
+})();
+
+/* --- deck --- */
+const deck = layer('deck', 2.6);
+(function () {
+  const h = D.B / 2, s = new THREE.Shape(); s.moveTo(-h, -h); s.lineTo(h, -h); s.lineTo(h, h); s.lineTo(-h, h); s.lineTo(-h, -h);
+  const add = (x, z, r) => { const p = new THREE.Path(); p.absarc(x, z, r, 0, Math.PI * 2, true); s.holes.push(p); };
+  add(0, 0, D.deckHoleR);
+  for (const [x, z] of [[0, D.spot], [0, -D.spot], [D.spot, 0], [-D.spot, 0]]) add(x, z, D.spotR);
+  const g = new THREE.ExtrudeGeometry(s, { depth: D.deckT, bevelEnabled: false, curveSegments: 96 });
+  g.rotateX(Math.PI / 2);   // shape y -> world z (+), extrude downward from y=0
+  const m = new THREE.Mesh(g, M.maple); m.position.y = 0; deck.add(m);
+  // launch pad dimples (inlaid brass rings)
+  for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+    const r = new THREE.Mesh(annulus(D.padR - 2, D.padR, 0.6, 48), M.brass); r.position.set(sx * D.pad, 0, sz * D.pad); deck.add(r);
+  }
+  // hotspot gates: brass collars, flaps below
+  for (const [x, z] of [[0, D.spot], [0, -D.spot], [D.spot, 0], [-D.spot, 0]]) {
+    const c = new THREE.Mesh(annulus(D.spotR, D.spotR + 4, 0.8, 48), M.brass); c.position.set(x, 0, z); deck.add(c);
+    const pocket = new THREE.Mesh(new THREE.CylinderGeometry(D.spotR, D.spotR, 30, 32, 1, true), M.brassDark); pocket.material.side = THREE.DoubleSide; pocket.position.set(x, -D.deckT - 15, z); deck.add(pocket);
+    const flap = cyl(D.spotR - 1, 2, M.brass); flap.position.set(x, -D.deckT - 6, z); deck.add(flap);
+  }
+  shadowAll(deck);
+})();
+
+/* --- rings with crown wheels --- */
+const ringGroups = [];
+D.rings.forEach((rg, i) => {
+  const L = layer('ring' + i, 2.0 - i * 0.18);
+  const spin = new THREE.Group(); L.add(spin); ringGroups.push(spin);
+  const mat = M.maple.clone(); mat.color.set(rg.col);
+  const top = new THREE.Mesh(annulus(rg.ri, rg.ro, D.deckT, 160), mat); top.position.y = -D.deckT; spin.add(top);
+  // inlaid brass numerals stand-in: small brass studs at the quarters
+  for (let k = 0; k < 4; k++) {
+    const a = k * Math.PI / 2 + Math.PI / 4, rm = (rg.ri + rg.ro) / 2;
+    for (let n = 0; n < rg.pts; n++) {
+      const st = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.8, 16), M.brass);
+      const off = (n - (rg.pts - 1) / 2) * 7;
+      st.position.set(Math.cos(a) * rm - Math.sin(a) * off, 0.2, Math.sin(a) * rm + Math.cos(a) * off); spin.add(st);
+    }
+  }
+  // crown wheel: flange plus downward teeth reaching the pinion's pitch line
+  const c = D.crown[i], pr = c.Np / 2, toothBottom = D.shaftY + pr - 1;
+  const flangeBottom = toothBottom + 2.25;
+  const fl = new THREE.Mesh(annulus(c.r - 5, c.r + 5, -D.deckT - flangeBottom, 160), M.brass); fl.position.y = flangeBottom; spin.add(fl);
+  const tg = new THREE.BoxGeometry(5.5, 2.25, Math.PI * 0.5);
+  const inst = new THREE.InstancedMesh(tg, M.brass, c.Z), o = new THREE.Object3D();
+  for (let k = 0; k < c.Z; k++) {
+    const a = k / c.Z * Math.PI * 2; o.position.set(Math.cos(a) * c.r, toothBottom + 1.12, Math.sin(a) * c.r); o.rotation.set(0, -a, 0); o.updateMatrix(); inst.setMatrixAt(k, o.matrix);
+  }
+  spin.add(inst);
+  shadowAll(L);
+});
+
+/* --- fixed hub, drop tube, races, bed plate --- */
+const fixed = layer('fixed', 1.1);
+(function () {
+  // collar round the hole, with the paw's groove, over a thin tube that drops sunk marbles into the drawer
+  const collar = new THREE.Mesh(annulus(D.holeR, D.hubR, D.deckT, 64), M.brass); collar.position.y = -D.deckT; fixed.add(collar);
+  const hub = new THREE.Mesh(annulus(D.holeR, D.holeR + 1, D.tubeEnd - D.deckT, 64), M.brass); hub.position.y = -D.tubeEnd; fixed.add(hub);
+  const inside = new THREE.Mesh(new THREE.CylinderGeometry(D.holeR - 0.2, D.holeR - 0.2, D.tubeEnd, 32, 1, true), M.dark); inside.material = M.dark.clone(); inside.material.side = THREE.BackSide; inside.position.y = -D.tubeEnd / 2; fixed.add(inside);
+  // three lugs hold the tube in the bed plate's bore
+  for (let k = 0; k < 3; k++) { const a = (k + 0.5) / 3 * Math.PI * 2, lug = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 4), M.brass); lug.position.set(Math.cos(a) * 24, -63, Math.sin(a) * 24); lug.rotation.y = -a; fixed.add(lug); }
+  // ball races: one under each ring edge
+  const ballG = new THREE.SphereGeometry(3, 12, 8);
+  D.rings.forEach(rg => {
+    for (const r of [rg.ri + 4, rg.ro - 4]) {
+      const n = Math.floor(2 * Math.PI * r / 9), inst = new THREE.InstancedMesh(ballG, M.steel, n), o = new THREE.Object3D();
+      for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2; o.position.set(Math.cos(a) * r, -D.deckT - 3, Math.sin(a) * r); o.updateMatrix(); inst.setMatrixAt(k, o.matrix); }
+      fixed.add(inst);
+      const race = new THREE.Mesh(annulus(r - 3.5, r + 3.5, 3, 128), M.steel); race.position.y = -D.deckT - 9; fixed.add(race);
+    }
+  });
+  // bed plate and posts
+  // the bed plate is cut back square where the movement stands under the corner
+  const u = [Math.cos(DRIVE_ANGLE), -Math.sin(DRIVE_ANGLE)], bs = new THREE.Shape();
+  for (let k = 0; k <= 192; k++) {
+    const a = k / 192 * Math.PI * 2; let x = Math.cos(a) * D.bedR, y = Math.sin(a) * D.bedR;
+    const over = x * u[0] + y * u[1] - D.bedCut; if (over > 0) { x -= over * u[0]; y -= over * u[1]; }
+    k ? bs.lineTo(x, y) : bs.moveTo(x, y);
+  }
+  const bh = new THREE.Path(); bh.absarc(0, 0, D.bedBore, 0, Math.PI * 2, true); bs.holes.push(bh);
+  const bg = new THREE.ExtrudeGeometry(bs, { depth: 6, bevelEnabled: false, curveSegments: 48 }); bg.rotateX(-Math.PI / 2);
+  const bed = new THREE.Mesh(bg, M.brassDark); bed.position.y = -66; fixed.add(bed);
+  // three pillars carry it from the floor, clear of the movement's corner
+  for (const a of [135, 225, 315]) { const r = a * Math.PI / 180, p = cyl(7, D.cabH - D.floorT - 66, M.steel); p.position.set(Math.cos(r) * D.pillarR, -(D.cabH - D.floorT + 66) / 2, Math.sin(r) * D.pillarR); fixed.add(p); }
+  // threaded levelling posts under every race, set off the diagonal to miss the ring arbor
+  D.rings.forEach(rg => [rg.ri + 4, rg.ro - 4].forEach(r => {
+    for (let k = 0; k < 8; k++) { const a = (k + 0.5) / 8 * Math.PI * 2, p = cyl(2.5, 39, M.steel); p.position.set(Math.cos(a) * r, -40.5, Math.sin(a) * r); fixed.add(p); }
+  }));
+  shadowAll(fixed);
+})();
+
+/* --- drive: ring arbor + going train, built in local frame then turned onto the diagonal --- */
+const driveL = layer('drive', 0);
+const drive = new THREE.Group(); drive.rotation.y = -DRIVE_ANGLE; driveL.add(drive);
+const spinners = [];   // {obj, axis:'x', w}
+function arbor(y, z, x0, x1, w, r = 2.5) {
+  const g = new THREE.Group(); g.position.set(0, y, z); drive.add(g);
+  const rod = cyl(r, x1 - x0, M.steel, 'x'); rod.position.x = (x0 + x1) / 2; g.add(rod);
+  spinners.push({ obj: g, w }); return g;
+}
+function gearOn(arb, Z, x, width, mat = M.brass) {
+  const m = new THREE.Mesh(gearGeo(Z, 1, width, 0), mat); m.rotation.y = Math.PI / 2; m.position.x = x; arb.add(m); return m;
+}
+(function () {
+  const sh = arbor(D.shaftY, 0, D.shaftX0, D.shaftX1, W_SHAFT, D.shaftR);
+  D.crown.forEach(c => gearOn(sh, c.Np, c.r, 6));
+  gearOn(sh, TRAIN.shaft.pinionToA1.Z, TRAIN.shaft.pinionToA1.x, 8);   // lantern: flanges stand clear either side of the 60T
+  gearOn(sh, TRAIN.shaft.wheel.Z, TRAIN.shaft.wheel.x, 4);
+  // A1
+  const a1 = arbor(TRAIN.a1.y, TRAIN.a1.z, 190, 240, -W_A1);
+  gearOn(a1, TRAIN.a1.wheel.Z, TRAIN.a1.wheel.x, 4); gearOn(a1, TRAIN.a1.pinion.Z, TRAIN.a1.pinion.x, 6, M.steel);
+  // barrel with spring and winding arbor out to the wall
+  const b = TRAIN.barrel;
+  const wallHit = (() => { for (let x = 210; x < 400; x += 1) { const wx = x * Math.cos(DRIVE_ANGLE) + b.z * Math.sin(DRIVE_ANGLE), wz = x * Math.sin(DRIVE_ANGLE) - b.z * Math.cos(DRIVE_ANGLE); if (Math.abs(wx) > D.B / 2 + 6 || Math.abs(wz) > D.B / 2 + 6) return x; } return 300; })();
+  const ba = arbor(b.y, b.z, 198, wallHit, 0, 4);   // held still by the click while the barrel turns on it
+  const bd = new THREE.Group(); ba.add(bd); spinners.push({ obj: bd, w: W_BARREL });
+  gearOn(bd, b.Z, b.x, 4);
+  const drum = cyl(44, 12, M.brassDark, 'x'); drum.position.x = 212; bd.add(drum);
+  const cap = cyl(44.5, 1.5, M.brass, 'x'); cap.position.x = 218.5; bd.add(cap);
+  const key = new THREE.Group(); key.position.x = wallHit + 2; ba.add(key);
+  const kb = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 10), M.brass); key.add(kb);
+  const kw = new THREE.Mesh(new THREE.BoxGeometry(6, 44, 12), M.brass); kw.position.x = 9; key.add(kw);
+  // A2 and fly
+  const a2 = arbor(TRAIN.a2.y, TRAIN.a2.z, 190, 241, -W_A2, 2);
+  gearOn(a2, TRAIN.a2.pinion.Z, TRAIN.a2.pinion.x, 5, M.steel); gearOn(a2, TRAIN.a2.wheel.Z, TRAIN.a2.wheel.x, 3);
+  const fa = arbor(TRAIN.fly.y, TRAIN.fly.z, 190, 241, W_FLY / 12, 1.6);   // shown at 1/12 speed
+  gearOn(fa, TRAIN.fly.pinion.Z, TRAIN.fly.pinion.x, 5, M.steel);
+  const vanes = [];
+  for (const s of [1, -1]) {
+    const piv = new THREE.Group(); piv.position.set(TRAIN.fly.vaneX, s * 13, 0); fa.add(piv);
+    const v = new THREE.Mesh(new THREE.BoxGeometry(12, 22, 0.8), M.brass); piv.add(v); vanes.push(piv);
+  }
+  window.flyVanes = vanes;
+  // the ring arbor stops in a cock short of arbor 2's 60T: an L-shaped potence screwed to the outer plate, its arm on the south-east side clear of every wheel
+  const cock = new THREE.Mesh(new THREE.BoxGeometry(3, 10, 33), M.brassDark); cock.position.set(D.shaftX1 - 1.5, D.shaftY, -11.5); drive.add(cock);
+  const cockArm = new THREE.Mesh(new THREE.BoxGeometry(15.75, 8, 8), M.brassDark); cockArm.position.set(D.shaftX1 + 7.875, D.shaftY, -24); drive.add(cockArm);
+  // its inner end sits on a pedestal from the bed plate
+  const ped = new THREE.Mesh(new THREE.BoxGeometry(6, 23, 10), M.brassDark); ped.position.set(32, -48.5, 0); drive.add(ped);
+  // movement plates
+  const plateMat = M.brassDark;
+  for (const x of [190, 241]) {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(2.5, 110, 170), plateMat); p.position.set(x, -82, -10); drive.add(p);
+  }
+  shadowAll(drive);
+})();
+
+/* --- event drum, cables, hammer, automata --- */
+// cam link routes (world x, y, z), under the bed plate and clear of the pillars
+const CAM_LINKS = [
+  [[-196, -96, -40], [-205, -90, -120], [-215, -70, -170], [-215, -38, -165]],
+  [[-196, -96, 40], [-150, -100, 70], [0, -100, 140], [80, -90, 165], [110, -74, 168]],
+  [[-196, -96, 30], [-200, -100, 110], [-180, -100, 180], [-60, -92, 232], [0, -90, 240]],
+];
+const events = layer('events', 0.5);
+let catArm, pawArm, hammer, drumSpin;
+(function () {
+  // drum on the -x side, axis along z
+  const dg = new THREE.Group(); dg.position.set(-196, -86, 0); events.add(dg);
+  drumSpin = new THREE.Group(); dg.add(drumSpin);
+  const core = cyl(10, 90, M.steel, 'z'); drumSpin.add(core);
+  for (let k = 0; k < 4; k++) {
+    const cg = new THREE.Group(); cg.rotation.z = k * Math.PI / 2; cg.position.z = -30 + k * 20; drumSpin.add(cg);   // each lobe in its own quarter
+    const cam = new THREE.Mesh(new THREE.CylinderGeometry(16, 16, 6, 3), M.brass); cam.rotation.x = Math.PI / 2; cg.add(cam);
+  }
+  const gen = new THREE.Mesh(gearGeo(4, 9, 4), M.brassDark); gen.position.z = 46; drumSpin.add(gen);   // locking plate stand-in
+  const spr = new THREE.Mesh(new THREE.TorusGeometry(24, 2, 8, 40), M.spring); spr.position.set(0, 0, -48); dg.add(spr);
+  // Bowden cables from each hotspot gate
+  const cable = new THREE.MeshStandardMaterial({ color: 0x24303d, roughness: 0.5 });
+  for (const [x, z] of [[0, D.spot], [0, -D.spot], [D.spot, 0], [-D.spot, 0]]) {
+    const pts = [new THREE.Vector3(x, -D.deckT - 22, z), new THREE.Vector3(x * 0.8, -96, z * 0.8), new THREE.Vector3(-140, -104, z * 0.2), new THREE.Vector3(-196, -112, z * 0.1)];
+    events.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 1.6, 6), cable));
+  }
+  // earthquake hammer under the deck
+  hammer = new THREE.Group(); hammer.position.set(-215, -34, -150); hammer.rotation.y = -Math.PI / 2; events.add(hammer);
+  const harm = new THREE.Mesh(new THREE.BoxGeometry(90, 4, 6), M.steel); harm.position.x = 25;   // tail behind the pivot takes the cable hammer.add(harm);
+  const hhead = cyl(9, 18, M.brass); hhead.position.set(70, 12, 0); hammer.add(hhead);
+  // cat automaton on a swing arm, pivot outside the back edge (+z side), parked along the edge
+  const catPivot = new THREE.Group(); catPivot.position.set(0, 0, D.B / 2 + 18); events.add(catPivot);
+  const post = cyl(6, 160, M.brass); post.position.y = -15;   // down the back wall in two brackets to the crank pulley catPivot.add(post);
+  catArm = new THREE.Group(); catArm.position.y = 62; catPivot.add(catArm);
+  const drop = cyl(1.5, 12, M.brass); drop.position.set(240, -5, 0); catArm.add(drop);
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(240, 4, 8), M.brass); arm.position.x = 120; catArm.add(arm);
+  catArm.add(makeCat(240));
+  catArm.rotation.y = 0.05;
+  // paw: a curved arm parked in the collar's groove, on a pin that lifts and swings it
+  pawArm = new THREE.Group(); pawArm.position.set(-22, 0, 0); events.add(pawArm);
+  const sp = []; for (let k = 0; k <= 12; k++) { const a = Math.PI - k / 12 * 1.6; sp.push(new THREE.Vector3(Math.cos(a) * 22 + 22, -2, Math.sin(a) * 22)); }
+  pawArm.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(sp), 40, 2, 8), M.brass));
+  const sh = new THREE.Mesh(new THREE.SphereGeometry(3.5, 16, 10), M.brass); sh.scale.set(1.4, 0.7, 1); sh.position.copy(sp[12]); pawArm.add(sh);
+  const pin = cyl(1.5, 78, M.steel); pin.position.y = -41; pawArm.add(pin);
+  const lever = cyl(2, 174, M.steel, 'x'); lever.position.set(-109, -80, 0); events.add(lever);   // push rod from cam 4 to a crank on the pin
+  // cables from the cams: hammer tail, the fly's feathering fork, the cat's crank pulley
+  const ccab = new THREE.MeshStandardMaterial({ color: 0x3a2a20, roughness: 0.5 });
+  for (const pts of CAM_LINKS) events.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y, z))), 48, 1.6, 6), ccab));
+  shadowAll(events);
+})();
+// an original flat brass cat silhouette, ~70mm long, standing on the arm end
+function makeCat(x) {
+  const s = new THREE.Shape();
+  s.moveTo(-30, 0); s.lineTo(-26, 14); s.quadraticCurveTo(-28, 26, -16, 28); s.lineTo(14, 28);
+  s.quadraticCurveTo(20, 30, 22, 36); s.lineTo(23, 46); s.lineTo(28, 40); s.lineTo(34, 40); s.lineTo(38, 47); s.lineTo(39, 36);
+  s.quadraticCurveTo(42, 28, 34, 24); s.lineTo(30, 14); s.lineTo(30, 0); s.lineTo(24, 0); s.lineTo(22, 12); s.lineTo(-18, 12); s.lineTo(-20, 0); s.lineTo(-30, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 2, bevelEnabled: false });
+  const tail = new THREE.Shape(); tail.moveTo(-26, 20); tail.quadraticCurveTo(-48, 22, -44, 46); tail.lineTo(-40, 46); tail.quadraticCurveTo(-42, 28, -25, 25);
+  const grp = new THREE.Group(); grp.position.set(x, -56, 0);
+  const body = new THREE.Mesh(g, M.brass); grp.add(body);
+  grp.add(new THREE.Mesh(new THREE.ExtrudeGeometry(tail, { depth: 2, bevelEnabled: false }), M.brass));
+  const paw = new THREE.Mesh(new THREE.BoxGeometry(5, 14, 3), M.brass); paw.position.set(28, -4, 1); grp.add(paw); grp.userData.paw = paw;
+  grp.rotation.y = Math.PI / 2;
+  window.catPaw = paw; return grp;
+}
+
+/* --- marbles riding the rings --- */
+const marbleMats = ['#3a6fd8', '#c23a2e', '#2fa274', '#e7a91f'].map(c => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.05, clearcoat: 1, transmission: 0.35, thickness: 10, metalness: 0 }));
+const marbles = [];
+[[0, 42, 0.4], [1, 95, 2.1], [2, 160, 3.6], [1, 80, 4.8], [2, 150, 1.0], [0, 52, 3.0]].forEach(([ri, r, a], k) => {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(D.marble, 32, 20), marbleMats[k % 4]);
+  m.position.set(Math.cos(a) * r, D.marble, Math.sin(a) * r); m.castShadow = true; ringGroups[ri].add(m); marbles.push(m);
+});
+const giant = new THREE.Mesh(new THREE.SphereGeometry(D.giant, 40, 24), marbleMats[0]); giant.position.set(D.pad, D.giant + 1, D.pad); giant.castShadow = true; layers.deck.group.add(giant);
+
+/* --- camera orbit --- */
+const orbit = { th: 0.85, ph: 0.95, dist: 1500, tgt: new THREE.Vector3(0, -50, 0), want: null };
+const VIEWS = { hero: { th: 0.85, ph: 0.95, dist: 1500, ty: -50 }, top: { th: 0, ph: 0.02, dist: 1550, ty: 0 }, train: { th: 1.9, ph: 1.2, dist: 1000, ty: -90, tx: 140, tz: 140 } };
+function setView(v) { const V = VIEWS[v]; orbit.want = { th: V.th, ph: V.ph, dist: V.dist, tgt: new THREE.Vector3(V.tx || 0, V.ty, V.tz || 0) }; }
+function applyCam() {
+  const { th, ph, dist, tgt } = orbit;
+  camera.position.set(tgt.x + dist * Math.sin(ph) * Math.sin(th), tgt.y + dist * Math.cos(ph), tgt.z + dist * Math.sin(ph) * Math.cos(th));
+  camera.lookAt(tgt);
+}
+const ptrs = new Map(); let pinch0 = 0;
+canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); orbit.want = null; if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); } });
+canvas.addEventListener('pointermove', e => {
+  if (!ptrs.has(e.pointerId)) return;
+  const p = ptrs.get(e.pointerId), dx = e.clientX - p[0], dy = e.clientY - p[1]; ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptrs.size === 1) { orbit.th -= dx * 0.006; orbit.ph = Math.min(1.5, Math.max(0.02, orbit.ph - dy * 0.006)); }
+  else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch0) orbit.dist = Math.min(3500, Math.max(250, orbit.dist * pinch0 / d)); pinch0 = d; }
+});
+const up = e => { ptrs.delete(e.pointerId); pinch0 = 0; };
+canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
+canvas.addEventListener('wheel', e => { e.preventDefault(); orbit.want = null; orbit.dist = Math.min(3500, Math.max(250, orbit.dist * Math.exp(e.deltaY * 0.001))); }, { passive: false });
+
+/* --- controls --- */
+let running = true, surge = false, explode = 0, tscale = 1;
+const $ = id => document.getElementById(id);
+const press = (b, v) => b.setAttribute('aria-pressed', v);
+$('run').onclick = () => { running = !running; press($('run'), running); $('run').textContent = running ? 'Running' : 'Stopped'; };
+$('explode').oninput = e => explode = +e.target.value;
+$('tscale').oninput = e => tscale = +e.target.value;
+$('walls').onclick = () => { const off = $('walls').getAttribute('aria-pressed') !== 'true'; press($('walls'), off); walls.forEach((w, i) => w.visible = !off || i === 1 || i === 3); };
+$('deckBtn').onclick = () => { const off = $('deckBtn').getAttribute('aria-pressed') !== 'true'; press($('deckBtn'), off); layers.deck.group.visible = !off; };
+document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => setView(b.dataset.v));
+// any hotspot fires the next event in the drum's fixed order, each lasting its quarter turn (s)
+const EVENTS = [['quake', 'Earthquake', 2], ['surge', 'Spin surge', 6], ['cat', 'Cat', 5], ['paw', 'Paw', 4.4]];
+const ev = { quake: 0, surge: 0, cat: 0, paw: 0 };
+let drumTurn = 0, drumRate = 0, nextEv = 0;
+const showNext = () => $('nextEv').textContent = 'next: ' + EVENTS[nextEv][1];
+$('trip').onclick = () => {
+  if (drumTurn > 0) return;   // the event train is still running
+  const [name, , T] = EVENTS[nextEv];
+  ev[name] = 0.0001; drumTurn = 0.25; drumRate = 0.25 / T;
+  nextEv = (nextEv + 1) % EVENTS.length; showNext();
+};
+showNext();
+
+/* --- loop --- */
+let surgeK = 1, last = performance.now(), shaftAng = 0, barrelTurns = 0;
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (ev.surge) { ev.surge += dt; if (ev.surge > 6) ev.surge = 0; }
+  surge = ev.surge > 0;
+  surgeK += ((surge ? SURGE : 1) - surgeK) * Math.min(1, dt * 1.5);
+  const k = running ? surgeK * tscale : 0;
+  ringGroups.forEach((g, i) => g.rotation.y -= ringW[i] * k * dt);
+  spinners.forEach(s => s.obj.rotation.x += s.w * k * dt);
+  barrelTurns += W_BARREL * k * dt / (2 * Math.PI);
+  // feathering: vanes turn edge-on during a surge
+  const feather = (surgeK - 1) / (SURGE - 1);
+  window.flyVanes.forEach(v => v.rotation.x = feather * 1.5);
+  // exploded layers
+  for (const n in layers) layers[n].group.position.y += (layers[n].lift * explode * 120 - layers[n].group.position.y) * Math.min(1, dt * 8);
+  // event drum turns a quarter per event
+  if (drumTurn > 0) { const s = Math.min(drumTurn, dt * drumRate); drumSpin.rotation.z += s * Math.PI * 2; drumTurn -= s; }
+  // earthquake: hammer raps eight times, deck and marbles jitter
+  if (ev.quake) {
+    ev.quake += dt; const ph = (ev.quake * 4) % 1, hit = ph < 0.12;
+    hammer.rotation.z = hit ? 0 : -0.35 * Math.sin(ph * Math.PI);
+    const j = hit ? 1.4 : 0; model.position.set((Math.random() - 0.5) * j, (Math.random() - 0.5) * j, (Math.random() - 0.5) * j);
+    if (ev.quake > 2) { ev.quake = 0; model.position.set(0, 0, 0); hammer.rotation.z = 0; }
+  }
+  // cat: swings across on its arm, paw flicks at the far point, swings home
+  if (ev.cat) {
+    ev.cat += dt; const T = 5, u = Math.min(1, ev.cat / T);
+    const sw = Math.sin(u * Math.PI);
+    catArm.rotation.y = 0.05 + sw * 1.45;
+    window.catPaw.rotation.z = (u > 0.42 && u < 0.58) ? Math.sin((u - 0.42) / 0.16 * Math.PI) * 1.1 : 0;
+    if (u >= 1) { ev.cat = 0; catArm.rotation.y = 0.05; }
+  }
+  // paw: lifts out of its groove, swings out across the 5 ring and back, drops in
+  if (ev.paw) {
+    ev.paw += dt; const t = ev.paw, u = Math.min(1, Math.max(0, (t - 0.4) / 3.6));
+    pawArm.position.y = 12 * Math.max(0, Math.min(1, t / 0.4, (4.4 - t) / 0.4));
+    pawArm.rotation.y = -2.3 * Math.sin(u * Math.PI);
+    if (t > 4.4) { ev.paw = 0; pawArm.position.y = 0; pawArm.rotation.y = 0; }
+  }
+  // camera ease
+  if (orbit.want) { const w = orbit.want, e = Math.min(1, dt * 4); orbit.th += (w.th - orbit.th) * e; orbit.ph += (w.ph - orbit.ph) * e; orbit.dist += (w.dist - orbit.dist) * e; orbit.tgt.lerp(w.tgt, e); }
+  applyCam();
+  renderer.render(scene, camera);
+  readout();
+  requestAnimationFrame(frame);
+}
+function readout() {
+  const k = running ? surgeK : 0, f = (w, d = 2) => (w * k).toFixed(d);
+  $('readout').innerHTML =
+    `<b>Ring 5</b> ${f(ringW[0], 3)} rad/s · ${f(rpm(ringW[0]))} rpm<br>` +
+    `<b>Ring 3</b> ${f(ringW[1], 3)} rad/s · ${f(rpm(ringW[1]))} rpm<br>` +
+    `<b>Ring 1</b> ${f(ringW[2], 3)} rad/s · ${f(rpm(ringW[2]))} rpm<br>` +
+    `<b>Arbor</b> ${f(rpm(W_SHAFT), 1)} rpm · <b>Fly</b> ${f(rpm(W_FLY), 0)} rpm <span class="hot">(shown 1/12)</span><br>` +
+    `<b>Spring</b> ${Math.max(0, 8 - barrelTurns % 8).toFixed(1)} of 8 turns left${surgeK > 1.05 ? ' · <span class="hot">surge ×' + surgeK.toFixed(1) + '</span>' : ''}`;
+}
+resize(); applyCam(); requestAnimationFrame(frame);
+
+/* ======================= DRAWINGS ======================= */
+const NS = 'http://www.w3.org/2000/svg';
+function S(tag, attrs = {}, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+const PRINT_UNIT = { 6: 1 / 1.6 };   // mm per drawing unit, where it isn't 1
+function sheet(no, title, scale, vb, caption, draw, wide) {
+  const fig = document.createElement('figure'); fig.className = 'sheet' + (wide ? ' wide' : '');
+  const sc = document.createElement('div'); sc.className = 'scroll'; fig.appendChild(sc);
+  const [x0, y0, w, h] = vb, k = w / 760, TB = 44 * k;
+  const svg = S('svg', { viewBox: `${x0} ${y0} ${w} ${h + TB}`, role: 'img', 'aria-label': `Sheet ${no}: ${title}`, style: `--k:${k}` }); sc.appendChild(svg);
+  const sm = /^(\d+):([\d.]+)$/.exec(scale); if (sm) svg.dataset.printMm = w * (PRINT_UNIT[no] || 1) * sm[1] / sm[2];   // printed width at true scale
+  const defs = S('defs', {}, svg);
+  const mk = S('marker', { id: 'ar' + no, viewBox: '0 0 10 10', refX: 9, refY: 5, markerUnits: 'userSpaceOnUse', markerWidth: 7 * k, markerHeight: 7 * k, orient: 'auto-start-reverse' }, defs);
+  S('path', { d: 'M0 1 L10 5 L0 9 z', fill: '#e6efff' }, mk);
+  const hp = S('pattern', { id: 'hatch' + no, width: 6 * k, height: 6 * k, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, defs);
+  S('line', { x1: 0, y1: 0, x2: 0, y2: 6 * k, stroke: '#e6efff', 'stroke-width': 0.7 * k, opacity: 0.6 }, hp);
+  const hb = S('pattern', { id: 'hatchb' + no, width: 5 * k, height: 5 * k, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(-45)' }, defs);
+  S('line', { x1: 0, y1: 0, x2: 0, y2: 5 * k, stroke: '#e0b052', 'stroke-width': 0.8 * k, opacity: 0.8 }, hb);
+  const g = S('g', {}, svg);
+  const ctx = makeCtx(g, no, k);
+  draw(ctx);
+  // border and title block
+  const m6 = 6 * k;
+  S('rect', { x: x0 + m6, y: y0 + m6, width: w - 2 * m6, height: h + TB - 2 * m6, class: 'thin' }, svg);
+  const ty = y0 + h;
+  S('line', { x1: x0 + m6, y1: ty, x2: x0 + w - m6, y2: ty, class: 'thin' }, svg);
+  const tt = S('text', { x: x0 + 18 * k, y: ty + 28 * k, class: 'ttl' }, svg); tt.textContent = title;
+  const cols = [['SHEET', `${no} / 6`], ['SCALE', scale], ['UNITS', 'mm'], ['DRAWN', 'CMF']];
+  cols.forEach(([a, b], i) => {
+    const x = x0 + w - m6 - (cols.length - i) * 78 * k;
+    S('line', { x1: x, y1: ty, x2: x, y2: ty + TB - m6, class: 'thin' }, svg);
+    const l = S('text', { x: x + 8 * k, y: ty + 15 * k, class: 'note' }, svg); l.textContent = a;
+    const v = S('text', { x: x + 8 * k, y: ty + 31 * k, class: 'dimt' }, svg); v.textContent = b;
+  });
+  const cap = document.createElement('figcaption'); cap.innerHTML = caption; fig.appendChild(cap);
+  document.getElementById('sheets').appendChild(fig);
+}
+function makeCtx(g, no, k) {
+  const c = {
+    g, no,
+    line: (x1, y1, x2, y2, cls = 'ln') => S('line', { x1, y1, x2, y2, class: cls }, g),
+    rect: (x, y, w, h, cls = 'ln', extra = {}) => S('rect', Object.assign({ x: Math.min(x, x + w), y: Math.min(y, y + h), width: Math.abs(w), height: Math.abs(h), class: cls }, extra), g),
+    circ: (cx, cy, r, cls = 'ln') => S('circle', { cx, cy, r, class: cls }, g),
+    path: (d, cls = 'ln', extra = {}) => S('path', Object.assign({ d, class: cls }, extra), g),
+    text: (x, y, s, cls = 'lbl', anchor = 'start', rot = 0) => { const t = S('text', { x, y, class: cls, 'text-anchor': anchor }, g); if (rot) t.setAttribute('transform', `rotate(${rot} ${x} ${y})`); t.textContent = s; return t; },
+    hatch: (x, y, w, h, brass) => c.rect(x, y, w, h, brass ? 'fillb' : 'ln', { fill: `url(#${brass ? 'hatchb' : 'hatch'}${no})` }),
+    // linear dimension between two points, offset perpendicular by off
+    dim: (x1, y1, x2, y2, off, label) => {
+      const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+      const a1 = [x1 + nx * off, y1 + ny * off], a2 = [x2 + nx * off, y2 + ny * off];
+      const e = 4 * k * Math.sign(off || 1);
+      c.line(x1 + nx * e / 2, y1 + ny * e / 2, a1[0] + nx * e, a1[1] + ny * e, 'dim'); c.line(x2 + nx * e / 2, y2 + ny * e / 2, a2[0] + nx * e, a2[1] + ny * e, 'dim');
+      S('line', { x1: a1[0], y1: a1[1], x2: a2[0], y2: a2[1], class: 'dim', 'marker-start': `url(#ar${no})`, 'marker-end': `url(#ar${no})` }, g);
+      const mx = (a1[0] + a2[0]) / 2, my = (a1[1] + a2[1]) / 2;
+      let ang = Math.atan2(dy, dx) * 180 / Math.PI; if (ang > 90 || ang < -90) ang += 180;
+      const t = c.text(mx, my - 3 * k, label, 'dimt', 'middle', ang);
+    },
+    leader: (x, y, tx, ty, label, anchor) => {
+      S('line', { x1: tx, y1: ty, x2: x, y2: y, class: 'dim', 'marker-end': `url(#ar${no})` }, g);
+      c.text(tx + (anchor === 'end' ? -4 : 4) * k, ty + 4 * k, label, 'lbl', anchor || 'start');
+    },
+    balloon: (x, y, n) => { c.circ(x, y, 9, 'thin'); c.text(x, y + 4, n, 'dimt', 'middle'); },
+  };
+  return c;
+}
+
+/* Sheet 1: general arrangement, plan */
+sheet(1, 'General arrangement · plan', '1:2.5', [-340, -310, 680, 620],
+  '<b>Plan view.</b> Three rings nest inside a fixed deck, around the fixed collar of the ⌀38 hole, where the paw arm lies in a groove. Launch pads sit at the corners and the four hotspot gates at the edge midpoints. Hidden lines show the ring arbor and movement on the diagonal, the event drum under the west edge with the cables (chain lines) and push rod from its cams, the bed pillars, the earthquake hammer and the drawer, which runs back under the hole. The arrows on section line A–A show which way sheet 3 is viewed.',
+  c => {
+    const h = D.B / 2;
+    c.rect(-h, -h, D.B, D.B);
+    c.line(-320, 0, 320, 0, 'ctr'); c.line(0, -320, 0, 320, 'ctr');
+    c.circ(0, 0, D.deckHoleR);
+    D.rings.forEach(r => { c.circ(0, 0, r.ri, 'thin'); c.circ(0, 0, r.ro, r === D.rings[2] ? 'thin' : 'thin'); });
+    c.circ(0, 0, D.holeR); c.circ(0, 0, D.hubR, 'thin');
+    for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) { c.circ(sx * D.pad, sz * D.pad, D.padR, 'brass'); c.circ(sx * D.pad, sz * D.pad, D.marble, 'thin'); }
+    for (const [x, z] of [[0, D.spot], [0, -D.spot], [D.spot, 0], [-D.spot, 0]]) { c.circ(x, z, D.spotR, 'brass'); c.circ(x, z, D.spotR + 4, 'thin'); }
+    // hidden: arbor on the diagonal (drawn towards bottom-right), movement, drum, chute, drawer
+    const ca = Math.cos(DRIVE_ANGLE), sa = Math.sin(DRIVE_ANGLE);
+    c.line(D.shaftX0 * ca, -D.shaftX0 * sa, D.shaftX1 * ca, -D.shaftX1 * sa, 'hid');
+    const mv = [[190, -95], [241, -95], [241, 75], [190, 75]].map(([x, z]) => [x * ca - z * sa, -(x * sa + z * ca)]);
+    c.path('M' + mv.map(p => p.join(' ')).join(' L') + ' Z', 'hid');
+    c.rect(-206, -45, 22, 90, 'hid');
+    c.rect(-60, h - D.drawerL, 120, D.drawerL, 'hid');      // drawer from the front wall back under the hole
+    for (const pts of CAM_LINKS) c.path('M' + pts.map(([x, , z]) => `${x} ${-z}`).join(' L'), 'cut', { opacity: 0.55 });
+    c.line(-196, 0, -22, 0, 'hid');
+    // section line A–A along the diagonal
+    c.line(-300 * ca, 300 * sa, 300 * ca, -300 * sa, 'cut');
+    // viewing arrows: section A–A is seen from the south-east
+    for (const s of [-1, 1]) S('line', { x1: s * 290 * ca, y1: -s * 290 * sa, x2: s * 290 * ca - 22, y2: -s * 290 * sa - 22, class: 'dim', 'marker-end': 'url(#ar1)' }, c.g);
+    // bed pillars, hammer, winding arbor and key (hidden)
+    for (const a of [135, 225, 315]) { const r = a * Math.PI / 180; c.circ(Math.cos(r) * D.pillarR, -Math.sin(r) * D.pillarR, 7, 'hid'); }
+    c.circ(-215, 80, 9, 'hid'); c.line(-215, 150, -215, 80, 'hid');
+    const kw = x => [0.707 * (x - TRAIN.barrel.z), -0.707 * (x + TRAIN.barrel.z)];
+    const k0 = kw(198), k1 = kw(307); c.line(k0[0], k0[1], k1[0], k1[1], 'hid'); c.rect(k1[0] - 4, k1[1] - 6, 10, 12, 'brass');
+    // cat: pivot behind the back edge, swinging over the board
+    const cp = -(D.B / 2 + 18), end = [240 * Math.cos(1.5), cp + 240 * Math.sin(1.5)];
+    c.circ(0, cp, 6, 'brass'); c.path(`M 240 ${cp} A 240 240 0 0 1 ${end[0]} ${end[1]}`, 'hid'); c.line(0, cp, 240, cp, 'brass');
+    c.text(-300 * ca - 8, 300 * sa + 16, 'A', 'ttl', 'end'); c.text(300 * ca + 8, -300 * sa - 4, 'A', 'ttl', 'start');
+    // dimensions
+    c.dim(-h, -h, h, -h, -26, '500');
+    c.dim(h, -h, h, h, -26, '500');
+    c.dim(-D.rings[0].ro, 0, D.rings[0].ro, 0, 24, '⌀129');
+    c.dim(-D.rings[1].ro, 0, D.rings[1].ro, 0, 52, '⌀249');
+    c.dim(-D.rings[2].ro, 0, D.rings[2].ro, 0, 80, '⌀380');
+    c.leader(-D.holeR * 0.7, -D.holeR * 0.7, -95, -110, '⌀38 hole in a fixed ⌀50 collar', 'end');
+    c.path(`M -22 0 A 22 22 0 0 1 ${22 * Math.cos(Math.PI - 1.6)} ${-22 * Math.sin(Math.PI - 1.6)}`, 'brass'); c.leader(-20, 9, -120, 60, 'paw arm ⌀4, parked', 'end'); c.text(-124, 78, 'flush in a 4.5 × 4.5 groove at R22', 'note', 'end');
+    c.leader(D.spotR * 0.7, -D.spot + D.spotR * 0.7, 60, -165, '⌀34 hotspot gate ×4');
+    c.leader(-D.pad + 15, -D.pad + 15, -120, -150, 'launch pad: flush brass ring ⌀38–42 ×4', 'end');
+    c.leader(60, cp, -10, -292, 'cat arm R240, 60 above the deck, pivot 18 behind the back edge', 'end');
+    c.leader(k1[0], k1[1] + 6, 300, -120, 'winding key, east wall', 'end');
+    c.leader(-215, 89, -235, 160, 'earthquake hammer (hidden)', 'start');
+    c.leader(-D.pillarR * 0.707, D.pillarR * 0.707, -270, 260, 'bed pillar ⌀14 ×3 (hidden)', 'start');
+    c.leader(D.shaftX1 * ca * 0.55, -D.shaftX1 * sa * 0.55, 120, -205, 'ring arbor (hidden)');
+    c.leader(-195, 30, -120, 110, 'event drum, 86 down (hidden)');
+    c.text(-30, -D.rings[0].ro + 20, '5', 'ttl', 'middle'); c.text(-30, -D.rings[1].ro + 32, '3', 'ttl', 'middle'); c.text(-30, -D.rings[2].ro + 40, '1', 'ttl', 'middle');
+    c.text(0, 225, 'drawer 120 × 270 × 30 (hidden)', 'note', 'middle'); c.text(0, 292, 'FRONT', 'note', 'middle');
+  }, false);
+
+/* Sheet 4: hotspot gate detail */
+sheet(2, 'Hotspot gate · detail', '1:1', [-130, -60, 260, 170],
+  '<b>Speed gate.</b> The ⌀34 aperture is narrower than a marble plus its fall. A marble crossing at under about 0.7 m/s drops far enough to catch the far lip and falls onto the flap. The flap pulls the Bowden cable to a light trip, which fires once; the marble stays on the flap until a player lifts it out.',
+  c => {
+    const Y = y => -y;
+    c.hatch(-120, Y(0), 120 - D.spotR - 4, D.deckT); c.hatch(D.spotR + 4, Y(0), 120 - D.spotR - 4, D.deckT);
+    c.hatch(-D.spotR - 4, Y(0), 4, 0.8 + 3, true); c.hatch(D.spotR, Y(0), 4, 3.8, true);
+    c.rect(-D.spotR, Y(-D.deckT), 2 * D.spotR, 30, 'thin');
+    c.hatch(-D.spotR + 1, Y(-D.deckT - 5), 2 * D.spotR - 2, 2, true);
+    // spring under flap
+    let d = `M -6 ${Y(-D.deckT - 7)}`; for (let k = 0; k < 7; k++) d += ` L ${k % 2 ? -6 : 6} ${Y(-D.deckT - 9 - k * 3)}`; c.path(d, 'thin');
+    // cable
+    c.path(`M 8 ${Y(-D.deckT - 7)} L 8 ${Y(-55)} Q 8 ${Y(-70)} 40 ${Y(-72)} L 120 ${Y(-72)}`, 'ln');
+    // marble trajectories: slow drops, fast skims
+    c.circ(-60, Y(D.marble), D.marble, 'thin');
+    c.path(`M -60 ${Y(D.marble)} Q -10 ${Y(D.marble)} 0 ${Y(-6)}`, 'hid'); c.circ(0, Y(-D.deckT - 5 + D.marble), D.marble, 'ln');
+    c.path(`M -60 ${Y(D.marble + 2)} L 90 ${Y(D.marble + 2)}`, 'hid'); c.circ(90, Y(D.marble), D.marble, 'thin');
+    c.dim(-D.spotR, Y(0), D.spotR, Y(0), -38, '⌀34');
+    c.dim(-D.spotR - 18, Y(0), -D.spotR - 18, Y(-D.deckT - 5), 0, '17');
+    c.dim(D.spotR + 14, Y(0), D.spotR + 14, Y(-D.deckT - 30), 0, '42');
+    c.text(90, Y(D.marble * 2 + 6), 'fast: skims over', 'note', 'middle');
+    c.text(-60, Y(D.marble * 2 + 6), 'marble ⌀25', 'note', 'middle');
+    c.text(-24, Y(-D.deckT - 30), 'slow: drops in', 'note', 'end');
+    c.leader(-12, Y(-D.deckT - 6), -112, 34, 'sprung flap ⌀32 × 2', 'start');
+    c.leader(100, Y(-72), 60, 92, 'Bowden cable to the trip', 'end');
+  }, false);
+
+/* Sheet 3: section A–A on the diagonal */
+sheet(3, 'Section A–A on the diagonal', '1:2', [-390, -200, 780, 395],
+  '<b>Section along the ring arbor,</b> seen from the south-east as the arrows on sheet 1 show, so the north-east corner is on the right. Rings ride on ball races above a fixed bed plate. Crown teeth hang from each ring to meet one pinion on the radial arbor. The movement sits under the corner, behind the launch pad, where the bed plate is cut back square for it. The ring arbor runs from a pedestal on the bed plate to a cock short of arbor 2, an L-shaped potence on the outer plate whose arm lies in front of the section. Sunk marbles drop straight down the tube into the drawer, which runs back under the hole. The mainspring barrel lies in front of the section plane and the fly behind it; both are shown dashed, and sheet 6 places them.',
+  c => {
+    const Y = y => -y;   // world y up -> svg down
+    const L = D.B / 2 * Math.SQRT2;
+    // deck either side of the rings
+    c.hatch(-L, Y(0), L - D.deckHoleR, D.deckT); c.hatch(D.deckHoleR, Y(0), L - D.deckHoleR, D.deckT);
+    // rings
+    D.rings.forEach(r => { c.hatch(r.ri, Y(0), r.ro - r.ri, D.deckT); c.hatch(-r.ro, Y(0), r.ro - r.ri, D.deckT); });
+    // hub and chute
+    for (const s of [1, -1]) { c.hatch(s > 0 ? D.holeR : -D.hubR, Y(0), D.hubR - D.holeR, D.deckT, true); c.hatch(s > 0 ? D.holeR : -D.holeR - 1.5, Y(-D.deckT), 1.5, 70 - D.deckT, true); }
+    for (const s of [1, -1]) { c.line(s * D.holeR, Y(-70), s * D.holeR, Y(-D.tubeEnd), 'ln'); c.line(s * (D.holeR + 1), Y(-70), s * (D.holeR + 1), Y(-D.tubeEnd), 'ln'); }
+    c.line(-D.holeR - 1, Y(-D.tubeEnd), D.holeR + 1, Y(-D.tubeEnd), 'thin');
+    // drawer, cut on the diagonal where it passes under the hole
+    c.rect(-85, Y(-D.cabH + D.floorT + 30), 113, 30, 'hid');
+    // cabinet walls at the corners, floor
+    c.hatch(-L, Y(-D.deckT), 14, D.cabH - D.deckT); c.hatch(L - 14, Y(-D.deckT), 14, D.cabH - D.deckT);
+    c.hatch(-L + 14, Y(-D.cabH + D.floorT), 2 * L - 28, D.floorT);
+    // ball races and bed plate
+    D.rings.forEach(r => [r.ri + 4, r.ro - 4].forEach(x => { for (const s of [1, -1]) { c.circ(s * x, Y(-D.deckT - 3), 3, 'thin'); c.rect(s * x - 3.5, Y(-D.deckT - 6), 7, 3, 'thin'); } }));
+    c.hatch(D.bedBore, Y(-60), D.bedCut - D.bedBore, 6, true); c.hatch(-D.bedR, Y(-60), D.bedR - D.bedBore, 6, true);
+    c.rect(29, Y(-37), 6, 23, 'ln'); c.rect(D.shaftX1 - 3, Y(D.shaftY + 5), 3, 10, 'ln'); c.rect(D.shaftX1, Y(D.shaftY + 4), 15.75, 8, 'hid');
+    // crown flanges + teeth, pinions on the arbor
+    D.crown.forEach(cr => {
+      const tb = D.shaftY + cr.Np / 2 - 1;
+      c.hatch(cr.r - 5, Y(-D.deckT), 10, -D.deckT - tb, true);
+      c.hatch(-cr.r - 5, Y(-D.deckT), 10, -D.deckT - tb, true);
+      c.rect(cr.r - 3, Y(D.shaftY + cr.Np / 2 + 1), 6, cr.Np + 2, 'brass');
+      c.text(cr.r, Y(D.shaftY) + cr.Np / 2 + 14 + (cr.Z === 220 ? 14 : 0), `${cr.Np}L/${cr.Z}T`, 'dimt', 'middle');
+    });
+    c.line(D.shaftX0, Y(D.shaftY), D.shaftX1, Y(D.shaftY), 'ln'); c.line(D.shaftX0, Y(D.shaftY) - 3, D.shaftX1, Y(D.shaftY) - 3, 'thin'); c.line(D.shaftX0, Y(D.shaftY) + 3, D.shaftX1, Y(D.shaftY) + 3, 'thin');
+    c.line(-360, Y(D.shaftY), 360, Y(D.shaftY), 'ctr');
+    // movement: in-plane wheels as edge-on rectangles
+    const ed = (x, y, Z, w, cls) => c.rect(x - w / 2, Y(y + Z / 2 + 1), w, Z + 2, cls);
+    ed(TRAIN.shaft.pinionToA1.x, D.shaftY, TRAIN.shaft.pinionToA1.Z, 8, 'brass');
+    ed(TRAIN.shaft.wheel.x, D.shaftY, TRAIN.shaft.wheel.Z, 4, 'brass');
+    ed(TRAIN.a1.wheel.x, TRAIN.a1.y, TRAIN.a1.wheel.Z, 4, 'brass'); ed(TRAIN.a1.pinion.x, TRAIN.a1.y, TRAIN.a1.pinion.Z, 6, 'ln');
+    c.line(190, Y(TRAIN.a1.y), 240, Y(TRAIN.a1.y), 'ln');
+    ed(TRAIN.barrel.x + 5, TRAIN.barrel.y, 88, 12, 'hid');
+    ed(TRAIN.fly.vaneX, TRAIN.fly.y, 48, 12, 'hid');
+    for (const x of [190, 241]) c.rect(x - 1.25, Y(-27), 2.5, 110, 'thin');
+    // marble and giant for scale
+    c.circ(-150, Y(D.marble), D.marble, 'thin'); c.text(-150, Y(D.marble * 2) - 6, '⌀25', 'dimt', 'middle'); c.circ(L - 60, Y(D.giant), D.giant, 'thin');
+    // dims and labels
+    c.dim(-L, Y(-D.cabH), -L, Y(0), -16, '150');
+    c.dim(-D.deckHoleR - 30, Y(0), -D.deckHoleR - 30, Y(-D.deckT), 14, '12');
+    c.dim(0, Y(0), D.crown[0].r, Y(0), -40, 'pitch R50');
+    c.dim(0, Y(0), D.crown[1].r, Y(0), -62, 'R110');
+    c.dim(0, Y(0), D.crown[2].r, Y(0), -84, 'R175');
+    c.leader(-129.5, Y(-D.deckT - 3), -200, -150, 'ball race ⌀6 balls', 'end');
+    c.leader(-D.crown[2].r, Y(-20), -378, -110, 'crown wheel: 10 rim,', 'start'); c.text(-374, -92, 'teeth 4 wide on the pitch circle', 'note');
+    c.leader(-120, Y(-63), -200, 180, 'bed plate', 'end');
+    c.leader(TRAIN.barrel.x + 5, Y(TRAIN.barrel.y - 44), 330, 180, 'mainspring barrel (in front)', 'end');
+    c.leader(TRAIN.fly.vaneX + 6, Y(TRAIN.fly.y + 10), 360, -110, 'fan fly (behind)', 'end');
+    c.leader(L - 60, Y(D.giant * 2), 300, -160, '⌀45 giant on pad', 'end');
+    c.leader(D.holeR + 1, Y(-90), 30, 162, 'drop tube ⌀40 × 1, ends 4 above the drawer', 'start');
+  }, true);
+
+/* Sheet 3: going train schematic */
+sheet(4, 'Going train · schematic', 'none', [0, 0, 760, 320],
+  '<b>Train layout, unrolled.</b> Each pair is a wheel driving a pinion on the next arbor. The ring arbor is the centre of the train: power comes up from the barrel and leaves upward to the fly, while its three pinions turn the rings.',
+  c => {
+    const arbors = [
+      { name: 'Barrel', x: 70, w: W_BARREL, gears: [[100, 'W']] },
+      { name: 'Arbor 1', x: 210, w: W_A1, gears: [[10, 'P'], [60, 'W']] },
+      { name: 'Ring arbor', x: 370, w: W_SHAFT, gears: [[24, 'P'], [36, 'W']] },
+      { name: 'Arbor 2', x: 520, w: W_A2, gears: [[6, 'P'], [60, 'W']] },
+      { name: 'Fly', x: 670, w: W_FLY, gears: [[6, 'P']] },
+    ];
+    const yA = 150, sc = 0.9;
+    arbors.forEach((a, i) => {
+      c.line(a.x, 40, a.x, 260, 'ctr');
+      a.gears.forEach(([Z, t], k) => {
+        const r = Z / 2 * sc + 4, y = yA + (k === 0 ? -40 : 40) * (a.gears.length > 1 ? 1 : 0);
+        c.circ(a.x, y, r, t === 'W' ? 'brass' : 'ln'); c.circ(a.x, y, 2, 'thin');
+        c.text(a.x + r + 4, y + 4, `${Z}${t === 'W' ? 'T' : 'L'}`, 'dimt');
+      });
+      c.text(a.x, 286, a.name, 'lbl', 'middle');
+      c.text(a.x, 303, rpm(a.w) < 10 ? rpm(a.w).toFixed(2) + ' rpm' : rpm(a.w).toFixed(0) + ' rpm', 'dimt', 'middle');
+    });
+    const link = (x1, y1, x2, y2, label) => { const mx = (x1 + x2) / 2, my = Math.min(y1, y2) - 30; S('path', { d: `M${x1 + 6} ${y1} Q ${mx} ${my} ${x2 - 6} ${y2}`, class: 'dim', 'marker-end': `url(#ar4)` }, c.g); c.text(mx, my + 8, label, 'note', 'middle'); };
+    link(70, 150, 210, 110, '×10'); link(210, 190, 370, 110, '×2.5'); link(370, 190, 520, 110, '×6'); link(520, 190, 670, 150, '×10');
+    // ring take-offs
+    D.crown.forEach((cr, i) => {
+      const y = 232 + i * 15;
+      c.line(370, y - 4, 290, y - 4, 'hid');
+      c.text(286, y, `${cr.Np}L → ${cr.Z}T crown · ${D.rings[i].pts} ring · ${rpm(ringW[i]).toFixed(2)} rpm`, 'note', 'end');
+    });
+    c.text(20, 30, 'Power from the spring  →', 'note');
+    c.text(740, 30, '→  speed governed by air drag', 'note', 'end');
+  }, true);
+
+/* Sheet 5: fly governor and event release */
+sheet(5, 'Fly governor and event release', 'none', [-20, -10, 800, 320],
+  '<b>Left:</b> the fly seen end-on. Feathering the vanes nearly edge-on cuts drag about fourteen-fold, so the train settles about 3.7 times faster. <b>Right:</b> any gate lifts the warning lever and releases the event train. The drum turns a quarter turn until the locking plate stops it, and the cam whose lobe is in that quarter fires its event, so the four come round in turn. The drum lies under the west edge, 196 from the centre and 86 below the surface, its axis north–south: a ⌀20 core carrying four ⌀32 cams at 20 pitch. Cables run from three cams, each against a return spring: to the hammer’s tail, to a fork on the fly’s feathering collar, which sits inboard of the vanes, and to a pulley on the cat’s crank behind the back wall. A push rod from the fourth turns a crank on the foot of the paw’s pin; a helical ramp under the collar lifts the pin 12 in its first 20°. Sheet 1 shows the routes. The rest of the train is the maker’s choice.',
+  c => {
+    // fly end-on
+    const cx = 140, cy = 130;
+    c.circ(cx, cy, 4, 'ln'); c.line(cx - 90, cy, cx + 90, cy, 'ctr'); c.line(cx, cy - 90, cx, cy + 90, 'ctr');
+    c.rect(cx - 6, cy - 70, 12, 56, 'fillb'); c.rect(cx - 6, cy + 14, 12, 56, 'fillb');
+    c.path(`M ${cx - 30} ${cy - 70} L ${cx + 30} ${cy - 66}`, 'hid'); c.path(`M ${cx - 30} ${cy + 66} L ${cx + 30} ${cy + 70}`, 'hid');
+    c.text(cx, cy + 100, 'vanes 22 × 12, open (solid) / feathered (dashed)', 'note', 'middle');
+    c.text(cx, 24, 'Fan fly, 1,200 rpm', 'lbl', 'middle');
+    c.leader(cx + 26, cy - 68, cx + 70, cy - 90, 'surge cam feathers');
+    c.text(cx, cy + 120, 'ω ∝ 1/√(drag area): area ÷14 → ×3.7', 'dimt', 'middle');
+    // event release schematic
+    const bx = 300;
+    c.text(bx + 220, 24, 'Event train', 'lbl', 'middle');
+    c.rect(bx, 60, 90, 40, 'ln'); c.text(bx + 45, 85, 'warning lever', 'note', 'middle');
+    c.rect(bx + 140, 50, 140, 60, 'brass'); c.text(bx + 210, 75, 'four-cam drum', 'lbl', 'middle'); c.text(bx + 210, 93, '¼ turn per event', 'note', 'middle');
+    c.rect(bx + 330, 55, 100, 50, 'ln'); c.text(bx + 380, 85, 'locking plate', 'note', 'middle');
+    S('line', { x1: bx + 90, y1: 80, x2: bx + 138, y2: 80, class: 'dim', 'marker-end': 'url(#ar5)' }, c.g);
+    S('line', { x1: bx + 280, y1: 80, x2: bx + 330, y2: 80, class: 'dim', 'marker-end': 'url(#ar5)' }, c.g);
+    [['Earthquake hammer', 'cable to its tail'], ['Fly surge', 'cable to the collar fork'], ['Cat swing arm', 'cable to the crank pulley'], ['Paw arm', 'push rod to the pin crank']].forEach(([t, u], i) => {
+      S('line', { x1: bx + 150 + i * 40, y1: 110, x2: bx + 40 + i * 120, y2: 170, class: 'dim', 'marker-end': 'url(#ar5)' }, c.g);
+      c.text(bx + 40 + i * 120, 186, t, 'note', 'middle'); c.text(bx + 40 + i * 120, 200, u, 'note', 'middle');
+    });
+    // locking plate: the detent drops into the next notch after a quarter turn
+    const gx = bx + 410, gy = 248;
+    c.circ(gx, gy, 26, 'brass'); c.circ(gx, gy, 3, 'thin');
+    for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 - Math.PI / 4; c.circ(gx + Math.cos(a) * 26, gy + Math.sin(a) * 26, 5, 'ln'); }
+    c.line(gx - 58, gy - 34, gx - 22, gy - 22, 'ln');
+    c.text(gx - 62, gy + 4, 'locking plate ⌀52, four R5 notches', 'note', 'end');
+    c.text(bx + 52, 44, 'from the four gates', 'note');
+    S('line', { x1: bx + 45, y1: 34, x2: bx + 45, y2: 58, class: 'dim', 'marker-end': 'url(#ar5)' }, c.g);
+    c.text(0, 284, 'Drum under the west edge, 196 from the centre, 86 down, axis north–south: ⌀20 core, four ⌀32 cams at 20 pitch. Each cable works against a return spring.', 'note');
+    c.text(0, 300, 'Feathering collar on the fly arbor at 197, inboard of the vanes. Paw: a helical ramp under the collar lifts its ⌀3 pin 12 in the first 20° of the crank. Routes on sheet 1.', 'note');
+  }, true);
+
+/* Sheet 6: movement end view and wheel planes */
+sheet(6, 'Movement · end view and wheel planes', '1:1', [-155, -30, 620, 318],
+  '<b>End view of the movement,</b> looking along the arbors from the centre of the board towards the north-east corner, so south-east is on the right. Centres are given across (v, south-east positive) and down from the playing surface, the top of the deck. The planes are measured along the arbors from the centre of the board. All wheels are module 1, so each pair meshes at half the sum of its tooth counts.',
+  c => {
+    const K = 1.6, X = v => v * K, Yp = y => -y * K;
+    const pos = { ring: [0, D.shaftY], a1: [-TRAIN.a1.z, TRAIN.a1.y], barrel: [-TRAIN.barrel.z, TRAIN.barrel.y], a2: [-TRAIN.a2.z, TRAIN.a2.y], fly: [-TRAIN.fly.z, TRAIN.fly.y] };
+    c.line(X(-95), Yp(0), X(118), Yp(0), 'ctr'); c.text(X(-90), Yp(0) - 4, 'playing surface: datum for down', 'note');
+    c.line(X(-95), Yp(-D.deckT), X(118), Yp(-D.deckT), 'thin'); c.text(X(118), Yp(-D.deckT) - 4, 'underside of deck', 'note', 'end');
+    c.line(X(-95), Yp(-D.cabH + D.floorT), X(118), Yp(-D.cabH + D.floorT), 'thin'); c.text(X(118), Yp(-D.cabH + D.floorT) - 4, 'floor', 'note', 'end');
+    c.rect(X(-75), Yp(-27), 170 * K, 110 * K, 'hid');
+    const wheel = (k, Z, cls) => c.circ(X(pos[k][0]), Yp(pos[k][1]), Z / 2 * K, cls);
+    wheel('ring', 24, 'thin'); wheel('ring', 36, 'brass');
+    wheel('a1', 60, 'brass'); wheel('a1', 10, 'thin');
+    wheel('barrel', 100, 'brass'); wheel('barrel', 88, 'hid');
+    wheel('a2', 6, 'thin'); wheel('a2', 60, 'brass');
+    wheel('fly', 6, 'thin');
+    for (const sg of [1, -1]) c.rect(X(pos.fly[0]) - 1, Yp(pos.fly[1] + sg * 5.5), 2, -sg * 22 * K, 'fillb');
+    for (const k in pos) { c.circ(X(pos[k][0]), Yp(pos[k][1]), 2.5, 'ln'); }
+    c.rect(X(-5), Yp(D.shaftY + 5), 33 * K, 10 * K, 'thin'); c.rect(X(20), Yp(D.shaftY + 4), 8 * K, 8 * K, 'fillb');
+    c.leader(X(24), Yp(D.shaftY - 4), X(60), Yp(-20), 'cock, arm to the outer plate');
+    c.leader(X(0) + 3, Yp(D.shaftY) - 3, X(30), Yp(-4), 'ring arbor');
+    c.leader(X(0) + 3, Yp(TRAIN.a1.y) + 3, X(20), Yp(-120), 'arbor 1');
+    c.leader(X(pos.barrel[0]) + 3, Yp(pos.barrel[1]) + 3, X(85), Yp(-135), 'barrel');
+    c.leader(X(pos.a2[0]) - 3, Yp(pos.a2[1]) - 3, X(-60), Yp(-4), 'arbor 2', 'end');
+    c.leader(X(pos.fly[0]) - 3, Yp(pos.fly[1]) + 3, X(-80), Yp(-118), 'fly', 'end');
+    c.text(X(-73), Yp(-133), 'plates 170 × 110 on four pillars (dashed)', 'note'); c.text(X(-90), Yp(-150), 'Lantern pinions: pins 2 longer than the teeth they meet, so the flanges clear the wheel.', 'note');
+    // schedule of centres and planes
+    const tx = 215, rows = [
+      ['CENTRES', 'v', 'down'],
+      ['Ring arbor ⌀6', '0', -D.shaftY], ['Arbor 1 ⌀5', '0', -TRAIN.a1.y], ['Barrel, on winding arbor ⌀8', -TRAIN.barrel.z, -TRAIN.barrel.y],
+      ['Arbor 2 ⌀4', -TRAIN.a2.z, -TRAIN.a2.y], ['Fly ⌀3.2', -TRAIN.fly.z, -TRAIN.fly.y],
+      ['PLANES', 'from centre', 'thick'],
+      ['Ring arbor pedestal', '30', '6'], ['Inner plate', '190', '2.5'], ['60T arbor 1 · 24L ring arbor', TRAIN.a1.wheel.x, '4 · 8'],
+      ['Fly collar · vanes 22 × 12', '197 · 204–216', '6'], ['100T barrel · 10L arbor 1', TRAIN.barrel.x, '4 · 6'], ['Barrel drum ⌀88', '206–218', ''],
+      ['36T ring arbor · 6L arbor 2', TRAIN.shaft.wheel.x, '4 · 5'], ['Cock, ring arbor ends', '221–224', '3'], ['60T arbor 2 · 6L fly', TRAIN.a2.wheel.x, '3 · 5'],
+      ['Outer plate', '241', '2.5'], ['Winding arbor to the east wall', '307', ''],
+    ];
+    rows.forEach(([a, b, d], i) => {
+      const y = 8 + i * 14, head = a === 'CENTRES' || a === 'PLANES';
+      c.text(tx, y, a, head ? 'dimt' : 'note'); c.text(tx + 178, y, String(b), 'dimt', 'end'); if (d !== '') c.text(tx + 240, y, String(d), 'dimt', 'end');
+    });
+  }, true);
+
+/* ======================= SCHEDULES */
+(function () {
+  const gt = $('gearTable');
+  const rows = [
+    ['Barrel', 'wheel', 100, W_BARREL], ['Arbor 1', 'pinion', 10, W_A1], ['Arbor 1', 'wheel', 60, W_A1],
+    ['Ring arbor', 'pinion', 24, W_SHAFT], ['Ring arbor', 'pinion → 5 ring', 15, W_SHAFT], ['Ring arbor', 'pinion → 3 ring', 16, W_SHAFT], ['Ring arbor', 'pinion → 1 ring', 10, W_SHAFT], ['Ring arbor', 'wheel', 36, W_SHAFT],
+    ['5 ring', 'crown', 100, ringW[0]], ['3 ring', 'crown', 220, ringW[1]], ['1 ring', 'crown', 350, ringW[2]],
+    ['Arbor 2', 'pinion', 6, W_A2], ['Arbor 2', 'wheel', 60, W_A2], ['Fly', 'pinion', 6, W_FLY],
+  ];
+  gt.insertAdjacentHTML('beforeend', '<thead><tr><th>Arbor</th><th>Part</th><th style="text-align:right">Teeth</th><th style="text-align:right">⌀ pitch</th><th style="text-align:right">rpm</th></tr></thead><tbody>' +
+    rows.map(([a, p, z, w]) => `<tr><td>${a}</td><td>${p}</td><td class="n">${z}</td><td class="n">${z}.0</td><td class="n">${rpm(w) < 10 ? rpm(w).toFixed(3) : rpm(w).toFixed(1)}</td></tr>`).join('') + '</tbody>');
+  const parts = [
+    ['1', 'Cabinet, four sides, floor', 'Walnut, 10 and 12', 1],
+    ['2', 'Deck plate 500 × 500 × 12', 'Birch ply, maple veneer both faces', 1],
+    ['3', 'Rings: 5 (⌀51–129), 3 (⌀131–249), 1 (⌀251–380)', 'Birch ply, maple veneer, 12 thick', 3],
+    ['4', 'Crown wheels, module 1', 'CZ121 brass', 3],
+    ['5', 'Ball races, caged ⌀6 balls: 3 V-grooved, 3 flat', 'Hardened steel race wires', 6],
+    ['6', 'Fixed hub: ⌀38 bore, ⌀50 collar with paw groove, ⌀40 × 1 drop tube, three lugs', 'Brass', 1],
+    ['7', 'Bed plate ⌀400, ⌀52 bore, on three ⌀14 pillars; threaded levelling posts', 'Brass 6, steel', 1],
+    ['8', 'Ring arbor ⌀6 with three pinions, pedestal and L-shaped cock', 'Silver steel, brass', 1],
+    ['9', 'Mainspring barrel, 10 turns, stopwork for 8', 'Brass barrel, steel spring', 1],
+    ['10', 'Movement plates 170 × 110 on four pillars, arbors 1, 2', 'Brass 2.5', 2],
+    ['11', 'Fan fly, feathering vanes', 'Brass 0.8 shim', 1],
+    ['12', 'Hotspot gates: collar, cup flanged under the deck, flap, spring', 'Brass, music wire', 4],
+    ['13', 'Bowden cables to one shared trip', 'Steel inner, PTFE liner', 4],
+    ['14', 'Event train: spring, fly, four-cam drum, locking plate, three cam cables', 'Brass, steel', 1],
+    ['15', 'Earthquake hammer', 'Steel arm, brass head', 1],
+    ['16', 'Cat automaton on 240 arm, post in two back-wall brackets, crank pulley, slipping clutch', 'Brass 2, steel pivot', 1],
+    ['17', 'Paw arm ⌀4, ⌀3 pin with helical lifting ramp, crank and push rod', 'Brass rod, steel pin', 1],
+    ['18', 'Drawer 120 × 270 × 30, felt floor falling 5° to the front', 'Walnut', 1],
+    ['19', 'Winding key and click', 'Brass, steel', 1],
+    ['20', 'Marbles ⌀25 × 20, giants ⌀45 × 4', 'Glass', 24],
+  ];
+  $('partsTable').insertAdjacentHTML('beforeend', '<thead><tr><th>No.</th><th>Part</th><th>Material</th><th style="text-align:right">Qty</th></tr></thead><tbody>' +
+    parts.map(p => `<tr><td class="n" style="text-align:left">${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td class="n">${p[3]}</td></tr>`).join('') + '</tbody>');
+})();
+</script>
+
+</body></html>

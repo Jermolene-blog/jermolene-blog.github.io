@@ -1,0 +1,43 @@
+{
+	"name": "Clockwork Marble Flick",
+	"short_name": "Clockwork Marble Flick",
+	"description": "Blueprints for a wind-up tabletop Marble Flick: a working 3D model of the movement to turn, take apart and wind, six drawing sheets, and the schedules of wheels, speeds and parts",
+	"id": "/toys/clockwork-marble-flick/",
+	"start_url": "/toys/clockwork-marble-flick/",
+	"scope": "/toys/clockwork-marble-flick/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#0a1a30",
+	"background_color": "#0a1a30",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

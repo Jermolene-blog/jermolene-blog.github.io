@@ -30,7 +30,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "e73cb6158c302a8b",
+	"version": "6c3c4a83faa9c57d",
 	"urls": [
 		"/games/",
 		"/toys/",
@@ -136,6 +136,12 @@ self.PRECACHE = {
 		"/toys/blobbles/icon.svg",
 		"/toys/blobbles/",
 		"/toys/blobbles/manifest.webmanifest",
+		"/toys/clockwork-marble-flick/apple-touch-icon.png",
+		"/toys/clockwork-marble-flick/icon-192.png",
+		"/toys/clockwork-marble-flick/icon-512.png",
+		"/toys/clockwork-marble-flick/icon.svg",
+		"/toys/clockwork-marble-flick/",
+		"/toys/clockwork-marble-flick/manifest.webmanifest",
 		"/toys/engravery/apple-touch-icon.png",
 		"/toys/engravery/icon-192.png",
 		"/toys/engravery/icon-512.png",
@@ -250,6 +256,7 @@ self.PRECACHE = {
 		"/screenshots/toys/blobbles.webp",
 		"/screenshots/games/bowling-bear.webp",
 		"/screenshots/games/catflap.webp",
+		"/screenshots/toys/clockwork-marble-flick.webp",
 		"/screenshots/toys/engravery.webp",
 		"/screenshots/tools/canon-eos-r10-field-guide.webp",
 		"/screenshots/toys/flowing-field.webp",
@@ -281,6 +288,8 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",
+		"https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Barlow+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap",
+		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500&family=Space+Mono&display=swap",
 		"https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;800&family=Chivo+Mono:wght@400;600&display=swap",
 		"https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
@@ -290,7 +299,6 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap",
-		"https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@400;500;700&family=Cutive+Mono&display=swap",
