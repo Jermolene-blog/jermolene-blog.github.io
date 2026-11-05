@@ -1550,6 +1550,11 @@ function pop(x, z, text, color) {
 const up = new THREE.Vector3(0, 1, 0), tmpA = new THREE.Vector3(), tmpQ = new THREE.Quaternion();
 let last = performance.now(), acc = 0, hudTick = 0, lastMoving = false, launchAt = 0;
 const ringAng = [0, 0, 0];
+// The rings turn all through a game, so the board is only still while paused: then it isn't redrawn (after
+// mrdoob's Codevember 2026/05), except for a few frames after any input or resize, in case that changed it
+let wake = 3;
+const wakeUp = () => { wake = 3; };
+['pointerdown', 'pointermove', 'pointerup', 'wheel', 'keydown', 'input', 'click', 'resize'].forEach(t => addEventListener(t, wakeUp, { capture: true, passive: true }));
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   const paused = !document.getElementById('pause').hidden;
@@ -1681,7 +1686,8 @@ function frame(now) {
   if (phase === 'rapid') for (const m of loaded) {
     const e = m && meshes.get(m.id), bob = Math.sin(now / 260 + m?.owner * 1.7); if (e) e.mesh.position.y = m.r + 0.03 + bob * 0.025;
   }
-  renderer.render(scene, camera);
+  if (!paused) renderer.render(scene, camera);
+  else if (wake > 0) { wake--; renderer.render(scene, camera); }
   requestAnimationFrame(frame);
 }
 
