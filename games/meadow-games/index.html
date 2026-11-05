@@ -164,6 +164,20 @@ const ease={
   lin:k=>k,
   bounce:k=>{const n=7.5625,d=2.75;if(k<1/d)return n*k*k;if(k<2/d)return n*(k-=1.5/d)*k+.75;if(k<2.5/d)return n*(k-=2.25/d)*k+.9375;return n*(k-=2.625/d)*k+.984375},
 };
+// Pokes: a damped spring after a short fading push, evaluated against the meadow clock (after mrdoob's
+// Codevember 2026/05). Each poke starts at rest, peaks 0.25 s later, recoils by a fifth and is gone by `dur`.
+// Pokes add up, and tanh keeps each component under its limit however fast a toddler taps.
+function makePokes(limits,{decay=2.9,freq=5.5,push=25,dur=2.4}={}){
+  const r=freq/(push-decay),raw=t=>Math.exp(-decay*t)*(Math.sin(freq*t)-r*Math.cos(freq*t))+r*Math.exp(-push*t);
+  let peak=0;for(let t=0;t<dur;t+=0.002)peak=Math.max(peak,raw(t));
+  const tail=t=>{const k=Math.min(1,Math.max(0,t-dur+0.6)/0.6);return 1-k*k*k*(k*(k*6-15)+10)};
+  const n=limits.length,list=[],out=new Float32Array(n);
+  return{out,get busy(){return list.length>0},
+    kick(t,v){list.push({t,v:v.slice()})},
+    at(t){out.fill(0);
+      for(let i=list.length-1;i>=0;i--){const a=t-list[i].t;if(a>=dur||a<0){list.splice(i,1);continue}const w=raw(a)/peak*tail(a);for(let k=0;k<n;k++)out[k]+=list[i].v[k]*w}
+      for(let k=0;k<n;k++)out[k]=limits[k]*Math.tanh(out[k]/limits[k]);return out}};
+}
 function tween(dur,fn,{e=ease.inOut,done}={}){const t={t:0,dur:Math.max(dur,1e-4),fn,e,done,dead:false};tasks.push(t);fn(0);return t}
 function after(s,fn){return tween(s,()=>{},{done:fn})}
 function runTasks(dt){
@@ -304,9 +318,9 @@ function makeAnimal(id,size=2.2){
   const T=templates[id],model=SkeletonUtils.clone(T.scene);
   const k=size/Math.max(T.len,T.height*1.1);model.scale.setScalar(k);
   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.frustumCulled=false}});
-  const holder=new THREE.Group();holder.add(model);
+  const holder=new THREE.Group(),jolt=new THREE.Group();jolt.add(model);holder.add(jolt);
   const mixer=new THREE.AnimationMixer(model);
-  const a={id,T,holder,model,mixer,act:{},cur:null,h:T.height*k,len:T.len*k,rest:'idle',lock:false,idleT:rr(3,8),heading:0};
+  const a={id,T,holder,jolt,model,mixer,act:{},cur:null,h:T.height*k,len:T.len*k,rest:'idle',lock:false,idleT:rr(3,8),heading:0};
   for(const c of T.clips)a.act[c.name]=mixer.clipAction(c);
   const hit=new THREE.Mesh(HITGEO,HITMAT);hit.visible=false;const r=Math.max(a.len,a.h)*0.62;hit.scale.set(r,a.h*0.7,r);hit.position.y=a.h*0.5;holder.add(hit);a.hit=hit;
   play(a,'calm');mixer.update(Math.random()*3);
@@ -333,9 +347,28 @@ function popIn(a,delay=0,dur=0.5){a.holder.scale.setScalar(0.0001);after(delay,(
 function popOut(a,dur=0.3,done){tween(dur,k=>a.holder.scale.setScalar(Math.max(1-k,1e-4)),{e:ease.inBack,done:()=>{removeAnimal(a);done&&done()}})}
 function removeAnimal(a){a.holder.parent&&a.holder.parent.remove(a.holder);a.mixer.stopAllAction();live.delete(a);a.dead=true}
 function face(a,yaw){a.heading=yaw;a.holder.rotation.y=yaw}
+// a tap that picks an animal pokes it: it leans away along the tap, spins by the side touched, squashes and
+// bobs, on its `jolt` group (between holder and model), so poses, popIns and headings are left alone
+let mtime=0;
+const pkQ=new THREE.Quaternion(),pkA=new THREE.Vector3(),pkC=new THREE.Vector3(),pkP=new THREE.Vector3(),pkD=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0);
+function pokeAnimal(a,r){
+  if(mtime-(a.lastPoke??-1)<0.12)return;a.lastPoke=mtime;
+  a.pokes=a.pokes||makePokes([0.4,0.4,0.9,0.2,0.15*a.h]);
+  a.hit.getWorldPosition(pkC);r.closestPointToPoint(pkC,pkP);const lever=pkP.sub(pkC);lever.y=0;
+  pkD.set(r.direction.x,0,r.direction.z);if(pkD.lengthSq()<0.04)pkD.copy(lever).negate();if(pkD.lengthSq()<1e-6)pkD.set(0,0,-1);pkD.normalize();
+  const yaw=lever.z*pkD.x-lever.x*pkD.z;
+  pkA.set(0,1,0).cross(pkD).applyAxisAngle(UP,-a.holder.rotation.y); // tips the top away from the finger, in the holder's frame
+  a.pokes.kick(mtime,[pkA.x*0.28,pkA.z*0.28,(yaw<0?-1:1)*0.5,0.12,0.08*a.h]);
+}
 function updateAnimals(dt){
+  mtime+=dt;
   for(const a of live){
     a.mixer.update(dt);
+    if(a.pokes&&a.pokes.busy){
+      const P=a.pokes.at(mtime),j=a.jolt,g=Math.hypot(P[0],P[1]);j.rotation.set(0,P[2],0);
+      if(g>1e-5)j.quaternion.premultiply(pkQ.setFromAxisAngle(pkA.set(P[0]/g,0,P[1]/g),g));
+      j.position.y=P[4];j.scale.set(1+P[3]*0.5,1-P[3],1+P[3]*0.5);a.jolted=true;
+    }else if(a.jolted){a.jolt.position.set(0,0,0);a.jolt.rotation.set(0,0,0);a.jolt.scale.setScalar(1);a.jolted=false}
     if(a.rest==='idle'&&!a.lock&&!a.down&&!a.moving){a.idleT-=dt;if(a.idleT<=0){a.idleT=rr(4,9);play(a,'idle',{fade:0.5})}}
   }
 }
@@ -480,6 +513,7 @@ canvas.addEventListener('pointerdown',e=>{
   let target=hit?list.find(t=>t.hit===hit.object):null;
   if(!target){let bd=Math.min(r.width,r.height)*0.13;for(const t of list){t.hit.getWorldPosition(tv).project(camera);
     const d=Math.hypot((tv.x*0.5+0.5)*r.width-x,(-tv.y*0.5+0.5)*r.height-y);if(d<bd){bd=d;target=t}}}
+  if(target&&target.a)pokeAnimal(target.a,ray.ray);
   game.tap&&game.tap(target);
 });
 document.addEventListener('gesturestart',e=>e.preventDefault());
