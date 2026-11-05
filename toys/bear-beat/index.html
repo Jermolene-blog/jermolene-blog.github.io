@@ -313,6 +313,20 @@ function tintMaterial(mat, look) {
   };
   mat.customProgramCacheKey = () => 'tint-' + look.name;
 }
+// Pokes: a damped spring after a short fading push, evaluated against pokeT (after mrdoob's Codevember 2026/05).
+// Each poke starts at rest, peaks 0.25 s later, recoils by a fifth and is gone by `dur`. Pokes add up, and tanh
+// keeps each component under its limit however fast the taps come.
+function makePokes(limits, { decay = 2.9, freq = 5.5, push = 25, dur = 2.4 } = {}) {
+  const r = freq / (push - decay), raw = t => Math.exp(-decay * t) * (Math.sin(freq * t) - r * Math.cos(freq * t)) + r * Math.exp(-push * t);
+  let peak = 0; for (let t = 0; t < dur; t += 0.002) peak = Math.max(peak, raw(t));
+  const tail = t => { const k = Math.min(1, Math.max(0, t - dur + 0.6) / 0.6); return 1 - k * k * k * (k * (k * 6 - 15) + 10); };
+  const n = limits.length, list = [], out = new Float32Array(n);
+  return { out, get busy() { return list.length > 0; },
+    kick(t, v) { list.push({ t, v: v.slice() }); },
+    at(t) { out.fill(0);
+      for (let i = list.length - 1; i >= 0; i--) { const a = t - list[i].t; if (a >= dur || a < 0) { list.splice(i, 1); continue; } const w = raw(a) / peak * tail(a); for (let k = 0; k < n; k++) out[k] += list[i].v[k] * w; }
+      for (let k = 0; k < n; k++) out[k] = limits[k] * Math.tanh(out[k] / limits[k]); return out; } };
+}
 function makeBear(i) {
   const look = LOOKS[i], m = SkeletonUtils.clone(model), root = new THREE.Group(), Bb = {};
   root.add(m); scene.add(root);
@@ -322,6 +336,7 @@ function makeBear(i) {
       if (look.tint && o.geometry.attributes.position.count >= 500) tintMaterial(o.material, look); }
   });
   const bear = { i, look, root, model: m, B: Bb, mixer: new THREE.AnimationMixer(m), layers: [], rest: [], scale: look.scale, amp: look.amp, offset: new THREE.Vector3(), mirror: false,
+    pokes: makePokes([0.4, 0.4, 0.9, 0.18, 0.12]), lastPoke: -1,
     arms: lIsRight ? { R: F(Bb, 'L'), L: F(Bb, 'R') } : { R: F(Bb, 'R'), L: F(Bb, 'L') },
     legs: lIsRight ? { R: H(Bb, 'L'), L: H(Bb, 'R') } : { R: H(Bb, 'R'), L: H(Bb, 'L') } };
   m.traverse(o => { if (o.isBone) bear.rest.push([o, o.quaternion.clone(), o.position.clone()]); });
@@ -1207,7 +1222,7 @@ $('resetView').onclick = resetView;
   buildDanceList(); showDance(state.dance); buildBearButtons(); setBearCount(1);
   resetView();
   $('loader').classList.add('gone'); setTimeout(() => $('loader').hidden = true, 600);
-  window.__bear = { pickDance: id => pickDance(byId[id]), clock, state, freeze: null, song, mic,
+  window.__bear = { pickDance: id => pickDance(byId[id]), clock, state, freeze: null, song, mic, camera, get bears() { return bears; },
     micPhase() { // median distance (ms) between strong live onsets and the clock's predicted beats
       const h = mic.hist, now = actx.currentTime, out = [];
       const vals = h.map(x => x[1]).sort((a, b) => a - b), thr = vals[Math.floor(vals.length * 0.97)];
@@ -1224,9 +1239,35 @@ $('resetView').onclick = resetView;
 const clk = new THREE.Clock();
 let ow = 0, lastBeatIdx = -1;
 const prevPos = new THREE.Vector3();
+// A tap on a bear pokes it: it leans away along the tap, spins by the side touched, squashes and bobs, on top of
+// the dance. The orbit controls still get the same press, so dragging from a bear still turns the view.
+let pokeT = 0;
+const pokeRay = new THREE.Raycaster(), pokeNdc = new THREE.Vector2(), pkC = new THREE.Vector3(), pkP = new THREE.Vector3(), pkD = new THREE.Vector3(), pkA = new THREE.Vector3(), pkQ = new THREE.Quaternion();
+renderer.domElement.addEventListener('pointerdown', e => {
+  if (!e.isPrimary || e.button !== 0) return;
+  const rc = renderer.domElement.getBoundingClientRect();
+  pokeNdc.set((e.clientX - rc.left) / rc.width * 2 - 1, -(e.clientY - rc.top) / rc.height * 2 + 1);
+  pokeRay.setFromCamera(pokeNdc, camera); const ray = pokeRay.ray;
+  let best = null, bestAlong = Infinity;
+  for (const b of bears) {
+    if (!b.root.visible) continue;
+    pkC.copy(b.root.position).addScaledVector(UP, 0.6 * b.scale);
+    ray.closestPointToPoint(pkC, pkP); const along = pkP.distanceTo(ray.origin);
+    if (pkP.distanceTo(pkC) < 0.9 * b.scale && along < bestAlong) { best = b; bestAlong = along; }
+  }
+  if (!best || pokeT - best.lastPoke < 0.12) return;
+  best.lastPoke = pokeT;
+  pkC.copy(best.root.position).addScaledVector(UP, 0.6 * best.scale); ray.closestPointToPoint(pkC, pkP);
+  const lever = pkP.sub(pkC); lever.y = 0;
+  pkD.set(ray.direction.x, 0, ray.direction.z); if (pkD.lengthSq() < 0.04) pkD.copy(lever).negate(); if (pkD.lengthSq() < 1e-6) pkD.set(0, 0, -1); pkD.normalize();
+  const yaw = lever.z * pkD.x - lever.x * pkD.z;
+  pkA.set(0, 1, 0).cross(pkD); // tips the top away from the finger
+  best.pokes.kick(pokeT, [pkA.x * 0.28, pkA.z * 0.28, (yaw < 0 ? -1 : 1) * 0.55, 0.12, 0.08 * best.scale]);
+});
 function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clk.getDelta(), 0.1);
+  pokeT += dt;
   stepClock(dt);
   const fz = window.__bear.freeze;
   const offs = (+$('offset').value) / 1000 / clock.period;
@@ -1260,8 +1301,13 @@ function loop() {
   for (const bear of bears) {
     if (!bear.root.visible) continue;
     const S = bear.mirror ? mirrorS(Scur, Smir) : Scur, k = ow * bear.scale * bear.amp;
-    bear.root.rotation.y = state.heading; bear.root.scale.setScalar(bear.scale);
+    bear.root.rotation.set(0, state.heading, 0); bear.root.scale.setScalar(bear.scale);
     bear.root.position.copy(state.pos).add(bear.offset).addScaledVector(frame.r, S[22] * FLING.side * k).addScaledVector(UP, Math.max(-0.03, S[23] * FLING.hop * k));
+    if (bear.pokes.busy) {
+      const P = bear.pokes.at(pokeT), g = Math.hypot(P[0], P[1]); bear.root.rotation.y += P[2];
+      if (g > 1e-5) bear.root.quaternion.premultiply(pkQ.setFromAxisAngle(pkA.set(P[0] / g, 0, P[1] / g), g));
+      bear.root.position.y += P[4]; bear.root.scale.set(bear.scale * (1 + P[3] * 0.5), bear.scale * (1 - P[3]), bear.scale * (1 + P[3] * 0.5));
+    }
     bear.root.updateMatrixWorld(true); applyOverlay(bear, S, ow);
   }
   // floor, lights, HUD
