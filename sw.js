@@ -30,7 +30,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "0ed3122aa47b804b",
+	"version": "8607cdff49a8d84b",
 	"urls": [
 		"/games/",
 		"/toys/",
@@ -103,6 +103,12 @@ self.PRECACHE = {
 		"/games/meadow-games/",
 		"/games/meadow-games/manifest.webmanifest",
 		"/games/meadow-games/models.js",
+		"/games/plong/apple-touch-icon.png",
+		"/games/plong/icon-192.png",
+		"/games/plong/icon-512.png",
+		"/games/plong/icon.svg",
+		"/games/plong/",
+		"/games/plong/manifest.webmanifest",
 		"/games/pwa.js",
 		"/games/quizbuzz/apple-touch-icon.png",
 		"/games/quizbuzz/icon-192.png",
@@ -270,6 +276,7 @@ self.PRECACHE = {
 		"/screenshots/games/meadow-games.webp",
 		"/screenshots/toys/mimic.webp",
 		"/screenshots/tools/over-underiser.webp",
+		"/screenshots/games/plong.webp",
 		"/screenshots/games/quizbuzz.webp",
 		"/screenshots/toys/radialator.webp",
 		"/screenshots/toys/rug-addict.webp",
