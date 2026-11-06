@@ -119,6 +119,7 @@ input,textarea{-webkit-user-select:text;user-select:text}
     <div class="level" id="level" aria-hidden="true"><span>Input</span><span class="bar"><i></i><b></b></span></div>
     <button class="go" id="go">Start listening</button>
     <div class="msg" id="msg" hidden></div>
+    <div class="row" id="dbg" hidden><button class="chip" id="rec">Save 10 s of what it hears</button><span class="foot" id="dbgInfo"></span></div>
   </section>
 
   <section style="display:flex;flex-direction:column;gap:8px">
@@ -139,7 +140,7 @@ input,textarea{-webkit-user-select:text;user-select:text}
     <button class="chip" id="play">▶ Play reference</button>
   </section>
 
-  <p class="foot">The pen rides along the cents scale at the foot of the chart, and the paper feeds upwards while a note sounds, so the sheet holds your tuning history for the current string. A new sheet starts whenever the string changes. Tap a string to lock the tuner to it and turn off auto-detect. The green band is ±3 cents. The orange mark on the input bar is the noise gate, which rises with background noise.</p>
+  <p class="foot">The pen rides along the cents scale at the foot of the chart, and the paper feeds upwards while a note sounds, so the sheet holds your tuning history for the current string: each pluck draws its own stroke, starting a touch sharp as a plucked string does and settling. A new sheet starts whenever the string changes. Tap a string to lock the tuner to it and turn off auto-detect. The green band is ±3 cents. The orange mark on the input bar is the noise gate, which rises with background noise.</p>
 </div>
 
 <script>
@@ -209,7 +210,7 @@ const GAP=10;             // paper skipped when the pen lifts and drops again
 const cv=$('chart'),cx=cv.getContext('2d');
 let W=0,H=0,dpr=1;
 let paper=0,trace=[],marks=[],demo=false;
-let needleC=0,targetC=0,live=false,wasDrawing=false;
+let needleC=0,targetC=0,live=false,wasDrawing=false,penLift=false;
 function size(){const r=cv.getBoundingClientRect();dpr=devicePixelRatio||1;W=r.width;H=r.height;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
 new ResizeObserver(size).observe(cv);size();
 let cssCache={};
@@ -290,6 +291,8 @@ function frame(t){
   const dt=Math.min(.05,(t-lastT)/1000);lastT=t;
   needleC+=(targetC-needleC)*Math.min(1,dt*12);
   if(live){
+    // each pluck is its own stroke, rather than joined to the last by a line across the sheet
+    if(penLift&&wasDrawing){trace.push(null);paper+=GAP;penLift=false}
     if(!wasDrawing&&trace.length&&trace[trace.length-1]!==null){trace.push(null)}
     if(!wasDrawing&&trace.length)paper+=GAP;
     paper+=FEED*dt;trace.push({p:paper,c:needleC});
@@ -303,24 +306,39 @@ function frame(t){
 }
 
 /* ---------- pitch detection (YIN) ---------- */
-let ctx,src,an,sink,buf,yinD,running=false,stream,wake;
+let ctx,src,an,sink,buf,yinD,yinN,running=false,stream,wake;
+// YIN, picking the first dip nearly as clean as the deepest (so strings still ringing from before don't hide
+// the new note, nor pull it down an octave), interpolating on the raw difference, then measuring over as many
+// whole periods as the window holds, which makes the reading several times finer
 function yin(b,sr){
   const W=b.length>>1,maxT=Math.min(W-1,Math.floor(sr/60)),minT=Math.floor(sr/1200);
-  if(!yinD||yinD.length<maxT+1) yinD=new Float32Array(maxT+1);
-  const d=yinD; d[0]=1; let sum=0;
-  for(let t=1;t<=maxT;t++){let s=0;for(let i=0;i<W;i++){const x=b[i]-b[i+t];s+=x*x}sum+=s;d[t]=sum?s*t/sum:1}
-  let tau=-1;
-  for(let t=minT;t<=maxT;t++){if(d[t]<0.12){while(t+1<=maxT&&d[t+1]<d[t])t++;tau=t;break}}
-  if(tau<0){let best=1;for(let t=minT;t<=maxT;t++)if(d[t]<best){best=d[t];tau=t}if(best>0.18)return null}
-  const a=d[tau-1]??d[tau],c=d[tau+1]??d[tau],den=a+c-2*d[tau];
-  const shift=den?(a-c)/(2*den):0;
-  return sr/(tau+shift);
+  if(!yinD||yinD.length<W){yinD=new Float32Array(W);yinN=new Float32Array(W)}
+  const d=yinD,n=yinN,dif=t=>{let s=0;for(let i=0;i<W;i++){const x=b[i]-b[i+t];s+=x*x}return s};
+  let sum=0,gm=1e9,gt=-1;n[0]=1;
+  for(let t=1;t<=maxT;t++){const s=dif(t);d[t]=s;sum+=s;n[t]=sum?s*t/sum:1;if(t>=minT&&n[t]<gm){gm=n[t];gt=t}}
+  if(gm>0.6)return null;
+  const thr=Math.max(0.12,gm*1.6+0.06);let tau=-1;
+  for(let t=minT+1;t<maxT;t++){if(!(n[t]<n[t-1]&&n[t]<=n[t+1]))continue;
+    // a deepest dip at a whole multiple of a fairly clean earlier one is a longer period shared with other strings
+    const k=gt/t,K=Math.round(k),multiple=k>1.8&&K<=4&&Math.abs(k-K)<0.015*K;
+    if(n[t]<thr||(multiple&&n[t]<0.65)){tau=t;break}}
+  if(tau<0)tau=gt;
+  yin.q=n[tau];
+  const para=(a,b0,c)=>{const den=a+c-2*b0;return den>0?(a-c)/(2*den):0};
+  let period=tau+para(d[tau-1],d[tau],d[tau+1]);
+  const K=Math.floor((W-3)/period);
+  if(K>=2){const c=Math.round(K*period),v={};let best=c,bv=Infinity;
+    for(let t=c-3;t<=c+3;t++){v[t]=dif(t);if(v[t]<bv){bv=v[t];best=t}}
+    if(best>c-3&&best<c+3&&bv<=d[tau]*K*1.5+1e-9)period=(best+para(v[best-1],v[best],v[best+1]))/K}
+  return sr/period;
 }
-// Gate: an adaptive noise floor, tracked between notes. A note has to clear
-// three times the floor and give three consistent readings in a row before
-// the pen drops, so speech, taps and room noise don't scribble on the chart
-const MIN_GATE=0.003,AGREE=3,AGREE_CENTS=35,RELEASE=450;
-let floor=MIN_GATE/3,cand=0,candN=0,peak=0;
+// Gate: an adaptive noise floor, tracked between notes. A sudden rise in level is a new pluck: it starts afresh,
+// so nothing carries over from the string before, and its first two readings are skipped, since an attack reads
+// sharp. A note is read down to 18 dB above the noise floor; two agreeing readings drop the pen. The median of
+// the last five is smoothed in cents, gently for small changes (the detector's jitter) and quickly for large
+// ones (a peg being turned), so the pen draws the string's pitch rather than the detector's noise.
+const MIN_GATE=0.003,AGREE=2,AGREE_CENTS=35,RELEASE=450,SKIP=2;
+let floor=MIN_GATE/3,cand=0,candN=0,peak=0,prevRms=0,skip=0,smooth=null,plucked=false;
 const hist=[];let lastHeard=0,tick=0;
 const toDb=v=>20*Math.log10(v+1e-9),dbPct=db=>Math.max(0,Math.min(100,(db+66)/66*100));
 function analyse(){
@@ -330,32 +348,36 @@ function analyse(){
   an.getFloatTimeDomainData(buf);
   let rms=0;for(let i=0;i<buf.length;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/buf.length);
   const now=performance.now(),gate=Math.max(MIN_GATE,floor*3);
-  let f=null;
-  // skip windows that straddle an attack or a damped stop: their pitch reads sharp
   const q=buf.length>>2;let e0=0,e3=0;for(let i=0;i<q;i++){e0+=buf[i]*buf[i];e3+=buf[i+3*q]*buf[i+3*q]}
-  const steady=e3>e0*0.25&&e3<e0*4;
-  // and lift the pen in the faint tail of a note, where noise drags the reading
-  if(!live||rms>peak)peak=rms;
-  if(rms>gate&&steady&&!(live&&rms<peak*0.12)){f=yin(buf,ctx.sampleRate);if(f&&(f<60||f>1200))f=null}
+  if(rms>gate&&(rms>prevRms*1.5||e3>e0*4)){hist.length=0;cand=0;candN=0;skip=SKIP;peak=rms;smooth=null;plucked=true}
+  prevRms=rms;if(rms>peak)peak=rms;
+  let f=null;const skipping=skip>0;
+  if(skipping){skip--;if(live)lastHeard=now}
+  else if(rms>gate&&rms>floor*8&&rms>peak*0.02&&e3>e0*0.2){f=yin(buf,ctx.sampleRate);if(f&&(f<60||f>1200))f=null
+    // a murky reading (a strum, a chord) only counts when it lands near one of the strings
+    if(f&&yin.q>0.3){const m=69+12*Math.log2(f/a4);if(!TUNINGS[tuningName].some(s=>Math.abs(m-s)<0.6))f=null}}
   if(f){
     if(cand&&Math.abs(1200*Math.log2(f/cand))<AGREE_CENTS)candN++;else candN=1;
     cand=f;
     if(candN>=AGREE){hist.push(f);if(hist.length>5)hist.shift();lastHeard=now;
-      show([...hist].sort((x,y)=>x-y)[hist.length>>1])}
-  }else{
+      const med=[...hist].sort((x,y)=>x-y)[hist.length>>1];
+      if(smooth===null)smooth=med;else{const dc=Math.abs(1200*Math.log2(med/smooth));smooth*=Math.pow(med/smooth,dc>12?0.6:0.22)}
+      show(smooth,plucked);plucked=false}
+  }else if(!skipping){
     candN=0;
     // follow the floor down quickly and up slowly, and only between notes
-    if(!live&&steady)floor=Math.min(0.03,floor+(rms-floor)*(rms<floor?0.3:0.02));
+    if(!live&&e3>e0*0.25&&e3<e0*4)floor=Math.min(0.03,floor+(rms-floor)*(rms<floor?0.3:0.02));
   }
   const L=$('level');
   L.querySelector('i').style.width=dbPct(toDb(rms))+'%';
   L.querySelector('b').style.left=dbPct(toDb(gate))+'%';
   L.classList.toggle('hot',!!f&&candN>=AGREE);
-  if(now-lastHeard>RELEASE&&live){live=false;hist.length=0;inSince=0;$('note').classList.add('idle');$('hint').className='hint';$('hint').textContent='Listening…';near=-1;paintStrings()}
+  if(now-lastHeard>RELEASE&&live){live=false;hist.length=0;smooth=null;inSince=0;$('note').classList.add('idle');$('hint').className='hint';$('hint').textContent='Listening…';near=-1;paintStrings()}
 }
 let inSince=0,sheetKey=null,pend=-1,pendN=0;
-function show(f){
-  const fresh=!live;
+function show(f,pluck){
+  const fresh=!live||pluck;
+  if(pluck&&live)penLift=true;
   live=true;
   const t=TUNINGS[tuningName];
   const midi=69+12*Math.log2(f/a4);
@@ -408,6 +430,8 @@ async function start(){
     an=ctx.createAnalyser();an.fftSize=4096;buf=new Float32Array(an.fftSize);
     // pull the analyser through a silent sink so every engine keeps rendering it
     sink=ctx.createGain();sink.gain.value=0;src.connect(an).connect(sink).connect(ctx.destination);
+    if(DEBUG){$('dbg').hidden=false;const st=stream.getAudioTracks()[0]?.getSettings?.()||{};
+      $('dbgInfo').textContent=`context ${ctx.sampleRate} Hz, mic reports ${st.sampleRate||'no rate'}${st.sampleSize?', '+st.sampleSize+' bit':''}`}
     if(demo){paper=0;trace=[];marks=[];demo=false}
     sheetKey=null;floor=MIN_GATE/3;candN=0;
     running=true;analyse();$('level').classList.add('on');
@@ -427,6 +451,26 @@ function stop(){running=false;stream?.getTracks().forEach(t=>t.stop());live=fals
   $('go').textContent='Start listening';$('go').classList.remove('on');
   $('status').innerHTML=`A4 = <b id="a4s">${a4}</b> Hz · mic off`;$('note').classList.add('idle')}
 $('go').onclick=()=>running?stop():start();
+
+/* ---------- debugging: with ?debug in the address, save exactly what the tuner hears as a WAV file, at the
+   context's own rate. If a guitar sounds lower or higher in it than in the room, the browser is handing the
+   tuner audio at the wrong sample rate, and every note will read flat or sharp by the same amount. ---------- */
+const DEBUG=/[?&#]debug\b/.test(location.search+location.hash);
+$('rec').onclick=()=>{
+  if(!running)return;
+  const sr=ctx.sampleRate,n=sr*10,out=new Float32Array(n),sp=ctx.createScriptProcessor(4096,1,1);let at=0;
+  $('rec').disabled=true;$('rec').textContent='Recording…';
+  sp.onaudioprocess=e=>{const x=e.inputBuffer.getChannelData(0),k=Math.min(x.length,n-at);out.set(x.subarray(0,k),at);at+=k;
+    if(at>=n){sp.disconnect();src.disconnect(sp);save(out,sr);$('rec').disabled=false;$('rec').textContent='Save 10 s of what it hears'}};
+  src.connect(sp);sp.connect(sink);
+};
+function save(x,sr){
+  const b=new DataView(new ArrayBuffer(44+x.length*2)),w=(o,s)=>[...s].forEach((c,i)=>b.setUint8(o+i,c.charCodeAt(0)));
+  w(0,'RIFF');b.setUint32(4,36+x.length*2,true);w(8,'WAVEfmt ');b.setUint32(16,16,true);b.setUint16(20,1,true);b.setUint16(22,1,true);
+  b.setUint32(24,sr,true);b.setUint32(28,sr*2,true);b.setUint16(32,2,true);b.setUint16(34,16,true);w(36,'data');b.setUint32(40,x.length*2,true);
+  for(let i=0;i<x.length;i++)b.setInt16(44+i*2,Math.max(-1,Math.min(1,x[i]))*32767,true);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b],{type:'audio/wav'}));a.download=`tunerful-${sr}.wav`;a.click();
+}
 
 /* ---------- reference tone: decaying harmonics, exact pitch ---------- */
 $('play').onclick=()=>{
