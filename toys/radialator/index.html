@@ -5,7 +5,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Jermolene">
 <meta property="og:title" content="Radialator">
-<meta property="og:description" content="An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings. Tweak the sliders, randomise, explore nearby patterns and download them as SVG">
+<meta property="og:description" content="An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings, or laid as ribbons of coloured stone like a Cosmati pavement. Tweak the sliders, randomise, explore nearby patterns and download them as SVG">
 <meta property="og:url" content="https://jermolene.com/toys/radialator/">
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:image" content="https://jermolene.com/social/toys/radialator.jpg">
@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script src="../pwa.js" defer></script>
 <title>Radialator</title>
-<meta name="description" content="An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings. Tweak the sliders, randomise, explore nearby patterns and download them as SVG">
+<meta name="description" content="An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings, or laid as ribbons of coloured stone like a Cosmati pavement. Tweak the sliders, randomise, explore nearby patterns and download them as SVG">
 <meta name="toy-tagline" content="Rings of overlapping shapes flip black and white into dizzying op art rosettes">
 <meta name="toy-category" content="trifles">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -80,13 +80,15 @@ summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 input[type=checkbox]{accent-color:var(--accent);margin:0}
 #fps{position:absolute;top:8px;right:8px;z-index:2;pointer-events:none;white-space:pre;font:11px/1.4 var(--mono);color:#f3f3f1;background:rgba(17,17,17,.62);border-radius:3px;padding:5px 7px}
 .hint{font-size:12px;color:var(--muted);margin:0;line-height:1.45}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{padding:7px 10px;font-weight:500;border-radius:999px}
 .err{padding:20px;color:var(--fg)}
 </style>
 
 <div class="wrap">
   <header>
     <h1>Radialator</h1>
-    <p class="sub">Rings of overlapping shapes, filled black or white by how many of them cover each point. Each cell is black or white depending on whether an odd or even number of shapes covers it. Pinch or scroll to zoom in; double-tap to see it all.</p>
+    <p class="sub">Rings of overlapping shapes, filled black or white by how many of them cover each point. Each cell is black or white depending on whether an odd or even number of shapes covers it, or, as a mosaic, the outlines become ribbons of coloured stone. Pinch or scroll to zoom in; double-tap to see it all.</p>
   </header>
   <div class="stage" id="stage">
     <canvas id="main" aria-label="Op art pattern"></canvas>
@@ -108,12 +110,18 @@ input[type=checkbox]{accent-color:var(--accent);margin:0}
       <button id="reroll" type="button">New neighbours</button>
       <p class="hint">Tap a neighbour to adopt it and breed eight more. Tap the centre to leave explore with it.</p>
     </div>
+    <div class="presets" id="presets" role="group" aria-label="Presets"></div>
     <details open data-g="A"><summary class="lbl">Shapes</summary><div class="ctrls" id="ctrlsA"></div></details>
     <details open data-g="B"><summary class="lbl">Overlays &amp; motion</summary><div class="ctrls" id="ctrlsB"></div></details>
     <details data-g="C"><summary class="lbl">Colour &amp; clip</summary><div class="ctrls" id="ctrlsC">
       <div class="sel"><label for="clip">Clip</label><select id="clip"><option value="0">None</option><option value="1">To shapes</option><option value="2">To disc</option><option value="3">To star rim</option></select></div>
-      <div class="sel"><label for="invert">Colours</label><select id="invert"><option value="0">Odd = ink</option><option value="1">Odd = paper</option></select></div>
-      <div class="sel"><label for="palette">Palette</label><select id="palette"></select></div>
+      <div class="sel"><label for="invert">Colours</label><select id="invert"><option value="0">Odd = ink</option><option value="1">Odd = paper</option><option value="2">Mosaic</option></select></div>
+      <div class="sel" id="paletteRow"><label for="palette">Palette</label><select id="palette"></select></div>
+    </div></details>
+    <details data-g="E" id="mosaicGroup"><summary class="lbl">Mosaic</summary><div class="ctrls" id="ctrlsE">
+      <p class="hint" id="mosaicHint">The outlines become ribbons of coloured stone. Choose Mosaic under Colours to see them.</p>
+      <div class="sel"><label for="mpal">Stones</label><select id="mpal"></select></div>
+      <div class="sel"><label for="fold">Crossings</label><select id="fold"><option value="0">Folded</option><option value="1">Woven</option><option value="2">Flat</option></select></div>
     </div></details>
     <details data-g="D"><summary class="lbl">Dots</summary><div class="ctrls" id="ctrlsD">
       <div class="sel"><label for="dots">Dot layout</label><select id="dots"><option value="0">Off: solid</option><option value="1">Grid</option><option value="2">Hex</option><option value="3">Rings</option><option value="4">Sunflower spiral</option></select></div>
@@ -149,7 +157,28 @@ const SPEC=[
  {k:'dotSize',l:'Dot size',min:.3,max:1.1,step:.01,d:.9,g:'D'},
  {k:'light',l:'Light',min:0,max:1,step:.01,d:0,g:'D'},
  {k:'lightAng',l:'Light from',min:0,max:6.2832,step:.01,d:2.36,g:'D'},
+ {k:'bandA',l:'Ribbon',min:0,max:1,step:.01,d:.5,g:'E'},
+ {k:'bandB',l:'Cross ribbon',min:0,max:1,step:.01,d:.48,g:'E'},
+ {k:'cut',l:'Outer cut',min:0,max:60,step:1,d:0,g:'E'},
+ {k:'frame',l:'Frame',min:0,max:.15,step:.001,d:0,g:'E'},
+ {k:'star',l:'Star points',min:0,max:24,step:1,d:8,g:'E'},
+ {k:'tiles',l:'Tiles',min:0,max:72,step:1,d:24,g:'E'},
 ];
+// Mosaic colours: A ribbons, B ribbons (cycled by strand), the shadow beside each B colour, ground, frame, paper.
+// The medallion takes its tiles from A, its star from B[0] and S[0] on S[1], its frame from the frame colour.
+const MOSAICS=[
+ {n:'San Marco',a:['#b05941'],b:['#d4c9b7','#cbaf6f'],s:['#161315','#787b55'],bg:'#161315',fr:'#969484',pa:'#d6cdbb'},
+ {n:'Ink',a:['#111111'],b:['#ffffff','#bdbdb8'],s:['#111111','#6b6b68'],bg:'#111111',fr:'#8a8a86',pa:'#f3f3f1'},
+ {n:'Cobalt and gold',a:['#1d3fbb'],b:['#f2f4fb','#e9b949'],s:['#0b1233','#8a6420'],bg:'#0b1233',fr:'#9aa3c4',pa:'#f2f4fb'},
+ {n:'Verdigris',a:['#2f6b5e','#c8102e'],b:['#efe6d2'],s:['#14201c'],bg:'#14201c',fr:'#b9a77e',pa:'#efe6d2'},
+ {n:'Porphyry',a:['#6e1f2a'],b:['#e8dcc4','#3d6b4f','#c9a34a'],s:['#2a0d12','#16281e','#5c4614'],bg:'#2a0d12',fr:'#b8ad97',pa:'#e8dcc4'},
+];
+// San Marco: the pavement roundel in Marcus-Kirche zu Venedig (toys-src/radialator/reference/san-marco.jpeg), fitted to the plate
+const PRESETS={
+ 'Op art':{},
+ 'San Marco':{count:32,offset:.5711,radius:.7674,shape:2,aspect:1,spin:1,tilt:0,dome:0,twist:0,layers:1,rings:0,spokes:0,outline:0,
+   rim:1,notch:0,hub:.239,clip:3,invert:2,mpal:0,fold:0,bandA:.5,bandB:.48,cut:10,frame:.049,star:8,tiles:24},
+};
 const PALETTES=[
  ['Ink on white','#111111','#ffffff'],
  ['Signal red','#c8102e','#fbfaf7'],
@@ -159,9 +188,9 @@ const PALETTES=[
  ['Sea and coral','#0f5257','#f6a38f'],
  ['Violet','#3a1a6b','#d9f0e4'],
 ];
-const DEFAULTS=Object.fromEntries(SPEC.map(s=>[s.k,s.d]));DEFAULTS.clip=3;DEFAULTS.invert=1;DEFAULTS.palette=0;DEFAULTS.dots=0;
+const DEFAULTS=Object.fromEntries(SPEC.map(s=>[s.k,s.d]));DEFAULTS.clip=3;DEFAULTS.invert=1;DEFAULTS.palette=0;DEFAULTS.dots=0;DEFAULTS.mpal=0;DEFAULTS.fold=0;
 // panel groups: sliders carry theirs in SPEC; the selects carry theirs here
-const GROUPS={A:'Shapes',B:'Overlays & motion',C:'Colour & clip',D:'Dots'},SELG={clip:'C',invert:'C',palette:'C',dots:'D'},SELECTS=Object.keys(SELG);
+const GROUPS={A:'Shapes',B:'Overlays & motion',C:'Colour & clip',D:'Dots',E:'Mosaic'},SELG={clip:'C',invert:'C',palette:'C',dots:'D',mpal:'E',fold:'E'},SELECTS=Object.keys(SELG);
 const groupKeys=g=>[...SPEC.filter(s=>s.g===g).map(s=>s.k),...SELECTS.filter(k=>SELG[k]===g)];
 const allowed=new Set(Object.keys(GROUPS));
 let P={...DEFAULTS};const history=[];
@@ -173,6 +202,8 @@ const FS=`precision highp float;
 uniform vec2 uRes;uniform float uHub,uInv,uWarp,uRim,uNotch,uPx,uLine,uN,uD,uR,uP,uAsp,uSpin,uTilt,uTwist,uRings,uSectors,uLayers,uLS,uPhase,uExtent,uClip;
 uniform vec3 uInk,uPaper;uniform vec2 uPan;uniform float uZoom;
 uniform float uDots,uDotN,uDotSize,uLight,uLightAng;uniform float uFF[20],uFE[20];
+uniform float uMosaic,uBandA,uBandB,uCut,uFrame,uStar,uTiles,uFold,uNA,uNB;
+uniform vec3 uMA[3],uMB[3],uMS[3],uMBg,uMFr,uMPaper;
 mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,s,-s,c);}
 float sampleAt(vec2 p){
   vec2 p0=p;float rad0=length(p);
@@ -214,6 +245,62 @@ float sampleAt(vec2 p){
   if(uClip==2.&&rad0>uExtent)return 0.;
   return par;
 }
+// --- Mosaic: the shapes' outlines become ribbons in two families, as in Cosmati pavements (buildMosaicSVG() traces it) ---
+// Going round, a point is covered by an unbroken run of shapes j..e. Its place between the outlines of shapes j-1 and j
+// (the A ribbons) and of e and e+1 (the B ribbons) gives lattice coordinates V and U; U+V is constant along a radius.
+vec3 colA(float i){float k=mod(i,uNA);return k<.5?uMA[0]:k<1.5?uMA[1]:uMA[2];}
+vec3 colB(float i){float k=mod(i,uNB);return k<.5?uMB[0]:k<1.5?uMB[1]:uMB[2];}
+vec3 colS(float i){float k=mod(i,uNB);return k<.5?uMS[0]:k<1.5?uMS[1]:uMS[2];}
+float shapeSd(vec2 p,float i){
+  float a=6.2831853*i/uN+uPhase;vec2 q=p-uD*vec2(cos(a),sin(a));
+  q=rot(-(a*uSpin+uTilt))*q;q.x/=uAsp;vec2 b=abs(q)/uR+1e-6;
+  return (pow(pow(b.x,uP)+pow(b.y,uP),1./uP)-1.)*uR*min(uAsp,1.);
+}
+// the centre medallion, in units of the hub radius: frame, a ring of tiles, a folded star, a disc
+vec3 medallion(vec2 p,float q){
+  if(q>.87)return uMFr;
+  float th=atan(p.y,p.x)-6.2831853/uN-uPhase;
+  if(q>.667){if(uTiles<.5)return uMBg;float f=fract(th*uTiles/6.2831853+.5)-.5,t=(q-.667)/.203*2.-1.;return abs(f)/.43+abs(t)<1.?colA(0.):uMBg;}
+  if(q<.358||uStar<.5)return colS(1.);
+  float fs=fract(th*uStar/6.2831853+.5)-.5,hf=3.1415927/uStar,ph=fs*2.*hf;
+  vec2 B=.504*vec2(cos(hf),sin(hf));float px=q*cos(ph),py=abs(q*sin(ph));
+  if((B.x-.667)*py-B.y*(px-.667)>=0.)return fs<0.?colB(0.):colS(0.);
+  return colS(1.);
+}
+vec3 mosaicAt(vec2 p){
+  vec2 p0=p;float rad0=length(p);
+  if(uWarp>.001){float t=min(rad0/uExtent,1./uWarp);p*=(asin(uWarp*t)/asin(uWarp))/max(rad0/uExtent,1e-6);}
+  float rad=length(p);
+  p=rot(uTwist*rad)*p;
+  float inside=1e9;
+  if(uClip==3.){
+    float seg=6.2831853/uN;float u=mod(atan(p0.y,p0.x),seg);u=min(u,seg-u);
+    vec2 q=rad0*vec2(cos(u),sin(u));vec2 A=vec2(uRim,0.);vec2 B=uRim*(1.-uNotch)*vec2(cos(seg*.5),sin(seg*.5));
+    vec2 e=B-A;vec2 n=normalize(vec2(e.y,-e.x));if(dot(n,A)<0.)n=-n;
+    float sr=dot(q-A,n);
+    if(uLine>0.&&abs(sr)<uLine*uPx*.5)return uMFr;
+    if(sr>0.)return uMPaper;inside=-sr;
+  }
+  if(uClip==2.){if(rad0>uExtent)return uMPaper;inside=uExtent-rad0;}
+  if(inside<uFrame*uExtent)return uMFr;
+  if(rad0<uHub*uExtent)return medallion(p0,rad0/(uHub*uExtent));
+  float ps=shapeSd(p,uN-1.),cnt=0.,j=-1.,e=-1.,sJ=0.,sJm=0.,sE=0.,sE1=0.;
+  for(int k=0;k<120;k++){float i=float(k);if(i>=uN)break;
+    float s=shapeSd(p,i);
+    if(s<0.){cnt+=1.;if(ps>=0.){j=i;sJ=s;sJm=ps;}}else if(ps<0.){e=i-1.;sE=ps;sE1=s;}
+    ps=s;}
+  if(cnt<.5)return uClip==1.?uMPaper:uMBg;
+  if(cnt>uN-.5||j<0.)return uMBg;
+  if(e<0.)e+=uN;if(e<j)e+=uN;
+  float V=j-1.+sJm/(sJm-sJ),U=e+sE/(sE-sE1),rV=floor(V+.5),rU=floor(U+.5),s=U+V;
+  // the outer cut counts whole ribbon cells (rU-rV is about the cover count), so the last ribbons end in points, not halves
+  if(rU-rV<uCut)return uMBg;
+  bool inA=abs(V-rV)<uBandA*.5,inB=abs(U-rU)<uBandB*.5;
+  if(inA&&inB){if(uFold<.5)return s<rU+rV?colB(rU):colA(rV);if(uFold<1.5)return mod(rU+rV,2.)<.5?colA(rV):colB(rU);return colA(rV);}
+  if(inA)return colA(rV);if(inB)return colB(rU);
+  if(uFold<.5){float fU=floor(U);return colS(s<fU+floor(V)+1.?fU:fU+1.);}
+  return uMBg;
+}
 // Dots: the nearest dot centre on a grid, a hex lattice, rings that keep the pattern's N-fold symmetry, or a sunflower spiral (buildDotsSVG() matches)
 // sunflower: dot n at radius c·√(n+½), turned n golden angles. Locally the dots form a lattice spanned by two consecutive
 // Fibonacci neighbours, so invert that lattice and test the 16 nearby candidates (uFE holds F·g − round(F·g) in double precision)
@@ -239,20 +326,29 @@ vec2 dotCentre(vec2 p,float h){
   return rho*vec2(cos(a),sin(a));
 }
 // a dot's ink: the pattern's coverage around its centre, optionally lit like a dome (dotInk() in JS matches)
+float dotLight(vec2 c){
+  if(uLight<=0.)return 1.;vec2 q=c/uExtent;float z2=1.-dot(q,q);vec3 L=normalize(vec3(cos(uLightAng),sin(uLightAng),1.));
+  float lam=z2>0.?max(dot(vec3(q,sqrt(z2)),L),0.):0.;return mix(1.,.15+.85*lam,uLight);
+}
 float dotInk(vec2 c,float h){
   float cov=0.;for(int i=-1;i<=1;i++)for(int j=-1;j<=1;j++)cov+=sampleAt(c+vec2(float(i),float(j))*h/3.);cov/=9.;
-  if(uLight>0.){vec2 q=c/uExtent;float z2=1.-dot(q,q);vec3 L=normalize(vec3(cos(uLightAng),sin(uLightAng),1.));
-    float lam=z2>0.?max(dot(vec3(q,sqrt(z2)),L),0.):0.;cov*=mix(1.,.15+.85*lam,uLight);}
-  return cov;
+  return cov*dotLight(c);
 }
 void main(){
   float m=min(uRes.x,uRes.y)*.5;float k=uExtent*1.0089/m/uZoom;
   vec2 f=gl_FragCoord.xy-uRes*.5;
   if(uDots>.5){
     float h=2.*uExtent/uDotN;vec2 w=f*k+uPan;vec2 c=dotCentre(w,h);
-    float r=.5*h*uDotSize*sqrt(dotInk(c,h));
+    // mosaic dots take the tile colour at their centre, on paper; their size follows only the light
+    float r=.5*h*uDotSize*sqrt(uMosaic>.5?dotLight(c):dotInk(c,h));
     float v=r>0.?1.-smoothstep(-.5*k,.5*k,length(w-c)-r):0.;
+    if(uMosaic>.5){gl_FragColor=vec4(mix(uMPaper,mosaicAt(c),v),1.);return;}
     gl_FragColor=vec4(mix(uPaper,uInk,v),1.);return;
+  }
+  if(uMosaic>.5){
+    vec3 c=mosaicAt((f+vec2(.125,.375))*k+uPan)+mosaicAt((f+vec2(-.375,.125))*k+uPan)
+          +mosaicAt((f+vec2(-.125,-.375))*k+uPan)+mosaicAt((f+vec2(.375,-.125))*k+uPan);
+    gl_FragColor=vec4(c*.25,1.);return;
   }
   float v=sampleAt((f+vec2(.125,.375))*k+uPan)+sampleAt((f+vec2(-.375,.125))*k+uPan)
          +sampleAt((f+vec2(-.125,-.375))*k+uPan)+sampleAt((f+vec2(.375,-.125))*k+uPan);
@@ -268,7 +364,7 @@ function initGL(){
   prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.useProgram(prog);
   const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uInk uPaper uPan uZoom uDots uDotN uDotSize uLight uLightAng'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+  'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uInk uPaper uPan uZoom uDots uDotN uDotSize uLight uLightAng uMosaic uBandA uBandB uCut uFrame uStar uTiles uFold uNA uNB uMA uMB uMS uMBg uMFr uMPaper'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
   const FF=[1,2];while(FF.length<20)FF.push(FF[FF.length-1]+FF[FF.length-2]);
   gl.uniform1fv(gl.getUniformLocation(prog,'uFF'),FF);gl.uniform1fv(gl.getUniformLocation(prog,'uFE'),FF.map(f=>f*GOLD-Math.round(f*GOLD)));
 }
@@ -289,6 +385,11 @@ function render(p,target,size,phase=0,view=null){
   gl.uniform1f(U.uDots,p.dots);gl.uniform1f(U.uDotN,p.dotN);gl.uniform1f(U.uDotSize,p.dotSize);gl.uniform1f(U.uLight,p.light);gl.uniform1f(U.uLightAng,p.lightAng);
   gl.uniform1f(U.uPhase,phase);gl.uniform1f(U.uExtent,extent(p));gl.uniform1f(U.uClip,p.clip);
   const pal=PALETTES[p.palette];gl.uniform3fv(U.uInk,hex(pal[1]));gl.uniform3fv(U.uPaper,hex(pal[2]));
+  const mo=MOSAICS[p.mpal]||MOSAICS[0],three=a=>[0,1,2].flatMap(i=>hex(a[i%a.length]));
+  gl.uniform1f(U.uMosaic,p.invert==2?1:0);gl.uniform1f(U.uBandA,p.bandA);gl.uniform1f(U.uBandB,p.bandB);gl.uniform1f(U.uCut,p.cut);gl.uniform1f(U.uFrame,p.frame);
+  gl.uniform1f(U.uStar,p.star);gl.uniform1f(U.uTiles,p.tiles);gl.uniform1f(U.uFold,p.fold);gl.uniform1f(U.uNA,mo.a.length);gl.uniform1f(U.uNB,mo.b.length);
+  gl.uniform3fv(U.uMA,three(mo.a));gl.uniform3fv(U.uMB,three(mo.b));gl.uniform3fv(U.uMS,three(mo.s));
+  gl.uniform3fv(U.uMBg,hex(mo.bg));gl.uniform3fv(U.uMFr,hex(mo.fr));gl.uniform3fv(U.uMPaper,hex(mo.pa));
   gl.drawArrays(gl.TRIANGLES,0,3);
   if(!target)return;
   if(target.width!==size||target.height!==size){target.width=target.height=size}
@@ -318,12 +419,13 @@ document.querySelectorAll('aside summary').forEach(sm=>sm.addEventListener('clic
 Object.entries(GROUPS).forEach(([g,name])=>{const l=document.createElement('label');l.innerHTML=`<input type="checkbox" checked> ${name.replace('&','&amp;')}`;
   l.querySelector('input').addEventListener('change',e=>{e.target.checked?allowed.add(g):allowed.delete(g);if(exploring)buildGrid(true)});$('groupChecks').appendChild(l)});
 PALETTES.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p[0];$('palette').appendChild(o)});
-$('clip').addEventListener('change',e=>{push();P.clip=+e.target.value;changed()});
-$('invert').addEventListener('change',e=>{push();P.invert=+e.target.value;changed()});
-$('palette').addEventListener('change',e=>{push();P.palette=+e.target.value;changed()});
-$('dots').addEventListener('change',e=>{push();P.dots=+e.target.value;changed()});
+MOSAICS.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m.n;$('mpal').appendChild(o)});
+SELECTS.forEach(k=>$(k).addEventListener('change',e=>{push();P[k]=+e.target.value;syncUI();changed()}));
+Object.keys(PRESETS).forEach(name=>{const b=document.createElement('button');b.type='button';b.textContent=name;
+  b.addEventListener('click',()=>{lastPush=0;push();P={...DEFAULTS,...PRESETS[name]};phase=0;view.x=view.y=0;view.z=1;syncUI();changed()});$('presets').appendChild(b)});
 function fmt(s){const v=P[s.k];$('o_'+s.k).textContent=s.step>=1?v:(Math.abs(v)>=10?v.toFixed(1):v.toFixed(2))}
-function syncUI(){SPEC.forEach(s=>{$('p_'+s.k).value=P[s.k];fmt(s)});$('clip').value=P.clip;$('invert').value=P.invert;$('palette').value=P.palette;$('dots').value=P.dots;$('undo').disabled=!history.length}
+function syncUI(){SPEC.forEach(s=>{$('p_'+s.k).value=P[s.k];fmt(s)});SELECTS.forEach(k=>$(k).value=P[k]);$('undo').disabled=!history.length;
+  $('paletteRow').hidden=P.invert==2;$('mosaicHint').hidden=P.invert==2}
 let lastPush=0;
 function push(){const now=performance.now();if(now-lastPush<400)return;lastPush=now;history.push({...P});if(history.length>100)history.shift();$('undo').disabled=false}
 
@@ -354,17 +456,18 @@ for(let i=0;i<9;i++){const c=document.createElement('div');c.className='cell';c.
   grid.appendChild(c);cells.push(c)}
 const snap=(s,v)=>{v=Math.min(s.max,Math.max(s.min,v));return s.step>=1?Math.round((v-s.min)/s.step)*s.step+s.min:+v.toFixed(4)};
 function mutate(p,str){
-  const q={...p};const keys=SPEC.filter(s=>s.k!=='speed'&&allowed.has(s.g)&&(s.g!=='D'||p.dots)),col=allowed.has('C');
+  const q={...p},mos=p.invert==2;const keys=SPEC.filter(s=>s.k!=='speed'&&allowed.has(s.g)&&(s.g!=='D'||p.dots)&&(s.g!=='E'||mos)),col=allowed.has('C');
   const n=keys.length?1+Math.floor(Math.random()*3):0;
   for(let j=0;j<n;j++){const s=keys[Math.floor(Math.random()*keys.length)];
     const span=s.max-s.min;let dv=(Math.random()*2-1)*str*span;
     if(s.step>=1&&Math.abs(dv)<s.step)dv=Math.sign(dv||1)*s.step;
     q[s.k]=snap(s,q[s.k]+dv)}
+  if(mos&&allowed.has('E')&&Math.random()<.08)q.fold=(q.fold+1+Math.floor(Math.random()*2))%3;
   if(!col)return q;
-  // with only colour & clip ticked, change at least one of them so every neighbour differs
-  const f=n?.08:.3,force=n?-1:Math.floor(Math.random()*3);
-  if(force===0||Math.random()<f)q.invert=1-q.invert;
-  if(force===1||Math.random()<f)q.palette=(q.palette+1+Math.floor(Math.random()*(PALETTES.length-1)))%PALETTES.length;
+  // with only colour & clip ticked, change at least one of them so every neighbour differs; a mosaic changes its stones instead of its palette
+  const f=n?.08:.3,force=n?-1:Math.floor(Math.random()*3),cyc=(v,m)=>(v+1+Math.floor(Math.random()*(m-1)))%m;
+  if(force===0||Math.random()<f)q.invert=mos?Math.floor(Math.random()*2):Math.random()<.2?2:1-q.invert;
+  if(force===1||Math.random()<f){if(q.invert==2)q.mpal=cyc(q.mpal,MOSAICS.length);else q.palette=cyc(q.palette,PALETTES.length)}
   if(force===2||Math.random()<f)q.clip=(q.clip+1+Math.floor(Math.random()*3))%4;
   return q;
 }
@@ -428,6 +531,11 @@ function randomise(){
   q.spokes=Math.random()<.5?0:q.spokes;q.hub=Math.random()<.6?0:q.hub*.4;q.dome=Math.random()<.4?0:q.dome;q.outline=Math.random()<.5?1:0;
   q.clip=Math.floor(Math.random()*4);q.invert=Math.random()<.5?1:0;
   q.palette=Math.random()<.5?0:Math.floor(Math.random()*PALETTES.length);
+  // about one in five is a mosaic, mostly with plain circles, whose ribbons read best
+  if(Math.random()<.2){q.invert=2;q.mpal=Math.floor(Math.random()*MOSAICS.length);q.fold=Math.random()<.6?0:1+Math.floor(Math.random()*2);
+    if(Math.random()<.6){q.shape=2;q.aspect=1}q.layers=1;q.rings=q.spokes=0;q.outline=0;
+    q.bandA=snap(SPEC.find(s=>s.k==='bandA'),R(.25,.7));q.bandB=snap(SPEC.find(s=>s.k==='bandB'),R(.25,.7));
+    q.cut=0;q.frame=Math.random()<.5?0:+R(.01,.06).toFixed(3);q.hub=Math.random()<.5?0:+R(.12,.3).toFixed(3)}
   return q;
 }
 $('rand').addEventListener('click',()=>{lastPush=0;push();P=randomise();syncUI();changed()});
@@ -444,7 +552,7 @@ function buildDotsSVG(p,ph){
   const at=(x,y)=>{const i=Math.min(S-1,Math.max(0,Math.floor(x/kp+S/2))),j=Math.min(S-1,Math.max(0,Math.floor(y/kp+S/2)));
     return Math.min(1,Math.max(0,(px[(j*S+i)*4+ch]/255-paper[ch])/(ink[ch]-paper[ch])))};
   const L=[Math.cos(p.lightAng),Math.sin(p.lightAng),1],ln=Math.hypot(...L);
-  const dotInk=(x,y)=>{let cov=0;for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)cov+=at(x+i*h/3,y+j*h/3);cov/=9;
+  const dotInk=(x,y,lightOnly)=>{let cov=1;if(!lightOnly){cov=0;for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)cov+=at(x+i*h/3,y+j*h/3);cov/=9}
     if(p.light>0){const qx=x/E,qy=y/E,z2=1-qx*qx-qy*qy,lam=z2>0?Math.max((qx*L[0]+qy*L[1]+Math.sqrt(z2))/ln,0):0;cov*=1+(.15+.85*lam-1)*p.light}
     return cov};
   const cs=[];
@@ -454,14 +562,63 @@ function buildDotsSVG(p,ph){
   else if(p.dots==4){const c=h/Math.sqrt(Math.PI);for(let n=0;c*Math.sqrt(n+.5)<V*1.42;n++){const r=c*Math.sqrt(n+.5),t=2*Math.PI*((n*GOLD)%1);cs.push([r*Math.cos(t),r*Math.sin(t)])}}
   else{cs.push([0,0]);for(let i=1;i*h<V*1.42;i++){const rho=i*h,n=p.count*Math.max(1,Math.round(2*Math.PI*rho/(h*p.count)));
     for(let j=0;j<n;j++)cs.push([rho*Math.cos(2*Math.PI*j/n),rho*Math.sin(2*Math.PI*j/n)])}}
-  let d='';
-  for(const [x,y] of cs){if(Math.abs(x)>V+h||Math.abs(y)>V+h)continue;const r=.5*h*p.dotSize*Math.sqrt(dotInk(x,y));
-    if(r*K<.05)continue;d+=`M${f(x-r)} ${f(-y)}a${f(r)} ${f(r)} 0 1 0 ${f(2*r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2*r)} 0`}
+  // a mosaic's dots are all lit the same way and coloured by the stone under their centre, read from a mosaic render
+  const mos=p.invert==2,mp=mos?mosaicPixels(p,ph,S):null,ds=mos?mp.cols.map(()=>''):[''];
+  const stone=(x,y)=>{const i=Math.min(S-1,Math.max(0,Math.floor(x/kp+S/2))),j=Math.min(S-1,Math.max(0,Math.floor(y/kp+S/2)));return mp.lab[j*S+i]};
+  for(const [x,y] of cs){if(Math.abs(x)>V+h||Math.abs(y)>V+h)continue;
+    const k=mos?stone(x,y):0;if(mos&&k===0)continue;
+    const r=.5*h*p.dotSize*Math.sqrt(mos?dotInk(x,y,true):dotInk(x,y));
+    if(r*K<.05)continue;ds[k]+=`M${f(x-r)} ${f(-y)}a${f(r)} ${f(r)} 0 1 0 ${f(2*r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2*r)} 0`}
   drawMain();
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000" width="2000" height="2000">\n<rect x="-1000" y="-1000" width="2000" height="2000" fill="${pal[2]}"/>\n<path fill="${pal[1]}" d="${d}"/>\n</svg>\n`;
+  const paths=mos?ds.map((d,k)=>d&&`<path fill="${mp.cols[k]}" d="${d}"/>\n`).join(''):`<path fill="${pal[1]}" d="${ds[0]}"/>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000" width="2000" height="2000">\n<rect x="-1000" y="-1000" width="2000" height="2000" fill="${mos?mp.cols[0]:pal[2]}"/>\n${paths}</svg>\n`;
+}
+// Mosaic: render at 2048px, give each pixel the nearest stone colour, and trace each colour's pixel boundary into
+// closed loops (even-odd fill, so any way of pairing the edges at a corner is right), straightened to within 0.7px.
+function mosaicColours(p){const m=MOSAICS[p.mpal]||MOSAICS[0];return [...new Set([m.pa,m.bg,...m.s,...m.b,...m.a,m.fr])]}
+function mosaicPixels(p,ph,S){
+  render({...p,dots:0},null,S,ph);const px=new Uint8Array(S*S*4);gl.readPixels(0,0,S,S,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  const cols=mosaicColours(p),rgb=cols.map(c=>hex(c).map(v=>v*255)),lab=new Uint8Array(S*S);
+  for(let i=0;i<S*S;i++){let b=0,bd=1e9;for(let k=0;k<rgb.length;k++){const d=(px[4*i]-rgb[k][0])**2+(px[4*i+1]-rgb[k][1])**2+(px[4*i+2]-rgb[k][2])**2;if(d<bd){bd=d;b=k}}lab[i]=b}
+  return {cols,lab};
+}
+function traceLabel(lab,S,L){
+  const W=S+1,nx=new Int32Array(W*W*2).fill(-1),starts=[];
+  const add=(a,b)=>{if(nx[2*a]<0)nx[2*a]=b;else nx[2*a+1]=b;starts.push(a)};
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){const i=y*S+x;if(lab[i]!==L)continue;
+    if(y===0||lab[i-S]!==L)add(y*W+x+1,y*W+x);
+    if(x===S-1||lab[i+1]!==L)add((y+1)*W+x+1,y*W+x+1);
+    if(y===S-1||lab[i+S]!==L)add((y+1)*W+x,(y+1)*W+x+1);
+    if(x===0||lab[i-1]!==L)add(y*W+x,(y+1)*W+x)}
+  const loops=[];
+  for(const s of starts){if(nx[2*s]<0&&nx[2*s+1]<0)continue;const pts=[];let v=s;
+    do{pts.push(v);const k=nx[2*v]>=0?2*v:2*v+1,w=nx[k];nx[k]=-1;v=w}while(v!==s&&v>=0);
+    loops.push(pts.map(v=>[v%W,Math.floor(v/W)]))}
+  return loops;
+}
+function simplify(pts,tol){
+  // Douglas-Peucker on a closed loop, split at the point farthest from the first
+  const n=pts.length;if(n<4)return pts;let far=0,fd=-1;
+  for(let i=1;i<n;i++){const d=(pts[i][0]-pts[0][0])**2+(pts[i][1]-pts[0][1])**2;if(d>fd){fd=d;far=i}}
+  const keep=new Uint8Array(n+1);keep[0]=keep[far]=keep[n]=1;const P=i=>pts[i%n];
+  const st=[[0,far],[far,n]];
+  while(st.length){const [a,b]=st.pop(),A=P(a),B=P(b),dx=B[0]-A[0],dy=B[1]-A[1],l=Math.hypot(dx,dy)||1;let m=-1,md=tol;
+    for(let i=a+1;i<b;i++){const Q=P(i),d=Math.abs((Q[0]-A[0])*dy-(Q[1]-A[1])*dx)/l;if(d>md){md=d;m=i}}
+    if(m>=0){keep[m]=1;st.push([a,m],[m,b])}}
+  const out=[];for(let i=0;i<n;i++)if(keep[i])out.push(pts[i]);return out;
+}
+function buildMosaicSVG(p,ph){
+  const S=2048,{cols,lab}=mosaicPixels(p,ph,S),u=2000/S,f=v=>(v*u-1000).toFixed(1),g=v=>(1000-v*u).toFixed(1);
+  let body='';
+  for(let L=1;L<cols.length;L++){const loops=traceLabel(lab,S,L);if(!loops.length)continue;
+    const d=loops.map(l=>'M'+simplify(l,.7).map(q=>f(q[0])+' '+g(q[1])).join('L')+'Z').join('');
+    body+=`<path fill="${cols[L]}" stroke="${cols[L]}" stroke-width="0.6" stroke-linejoin="round" fill-rule="evenodd" d="${d}"/>\n`}
+  drawMain();
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000" width="2000" height="2000">\n<rect x="-1000" y="-1000" width="2000" height="2000" fill="${cols[0]}"/>\n${body}</svg>\n`;
 }
 function buildSVG(p,ph){
   if(p.dots)return buildDotsSVG(p,ph);
+  if(p.invert==2)return buildMosaicSVG(p,ph);
   const E=extent(p),V=E*1.0089,K=1000/V,w=p.dome,useW=w>.001,aw=useW?Math.asin(w):1;
   const f=v=>(v*K).toFixed(2);
   const rhoMax=useW?E*(Math.PI/2)/aw:V*1.5;

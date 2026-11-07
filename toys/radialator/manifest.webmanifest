@@ -1,7 +1,7 @@
 {
 	"name": "Radialator",
 	"short_name": "Radialator",
-	"description": "An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings. Tweak the sliders, randomise, explore nearby patterns and download them as SVG",
+	"description": "An op art explorer of radial parity patterns: rings of overlapping shapes, coloured black or white by how many of them cover each point, crossed with spokes and rings, or laid as ribbons of coloured stone like a Cosmati pavement. Tweak the sliders, randomise, explore nearby patterns and download them as SVG",
 	"id": "/toys/radialator/",
 	"start_url": "/toys/radialator/",
 	"scope": "/toys/radialator/",
