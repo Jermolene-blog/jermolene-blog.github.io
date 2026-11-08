@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jermolene">
+<meta property="og:title" content="Lozengineer">
+<meta property="og:description" content="An op art explorer of lozenge tilings, the flat shadows of stacked cubes, with every rhombus striped along one diagonal so the stripes run on unbroken from tile to tile, curling into hooks and forking at the corners. Tap the pattern to turn a hexagon of tiles, tweak the sliders, randomise, explore variations and save SVG or PNG">
+<meta property="og:url" content="https://jermolene.com/toys/lozengineer/">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://jermolene.com/social/toys/lozengineer.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Lozengineer: Striped rhombus tilings whose lines hook, fork and spiral from tile to tile">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#fbfbf9">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../pwa.js" defer></script>
+<title>Lozengineer</title>
+<meta name="description" content="An op art explorer of lozenge tilings, the flat shadows of stacked cubes, with every rhombus striped along one diagonal so the stripes run on unbroken from tile to tile, curling into hooks and forking at the corners. Tap the pattern to turn a hexagon of tiles, tweak the sliders, randomise, explore variations and save SVG or PNG">
+<meta name="toy-tagline" content="Striped rhombus tilings whose lines hook, fork and spiral from tile to tile">
+<meta name="toy-category" content="trifles">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap">
+<style>
+/* Layout: the pattern fills the stage edge to edge; one ruled instrument panel sits beside it (below it on a phone). */
+:root{
+  --paper:#fbfbf9; --ink:#1f1f20; --mute:#6c6c70; --rule:#1f1f20; --hair:#d9d9d6; --well:#efefec; --gut:#1f1f20;
+  --display:"Monoton","Barlow Semi Condensed",Impact,sans-serif;
+  --text:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#18181a; --ink:#f4f4f0; --mute:#a0a0a6; --rule:#f4f4f0; --hair:#38383c; --well:#262629; --gut:#000; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#18181a; --ink:#f4f4f0; --mute:#a0a0a6; --rule:#f4f4f0; --hair:#38383c; --well:#262629; --gut:#000; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font:500 15px/1.25 var(--text);overflow:hidden}
+#app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 304px}
+#stage{position:relative;min-width:0;min-height:0;background:var(--gut);overflow:hidden;touch-action:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
+#gl:active{cursor:grabbing}
+#grid{position:absolute;inset:0;display:none;grid-template:repeat(3,1fr)/repeat(3,1fr)}
+#grid.on{display:grid}
+#grid button{all:unset;cursor:pointer;box-sizing:border-box}
+#grid button:hover{box-shadow:inset 0 0 0 3px #ff2d55}
+#grid button:focus-visible{box-shadow:inset 0 0 0 3px #2d7dff}
+#grid button.c{box-shadow:inset 0 0 0 3px var(--paper),inset 0 0 0 5px var(--ink)}
+#show{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));display:none}
+#panel{min-height:0;overflow-y:auto;overscroll-behavior:contain;border-left:2px solid var(--rule);
+  padding-block:14px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px;background:var(--paper)}
+#panel>*,#panel section{flex:none}
+#app.clean{grid-template-columns:minmax(0,1fr)}
+#app.clean #panel{display:none}
+#app.clean #show{display:block}
+h1{margin:0;font:400 31px/1 var(--display);letter-spacing:.005em}
+.lede{margin:5px 0 0;color:var(--mute);font-weight:400;font-size:14.5px;line-height:1.3}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+button.b,.chip{font:600 14px/1 var(--text);color:var(--ink);background:var(--paper);border:1.5px solid var(--rule);padding:8px 6px;cursor:pointer;border-radius:0;letter-spacing:.01em}
+button.b:hover,.chip:hover{background:var(--well)}
+button.b.on,.chip.on{background:var(--ink);color:var(--paper)}
+button.b:disabled{opacity:.35;cursor:default}
+button:focus-visible,input:focus-visible{outline:2px solid #2d7dff;outline-offset:2px}
+section{display:flex;flex-direction:column;gap:9px;border-top:2px solid var(--rule);padding-top:8px}
+h2{margin:0;font:600 12.5px/1 var(--text);letter-spacing:.14em;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:6px 9px;font-weight:500}
+.row{display:grid;grid-template-columns:76px minmax(0,1fr) 38px;align-items:center;gap:8px;font-size:14.5px}
+.row output{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:20px;margin:0;background:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;background:repeating-linear-gradient(120deg,var(--ink) 0 2px,transparent 2px 5px)}
+input[type=range]::-moz-range-track{height:6px;background:repeating-linear-gradient(120deg,var(--ink) 0 2px,transparent 2px 5px)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:19px;margin-top:-6.5px;background:var(--ink);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+input[type=range]::-moz-range-thumb{width:17px;height:19px;border:0;border-radius:0;background:var(--ink);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.pals{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.pal{height:30px;border:1.5px solid var(--hair);padding:0;cursor:pointer;border-radius:0}
+.pal.on{border-color:var(--rule);box-shadow:0 0 0 1.5px var(--rule)}
+#msg{min-height:1.25em;color:var(--mute);font-size:14px;margin:0}
+.keys{color:var(--mute);font-size:13.5px;font-weight:400;margin:0;line-height:1.4}
+kbd{font:inherit;font-weight:600;color:var(--ink)}
+@media (max-width:720px),(max-aspect-ratio:1/1){
+  #app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,54%) minmax(0,1fr)}
+  #app.clean{grid-template-rows:minmax(0,1fr)}
+  #panel{border-left:0;border-top:2px solid var(--rule)}
+  .keys{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="gl" role="img" aria-label="Striped rhombus pattern. Drag to move, scroll to zoom, tap a junction to turn a hexagon."></canvas>
+    <div id="grid"></div>
+    <button class="b" id="show">Controls</button>
+  </div>
+  <aside id="panel">
+    <header>
+      <h1>Lozengineer</h1>
+      <p class="lede">Rhombus tilings with every tile striped along one diagonal. Tap the pattern to turn a hexagon.</p>
+    </header>
+    <div class="acts">
+      <button class="b" id="rand">Randomise</button>
+      <button class="b" id="explore">Explore</button>
+      <button class="b" id="reset">Reset</button>
+      <button class="b" id="undo">Undo</button>
+      <button class="b" id="svg">Save SVG</button>
+      <button class="b" id="png">Save PNG</button>
+    </div>
+    <p id="msg" role="status"></p>
+    <div id="controls" style="display:contents"></div>
+    <p class="keys"><kbd>R</kbd> randomise · <kbd>E</kbd> explore · <kbd>Z</kbd> undo · <kbd>H</kbd> hide controls</p>
+  </aside>
+</div>
+
+<script>
+"use strict";
+/* ---------- model ---------- */
+const PALS=[
+  {n:"Print",p:"#ffffff",i:"#1f1f20",r:"#1f1f20",t:["#1f1f20","#1f1f20","#1f1f20"]},
+  {n:"Cyanotype",p:"#10306b",i:"#f1f5ff",r:"#7fb2ff",t:["#f1f5ff","#9cc4ff","#5d8df0"]},
+  {n:"Cataract",p:"#cfc9bd",i:"#c8322b",r:"#1a8a8f",t:["#c8322b","#1a8a8f","#e0a42e"]},
+  {n:"Tangerine",p:"#ff7a1a",i:"#23103a",r:"#fff1d6",t:["#23103a","#7a0f4f","#fff1d6"]},
+  {n:"Acid",p:"#0d0b1f",i:"#d6ff3d",r:"#ff3dbb",t:["#d6ff3d","#ff3dbb","#3de0ff"]},
+  {n:"Kitchen",p:"#f7efe0",i:"#17623f",r:"#e8b62c",t:["#17623f","#e8b62c","#d6492e"]},
+  {n:"Sweetshop",p:"#ffd8e4",i:"#d11a5b",r:"#2a7de1",t:["#d11a5b","#2a7de1","#14a37f"]},
+  {n:"Graphite",p:"#2c2d31",i:"#e9e7e0",r:"#8f9199",t:["#e9e7e0","#a7a9b0","#6d6f77"]},
+];
+const BRICK=[2,2,1,2, 0,1,2,1, 0,0,1,0];
+const DEFAULT={tile:"brick",cellN:1,scramble:0,seed:1,folds:5,shift:.35,strands:5,weight:.48,size:.1373,rot:0,curve:0,diag:"short",polarity:0,
+  warp:"none",warpAmt:.5,warpFreq:1,swell:0,swellFreq:1,pal:0,tileTint:0,ringTint:0,panX:-.27707,panY:-.30146};
+const mod=(a,n)=>((a%n)+n)%n;
+function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const isStar=S=>S.tile==="star";
+
+function canon(c,i,j){const k=Math.floor(i/c.a);i-=k*c.a;j-=k*c.b;return i+mod(j,c.d)*c.a}
+function mkCell(a,b,d,fn){const c={a,b,d,f:new Array(a*d)};for(let j=0;j<d;j++)for(let i=0;i<a;i++)c.f[i+j*a]=fn(i,j);return c}
+/* hexagon flip at lattice vertex (i,j). Returns the [index,newType] triple or null. */
+function flipAt(c,i,j){
+  const p=canon(c,i,j),q=canon(c,i-1,j),r=canon(c,i,j-1);
+  if(p===q||q===r||p===r)return null;
+  const P=c.f[p],Q=c.f[q],R=c.f[r];
+  if(P===2&&Q===1&&R===0)return[[p,1],[q,0],[r,2]];
+  if(P===1&&Q===0&&R===2)return[[p,2],[q,1],[r,0]];
+  return null;
+}
+function regen(S){
+  if(isStar(S)){S.cell=null;return S}
+  const m=S.cellN;let c;
+  if(S.tile==="chevron"){c=mkCell(2*m,0,1,i=>Math.floor(i/m)%2);S.cell=c;return S}
+  if(S.tile==="cube"){const a=m,b=m,d=3*m;c=mkCell(a,b,d,(i,j)=>mod(i-j,3))}
+  else{const base={a:4,b:-2,d:3};c=mkCell(4*m,-2*m,3*m,(i,j)=>BRICK[canon(base,i,j)])}
+  const R=rng(S.seed*7919+m),n=Math.round(S.scramble*5*c.a*c.d);
+  for(let t=0;t<n;t++){const i=Math.floor(R()*c.a),j=Math.floor(R()*c.d),fl=flipAt(c,i,j);if(fl)for(const[x,v]of fl)c.f[x]=v}
+  S.cell=c;return S
+}
+const clone=S=>JSON.parse(JSON.stringify(S));
+function freshDefault(){return regen({...DEFAULT})}
+let S=freshDefault();
+
+/* ---------- geometry ---------- */
+const rad=d=>d*Math.PI/180;
+function basis(S,E){const a=rad(30+S.rot);return{A:[E*Math.cos(a),E*Math.sin(a)],B:[E*Math.cos(a+Math.PI/3),E*Math.sin(a+Math.PI/3)]}}
+/* corners of the lozenge owned by up-triangle (i,j): [apex, spine, apex, spine] in lattice coords */
+function lozenge(i,j,t){
+  if(t===0)return[[i,j],[i+1,j],[i+1,j+1],[i,j+1]];
+  if(t===1)return[[i,j+1],[i,j],[i+1,j-1],[i+1,j]];
+  return[[i+1,j],[i,j],[i-1,j+1],[i,j+1]];
+}
+function emitLozenge(S,bs,i,j,t,cb){
+  let k=lozenge(i,j,t);
+  if(S.diag==="long")k=[k[1],k[2],k[3],k[0]];
+  const P=k.map(([a,b])=>[a*bs.A[0]+b*bs.B[0],a*bs.A[1]+b*bs.B[1]]);
+  cb(P[0],P[1],P[2],P[3],t);
+}
+function latticeRange(bs,cx,cy,R){
+  const det=bs.A[0]*bs.B[1]-bs.A[1]*bs.B[0];let i0=1e9,i1=-1e9,j0=1e9,j1=-1e9;
+  for(const sx of[-1,1])for(const sy of[-1,1]){const x=cx+sx*R,y=cy+sy*R,i=(x*bs.B[1]-y*bs.B[0])/det,j=(bs.A[0]*y-bs.A[1]*x)/det;i0=Math.min(i0,i);i1=Math.max(i1,i);j0=Math.min(j0,j);j1=Math.max(j1,j)}
+  return{i0:Math.floor(i0)-1,i1:Math.ceil(i1)+1,j0:Math.floor(j0)-1,j1:Math.ceil(j1)+1};
+}
+/* calls cb(A,B,C,D,type) for each rhombus near the view circle (cx,cy,R) */
+function forTiles(S,E,cx,cy,R,cb){
+  if(!isStar(S)){
+    const bs=basis(S,E),{i0,i1,j0,j1}=latticeRange(bs,cx,cy,R),c=S.cell,lim=(R+E*2)**2;
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
+      const x=(i+.33)*bs.A[0]+(j+.33)*bs.B[0]-cx,y=(i+.33)*bs.A[1]+(j+.33)*bs.B[1]-cy;
+      if(x*x+y*y>lim)continue;
+      emitLozenge(S,bs,i,j,c.f[canon(c,i,j)],cb);
+    }
+    return;
+  }
+  const n=S.folds,e=[],g=[],off=rad(S.rot);
+  for(let r=0;r<n;r++){const a=Math.PI*r/n+off;e.push([Math.cos(a),Math.sin(a)]);g.push(.0013+S.shift*((r*.6180339887+.21)%1))}
+  const f=2/n,yx=cx/E*f,yy=cy/E*f,Ry=(R/E)*f+1.5;let count=0;
+  for(let r=0;r<n;r++)for(let s=r+1;s<n;s++){
+    const er=e[r],es=e[s],det=er[0]*es[1]-er[1]*es[0];
+    const kr0=Math.round(yx*er[0]+yy*er[1]-g[r]),ks0=Math.round(yx*es[0]+yy*es[1]-g[s]),K=Math.ceil(Ry*1.1/Math.abs(det));
+    for(let kr=kr0-K;kr<=kr0+K;kr++)for(let ks=ks0-K;ks<=ks0+K;ks++){
+      const ur=kr+g[r],us=ks+g[s],y0=(ur*es[1]-us*er[1])/det,y1=(er[0]*us-es[0]*ur)/det;
+      if((y0-yx)**2+(y1-yy)**2>Ry*Ry)continue;
+      if(++count>60000)return;
+      let bx=0,by=0;
+      for(let t=0;t<n;t++){const q=t===r?kr:t===s?ks:Math.ceil(y0*e[t][0]+y1*e[t][1]-g[t]);bx+=q*e[t][0];by+=q*e[t][1]}
+      const A=[bx*E,by*E],B=[A[0]+er[0]*E,A[1]+er[1]*E],C=[B[0]+es[0]*E,B[1]+es[1]*E],D=[A[0]+es[0]*E,A[1]+es[1]*E];
+      const dot=er[0]*es[0]+er[1]*es[1];
+      let rotate=dot<-1e-9; /* A obtuse: spine must be A–C */
+      if(Math.abs(dot)<1e-9)rotate=mod(kr+ks,2)===1;
+      if(S.diag==="long")rotate=!rotate;
+      const ty=(s-r)%3;
+      if(rotate)cb(B,C,D,A,ty);else cb(A,B,C,D,ty);
+    }
+  }
+}
+function warpQ(S,q){
+  const a=S.warpAmt,f=S.warpFreq*6.28318;let x=q[0],y=q[1];
+  const r2=x*x+y*y;
+  switch(S.warp){
+    case"bulge":{const k=1+a*Math.exp(-r2*1.6);return[x*k,y*k]}
+    case"twist":{const t=a*2*Math.exp(-r2*.8),c=Math.cos(t),s=Math.sin(t);return[x*c-y*s,x*s+y*c]}
+    case"ripple":{const r=Math.sqrt(r2),k=1+a*.12*Math.sin(r*f)/Math.max(r,.05);return[x*k,y*k]}
+    case"wave":return[x+a*.12*Math.sin(y*f),y+a*.12*Math.sin(x*f)];
+  }
+  return[x,y];
+}
+const hasWarp=S=>S.warp!=="none"&&S.warpAmt!==0;
+
+/* ---------- WebGL ---------- */
+const cv=document.getElementById("gl"),stage=document.getElementById("stage");
+const gl=cv.getContext("webgl2",{antialias:false,alpha:false,preserveDrawingBuffer:false});
+const VS=`#version 300 es
+precision highp float;
+in vec2 aP;in vec2 aU;in float aT;
+uniform vec2 uPan,uHalf;uniform float uMn,uAmt,uFr;uniform int uWarp;
+out vec2 vU;out vec2 vQ;flat out int vT;
+void main(){
+  vec2 q=(aP+uPan)/uMn;float r2=dot(q,q),f=uFr*6.28318;
+  if(uWarp==1)q*=1.+uAmt*exp(-r2*1.6);
+  else if(uWarp==2){float t=uAmt*2.*exp(-r2*.8),c=cos(t),s=sin(t);q=vec2(q.x*c-q.y*s,q.x*s+q.y*c);}
+  else if(uWarp==3){float r=sqrt(r2);q*=1.+uAmt*.12*sin(r*f)/max(r,.05);}
+  else if(uWarp==4)q+=uAmt*.12*vec2(sin(q.y*f),sin(q.x*f));
+  vU=aU;vQ=q;vT=int(aT+.5);
+  vec2 c=q*uMn/uHalf;gl_Position=vec4(c.x,-c.y,0.,1.);
+}`;
+const FS=`#version 300 es
+precision highp float;
+in vec2 vU;in vec2 vQ;flat in int vT;
+uniform float uN,uDuty,uPhase,uP,uSw,uSf,uTT,uRT;
+uniform vec3 uPaper,uInk,uRing,uTile[3];
+out vec4 o;
+float rr(vec2 x){if(abs(uP-1.)<.002)return x.x+x.y;x=max(x,vec2(1e-4));return pow(pow(x.x,uP)+pow(x.y,uP),1./uP);}
+void main(){
+  float a=rr(vU),c=rr(1.-vU);
+  float fa=fwidth(a),fc=fwidth(c);
+  float r=min(a,c),fw=max(uN*(a<c?fa:fc),1e-4);
+  float T=uN*r+uPhase;
+  float k=floor(T+.5),d=abs(T-k);
+  float h=.5*clamp(uDuty+uSw*cos(length(vQ)*uSf*6.28318),.02,1.);
+  float cov=clamp((h-d)/fw+.5,0.,1.);
+  cov=mix(cov,2.*h,smoothstep(.55,1.5,fw));
+  float g=abs(2.*(k-uPhase)/uN-1.);
+  vec3 ink=mix(uInk,uRing,uRT*g);
+  ink=mix(ink,uTile[vT],uTT);
+  o=vec4(mix(uPaper,ink,cov),1.);
+}`;
+function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(x));return x}
+let U={},prog;
+if(gl){
+  prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+  gl.bindAttribLocation(prog,0,"aP");gl.bindAttribLocation(prog,1,"aU");gl.bindAttribLocation(prog,2,"aT");
+  gl.linkProgram(prog);gl.useProgram(prog);
+  for(const n of["uPan","uHalf","uMn","uAmt","uFr","uWarp","uN","uDuty","uPhase","uP","uSw","uSf","uTT","uRT","uPaper","uInk","uRing","uTile"])U[n]=gl.getUniformLocation(prog,n);
+  gl.enable(gl.SCISSOR_TEST);
+}
+function newMesh(){const vao=gl.createVertexArray(),buf=gl.createBuffer();gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,20,0);
+  gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,2,gl.FLOAT,false,20,8);
+  gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,1,gl.FLOAT,false,20,16);
+  return{vao,buf,count:0,key:"",cx:0,cy:0,margin:0}}
+let scratch=new Float32Array(1<<20);
+class Sink{constructor(m){this.m=m;this.n=0}
+  ensure(k){if(this.n+k>scratch.length){const s=new Float32Array(Math.max(scratch.length*2,this.n+k));s.set(scratch.subarray(0,this.n));scratch=s}}
+  quad(A,B,C,D,t){
+    const m=this.m,ux=B[0]-A[0],uy=B[1]-A[1],vx=D[0]-A[0],vy=D[1]-A[1];
+    this.ensure(30*m*m);const a=scratch;let n=this.n;
+    const V=(u,v)=>{a[n++]=A[0]+u*ux+v*vx;a[n++]=A[1]+u*uy+v*vy;a[n++]=u;a[n++]=v;a[n++]=t};
+    for(let j=0;j<m;j++)for(let i=0;i<m;i++){const u0=i/m,u1=(i+1)/m,v0=j/m,v1=(j+1)/m;
+      V(u0,v0);V(u1,v0);V(u1,v1);V(u0,v0);V(u1,v1);V(u0,v1)}
+    this.n=n;
+  }
+}
+function subdiv(S,E,R){if(!hasWarp(S))return 1;let m=Math.max(2,Math.min(14,Math.round(E/11)));
+  const tiles=Math.PI*R*R/(E*E*.6)*(isStar(S)?S.folds/3:1);while(m>2&&tiles*m*m*30>6e6)m--;return m}
+function geomKey(S,W,H,E){return[S.tile,S.folds,S.shift,S.diag,S.rot,E.toFixed(3),W,H,hasWarp(S),S.warp,S.cell?S.cell.f.join(""):""].join("|")}
+function buildMesh(mesh,S,W,H,E,force){
+  const mn=Math.min(W,H),px=-S.panX*mn,py=-S.panY*mn,key=geomKey(S,W,H,E);
+  if(!force&&mesh.key===key&&Math.hypot(px-mesh.cx,py-mesh.cy)<mesh.margin*.8)return;
+  const margin=Math.max(E*3,mn*.25),extra=hasWarp(S)?1.5:1,R=Math.hypot(W,H)/2*extra+margin;
+  const sink=new Sink(subdiv(S,E,R));
+  forTiles(S,E,px,py,R,(A,B,C,D,t)=>sink.quad(A,B,C,D,t));
+  gl.bindBuffer(gl.ARRAY_BUFFER,mesh.buf);gl.bufferData(gl.ARRAY_BUFFER,scratch.subarray(0,sink.n),gl.STATIC_DRAW);
+  mesh.count=sink.n/5;mesh.key=key;mesh.cx=px;mesh.cy=py;mesh.margin=margin;
+}
+const hex=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)/255);
+const P_of=S=>Math.pow(2,S.curve);
+const WARPS={none:0,bulge:1,twist:2,ripple:3,wave:4};
+function setUniforms(S,W,H){
+  const p=PALS[S.pal],mn=Math.min(W,H);
+  gl.uniform2f(U.uPan,S.panX*mn,S.panY*mn);gl.uniform2f(U.uHalf,W/2,H/2);gl.uniform1f(U.uMn,mn/2);
+  gl.uniform1f(U.uAmt,S.warpAmt);gl.uniform1f(U.uFr,S.warpFreq);gl.uniform1i(U.uWarp,WARPS[S.warp]);
+  gl.uniform1f(U.uN,S.strands);gl.uniform1f(U.uDuty,S.weight);gl.uniform1f(U.uPhase,S.polarity?.5:0);gl.uniform1f(U.uP,P_of(S));
+  gl.uniform1f(U.uSw,S.swell);gl.uniform1f(U.uSf,S.swellFreq);gl.uniform1f(U.uTT,S.tileTint);gl.uniform1f(U.uRT,S.ringTint);
+  gl.uniform3fv(U.uPaper,hex(p.p));gl.uniform3fv(U.uInk,hex(p.i));gl.uniform3fv(U.uRing,hex(p.r));
+  gl.uniform3fv(U.uTile,new Float32Array(p.t.flatMap(hex)));
+}
+/* The mesh is stored in world px at build scale; a pan uniform moves it. Positions are relative to the world origin. */
+function drawPane(mesh,S,x,y,W,H,ratio,E,overlay){
+  gl.viewport(x,y,W*ratio,H*ratio);gl.scissor(x,y,W*ratio,H*ratio);
+  const p=PALS[S.pal],c=hex(p.p);gl.clearColor(c[0],c[1],c[2],1);gl.clear(gl.COLOR_BUFFER_BIT);
+  setUniforms(S,W,H);
+  gl.bindVertexArray(mesh.vao);gl.drawArrays(gl.TRIANGLES,0,mesh.count);
+  if(overlay&&overlay.count){gl.bindVertexArray(overlay.vao);gl.drawArrays(gl.TRIANGLES,0,overlay.count)}
+}
+
+/* ---------- view ---------- */
+let CSSW=1,CSSH=1,dpr=1,mainMesh=null,overlay=null,paneMeshes=[];
+let exploring=false,panes=[],reach=.5;
+let flips=[];/* {i,j,t0,ops,keys,E} */
+let churn=0,lastChurn=0,raf=0,dirty=true;
+const FLIP_MS=460;
+function E_of(S,W,H){return S.size*Math.min(W,H)}
+function resize(){
+  const r=stage.getBoundingClientRect();CSSW=Math.max(1,Math.round(r.width));CSSH=Math.max(1,Math.round(r.height));
+  dpr=Math.min(window.devicePixelRatio||1,2);cv.width=Math.round(CSSW*dpr);cv.height=Math.round(CSSH*dpr);invalidate();
+}
+function invalidate(){dirty=true;if(!raf)raf=requestAnimationFrame(frame)}
+function ease(t){return t<.5?4*t*t*t:1-(-2*t+2)**3/2}
+function frame(now){
+  raf=0;
+  if(!gl)return;
+  if(churn>0&&!exploring&&!isStar(S)&&now-lastChurn>Math.max(30,900/(churn*churn*30))){lastChurn=now;churnStep(now)}
+  let active=false;
+  if(flips.length){
+    const done=flips.filter(f=>now-f.t0>=FLIP_MS);
+    if(done.length){for(const f of done)for(const[x,v]of f.ops)S.cell.f[x]=v;flips=flips.filter(f=>now-f.t0<FLIP_MS);dirty=true}
+    if(flips.length)active=true;
+  }
+  if(dirty||active)render(now);
+  dirty=false;
+  if(active||(churn>0&&!exploring&&!isStar(S)))raf=requestAnimationFrame(frame);
+}
+function buildOverlay(now,E){
+  if(!overlay)overlay=newMesh();
+  if(!flips.length){overlay.count=0;return null}
+  const bs=basis(S,E),c=S.cell,mn=Math.min(CSSW,CSSH),cx=-S.panX*mn,cy=-S.panY*mn,R=Math.hypot(CSSW,CSSH)/2*(hasWarp(S)?1.5:1)+E*3;
+  const map=new Map(flips.map(f=>[canon(c,f.i,f.j),f]));
+  const{i0,i1,j0,j1}=latticeRange(bs,cx,cy,R);
+  const sink=new Sink(subdiv(S,E,R));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
+    const f=map.get(canon(c,i,j));if(!f)continue;
+    const vx=i*bs.A[0]+j*bs.B[0],vy=i*bs.A[1]+j*bs.B[1];
+    if(Math.hypot(vx-cx,vy-cy)>R)continue;
+    const th=ease(Math.min(1,(now-f.t0)/FLIP_MS))*Math.PI/3,co=Math.cos(th),si=Math.sin(th);
+    const rot=P=>{const x=P[0]-vx,y=P[1]-vy;return[vx+x*co-y*si,vy+x*si+y*co]};
+    for(const[a,b]of[[i,j],[i-1,j],[i,j-1]])emitLozenge(S,bs,a,b,c.f[canon(c,a,b)],(A,B,C,D,t)=>sink.quad(rot(A),rot(B),rot(C),rot(D),t));
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,overlay.buf);gl.bufferData(gl.ARRAY_BUFFER,scratch.subarray(0,sink.n),gl.DYNAMIC_DRAW);
+  overlay.count=sink.n/5;return overlay;
+}
+function render(now){
+  gl.scissor(0,0,cv.width,cv.height);
+  const g=getComputedStyle(document.documentElement).getPropertyValue("--gut").trim()||"#000000";
+  const gc=g.length===7?hex(g):[0,0,0];gl.clearColor(gc[0],gc[1],gc[2],1);gl.clear(gl.COLOR_BUFFER_BIT);
+  if(exploring){
+    const gap=2,pw=Math.floor((CSSW-gap*2)/3),ph=Math.floor((CSSH-gap*2)/3);
+    while(paneMeshes.length<9)paneMeshes.push(newMesh());
+    panes.forEach((P,idx)=>{
+      const col=idx%3,row=Math.floor(idx/3),x=col*(pw+gap),y=row*(ph+gap);
+      const E=E_of(P,pw,ph)*1;
+      buildMesh(paneMeshes[idx],P,pw,ph,E,false);
+      drawPane(paneMeshes[idx],P,Math.round(x*dpr),Math.round(cv.height-(y+ph)*dpr),pw,ph,dpr,E);
+    });
+    return;
+  }
+  if(!mainMesh)mainMesh=newMesh();
+  const E=E_of(S,CSSW,CSSH);
+  buildMesh(mainMesh,S,CSSW,CSSH,E,false);
+  const ov=buildOverlay(now,E);
+  drawPane(mainMesh,S,0,0,CSSW,CSSH,dpr,E,ov);
+}
+
+/* ---------- flips ---------- */
+function busy(c,ops){return flips.some(f=>f.ops.some(([x])=>ops.some(([y])=>x===y)))}
+function startFlip(i,j,now){
+  const c=S.cell,ops=flipAt(c,i,j);if(!ops||busy(c,ops))return false;
+  flips.push({i,j,t0:now,ops});return true;
+}
+function churnStep(now){
+  const c=S.cell,tries=Math.max(1,Math.round(c.a*c.d*churn*.25));
+  for(let k=0;k<tries;k++)startFlip(Math.floor(Math.random()*c.a),Math.floor(Math.random()*c.d),now);
+}
+function settleFlips(){if(!S.cell){flips=[];return}for(const f of flips)for(const[x,v]of f.ops)S.cell.f[x]=v;flips=[]}
+function pickVertex(cssX,cssY){
+  const mn=Math.min(CSSW,CSSH),t=[(cssX-CSSW/2)/(mn/2),(cssY-CSSH/2)/(mn/2)];
+  let q=[t[0],t[1]];
+  if(hasWarp(S))for(let n=0;n<40;n++){const w=warpQ(S,q);q=[q[0]+.7*(t[0]-w[0]),q[1]+.7*(t[1]-w[1])]}
+  const wx=q[0]*mn/2-S.panX*mn,wy=q[1]*mn/2-S.panY*mn,E=E_of(S,CSSW,CSSH),bs=basis(S,E);
+  const det=bs.A[0]*bs.B[1]-bs.A[1]*bs.B[0],fi=(wx*bs.B[1]-wy*bs.B[0])/det,fj=(bs.A[0]*wy-bs.A[1]*wx)/det;
+  const ci=Math.round(fi),cj=Math.round(fj),c=[];
+  for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const i=ci+a,j=cj+b,x=i*bs.A[0]+j*bs.B[0]-wx,y=i*bs.A[1]+j*bs.B[1]-wy,d=x*x+y*y;
+    if(d<E*E*1.7)c.push([d,i,j])}
+  c.sort((u,v)=>u[0]-v[0]);
+  for(const[,i,j]of c)if(flipAt(S.cell,i,j))return[i,j];
+  return null;
+}
+
+/* ---------- SVG ---------- */
+function exportSVG(){
+  settleFlips();
+  const W=CSSW,H=CSSH,mn=Math.min(W,H),E=E_of(S,W,H),px=-S.panX*mn,py=-S.panY*mn;
+  const R=Math.hypot(W,H)/2*(hasWarp(S)?1.5:1)+E*2,p=P_of(S),N=S.strands,ph=S.polarity?.5:0,pal=PALS[S.pal];
+  const curved=Math.abs(p-1)>.002,sw=S.swell!==0,warp=hasWarp(S);
+  const toScreen=(x,y)=>{let q=[(x-px)/(mn/2),(y-py)/(mn/2)];if(warp)q=warpQ(S,q);return[q[0]*mn/2+W/2,q[1]*mn/2+H/2]};
+  const groups=new Map();
+  const groupOf=c=>{let g=groups.get(c);if(!g){g=new Map();groups.set(c,g)}return g};
+  const add=(g,P)=>{
+    let area=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];area+=a[0]*b[1]-b[0]*a[1]}
+    if(Math.abs(area)<1e-5)return;
+    const Q=area>0?P:P.slice().reverse();
+    for(let i=0;i<Q.length;i++){
+      const a=Q[i],b=Q[(i+1)%Q.length],ka=Math.round(a[0]*40)+","+Math.round(a[1]*40),kb=Math.round(b[0]*40)+","+Math.round(b[1]*40);
+      if(ka===kb)continue;
+      const rev=kb+">"+ka,cnt=g.get(rev);
+      if(cnt){if(cnt.n>1)cnt.n--;else g.delete(rev)}else{const me=ka+">"+kb,c=g.get(me);if(c)c.n++;else g.set(me,{n:1,a:[a[0],a[1]],b:[b[0],b[1]],ka,kb})}
+    }
+  };
+  const mix=(a,b,t)=>{const x=hex(a),y=hex(b);return"#"+x.map((v,i)=>Math.round((v+(y[i]-v)*t)*255).toString(16).padStart(2,"0")).join("")};
+  const clip=P=>{const o=[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],da=1-a[0]-a[1],db=1-b[0]-b[1];
+      if(da>=0)o.push(a);if((da>0&&db<0)||(da<0&&db>0)){const t=da/(da-db);o.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}}return o};
+  const samples=curved?28:(sw?20:1);
+  forTiles(S,E,px,py,R,(A,B,C,D,t)=>{
+    const ux=B[0]-A[0],uy=B[1]-A[1],vx=D[0]-A[0],vy=D[1]-A[1];
+    const world=(u,v)=>[A[0]+u*ux+v*vx,A[1]+u*uy+v*vy];
+    const hAt=(u,v)=>{let d=S.weight;if(sw){const w=world(u,v),s=toScreen(w[0],w[1]),r=Math.hypot((s[0]-W/2)/(mn/2),(s[1]-H/2)/(mn/2));d=d+S.swell*Math.cos(r*S.swellFreq*6.28318)}return .5*Math.max(.02,Math.min(1,d))};
+    const maxC=Math.pow(2,1/p-1);
+    const kmax=Math.ceil(N*Math.max(1,maxC)+1);
+    const arc=(k,sgn)=>{
+      const pts=[];
+      for(let n=0;n<=samples;n++){
+        const th=n/samples*Math.PI/2;
+        let bx,by;
+        if(curved){bx=Math.pow(Math.cos(th),2/p);by=Math.pow(Math.sin(th),2/p);if(n===0){bx=1;by=0}if(n===samples){bx=0;by=1}}
+        else{bx=1-n/samples;by=n/samples}
+        let c=Math.max(0,(k-ph+sgn*.5*S.weight)/N);
+        if(sw)for(let it=0;it<3;it++)c=Math.max(0,(k-ph+sgn*hAt(bx*c,by*c))/N);
+        pts.push([bx*c,by*c]);
+      }
+      return pts;
+    };
+    for(let k=0;k<=kmax;k++){
+      const outer=arc(k,1),inner=arc(k,-1).reverse();
+      if(outer.every(q=>q[0]+q[1]<1e-6))continue;
+      const band=clip(outer.concat(inner));
+      if(band.length<3)continue;
+      const col=S.ringTint||S.tileTint?mix(mix(pal.i,pal.r,S.ringTint*Math.abs(2*(k-ph)/N-1)),pal.t[t],S.tileTint):pal.i;
+      const g=groupOf(col);
+      for(const flip of[false,true]){
+        let P=band.map(([u,v])=>flip?[1-u,1-v]:[u,v]).map(([u,v])=>world(u,v));
+        if(warp){const Q=[];for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/7));for(let j=0;j<n;j++)Q.push([a[0]+(b[0]-a[0])*j/n,a[1]+(b[1]-a[1])*j/n])}P=Q}
+        add(g,P.map(q=>toScreen(q[0],q[1])));
+      }
+    }
+  });
+  const multi=groups.size>1;
+  let out=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${pal.p}"/>\n`;
+  for(const[col,g]of groups){
+    const from=new Map();for(const e of g.values()){let l=from.get(e.ka);if(!l){l=[];from.set(e.ka,l)}l.push(e)}
+    const used=new Set();let d="";
+    for(const e0 of g.values()){
+      if(used.has(e0))continue;
+      const loop=[];let e=e0,last=null;
+      while(e&&!used.has(e)){
+        used.add(e);loop.push(e.a);
+        const l=(from.get(e.kb)||[]).filter(x=>!used.has(x));
+        if(!l.length){e=null;break}
+        if(l.length===1){e=l[0]}else{const ax=e.b[0]-e.a[0],ay=e.b[1]-e.a[1];let best=null,bv=1e9;for(const x of l){const bx=x.b[0]-x.a[0],by=x.b[1]-x.a[1],ang=Math.atan2(ax*by-ay*bx,ax*bx+ay*by);if(ang<bv){bv=ang;best=x}}e=best}
+      }
+      const pts=[];for(let i=0;i<loop.length;i++){const a=loop[(i+loop.length-1)%loop.length],b=loop[i],c=loop[(i+1)%loop.length];if(Math.abs((b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]))>.02)pts.push(b)}
+      if(pts.length<3)continue;
+      d+="M"+pts.map(q=>q[0].toFixed(2)+" "+q[1].toFixed(2)).join("L")+"Z";
+    }
+    out+=`<path fill="${col}" fill-rule="nonzero"${multi?` stroke="${col}" stroke-width=".3"`:""} d="${d}"/>\n`;
+  }
+  return out+"</svg>\n";
+}
+
+/* ---------- UI ---------- */
+const $=id=>document.getElementById(id),ctl=$("controls"),msg=$("msg");
+const say=t=>{msg.textContent=t};
+const undoStack=[];
+function commit(){settleFlips();undoStack.push(JSON.stringify(S));if(undoStack.length>80)undoStack.shift();$("undo").disabled=false}
+function undo(){if(!undoStack.length)return;flips=[];S=JSON.parse(undoStack.pop());$("undo").disabled=!undoStack.length;afterChange();if(exploring)makePanes()}
+const SPEC={
+  strands:{l:"Strands",min:2,max:16,step:1,sec:"s"},
+  weight:{l:"Weight",min:.08,max:.92,step:.005,sec:"s",f:v=>Math.round(v*100)+"%"},
+  curve:{l:"Curve",min:-1,max:2.5,step:.02,sec:"s"},
+  size:{l:"Size",min:.03,max:.5,step:.001,sec:"s",f:v=>(1/v).toFixed(1)},
+  rot:{l:"Turn",min:0,max:180,step:.5,sec:"s",f:v=>v+"°"},
+  cellN:{l:"Repeat",min:1,max:6,step:1,sec:"t",lattice:1,f:v=>"×"+v},
+  scramble:{l:"Scramble",min:0,max:1,step:.005,sec:"t",flippable:1,f:v=>Math.round(v*100)+"%"},
+  folds:{l:"Directions",min:3,max:11,step:1,sec:"t",star:1},
+  shift:{l:"Shift",min:0,max:1,step:.002,sec:"t",star:1},
+  warpAmt:{l:"Amount",min:-1,max:1.5,step:.01,sec:"d",warped:1},
+  warpFreq:{l:"Frequency",min:.25,max:4,step:.01,sec:"d",warped:1},
+  swell:{l:"Swell",min:-.45,max:.45,step:.005,sec:"d"},
+  swellFreq:{l:"Swell rings",min:.2,max:5,step:.01,sec:"d"},
+  tileTint:{l:"Tile tint",min:0,max:1,step:.01,sec:"c",f:v=>Math.round(v*100)+"%"},
+  ringTint:{l:"Ring tint",min:0,max:1,step:.01,sec:"c",f:v=>Math.round(v*100)+"%"},
+};
+const CHIPS={
+  tile:{sec:"t",opts:[["brick","Brick"],["cube","Cubes"],["chevron","Chevron"],["star","Star"]]},
+  diag:{sec:"s",opts:[["short","Short diagonal"],["long","Long diagonal"]]},
+  polarity:{sec:"s",opts:[[0,"Lines on points"],[1,"Gaps on points"]]},
+  warp:{sec:"d",opts:[["none","None"],["bulge","Bulge"],["twist","Twist"],["ripple","Ripple"],["wave","Wave"]]},
+};
+const inputs={},outputs={},rows={},chipEls={};
+function section(title){const s=document.createElement("section");const h=document.createElement("h2");h.textContent=title;s.append(h);ctl.append(s);return s}
+const secs={t:section("Tiling"),s:section("Stripes"),d:section("Distort"),c:section("Colour"),m:section("Motion")};
+function chipRow(key,c){const d=document.createElement("div");d.className="chips";chipEls[key]=[];
+  for(const[v,l]of c.opts){const b=document.createElement("button");b.className="chip";b.textContent=l;b.id="ch-"+key+"-"+v;
+    b.onclick=()=>{commit();S[key]=v;if(key==="tile")regen(S);afterChange();if(exploring)makePanes()};d.append(b);chipEls[key].push([v,b])}
+  secs[c.sec].append(d)}
+function slider(key,sp,parent){
+  const r=document.createElement("div");r.className="row";const id="sl-"+key;
+  const l=document.createElement("label");l.textContent=sp.l;l.htmlFor=id;
+  const i=document.createElement("input");i.type="range";i.id=id;i.min=sp.min;i.max=sp.max;i.step=sp.step;
+  const o=document.createElement("output");r.append(l,i,o);parent.append(r);inputs[key]=i;outputs[key]=o;rows[key]=r;
+  let started=false;
+  i.oninput=()=>{if(!started){commit();started=true}S[key]=+i.value;if(key==="cellN"||key==="scramble")regen(S);refresh();invalidate();if(exploring)makePanes()};
+  i.onchange=()=>{started=false};
+}
+for(const k in CHIPS)if(CHIPS[k].sec==="t")chipRow(k,CHIPS[k]);
+for(const k in SPEC)if(SPEC[k].sec==="t")slider(k,SPEC[k],secs.t);
+{const b=document.createElement("button");b.className="b";b.textContent="New scramble";b.id="reseed";b.onclick=()=>{commit();S.seed=(S.seed%99991)+1;if(S.scramble===0)S.scramble=.25;regen(S);afterChange();if(exploring)makePanes()};secs.t.append(b)}
+for(const k of["diag","polarity"])chipRow(k,CHIPS[k]);
+for(const k in SPEC)if(SPEC[k].sec==="s")slider(k,SPEC[k],secs.s);
+chipRow("warp",CHIPS.warp);
+for(const k in SPEC)if(SPEC[k].sec==="d")slider(k,SPEC[k],secs.d);
+{const d=document.createElement("div");d.className="pals";PALS.forEach((p,i)=>{const b=document.createElement("button");b.className="pal";b.title=p.n;b.setAttribute("aria-label",p.n);
+  b.style.background=`linear-gradient(135deg,${p.p} 0 50%,${p.i} 50% 75%,${p.r} 75%)`;b.onclick=()=>{commit();S.pal=i;afterChange();if(exploring)makePanes()};d.append(b)});secs.c.append(d)}
+for(const k in SPEC)if(SPEC[k].sec==="c")slider(k,SPEC[k],secs.c);
+{const r=document.createElement("div");r.className="row";r.innerHTML='<label for="sl-churn">Churn</label><input type="range" id="sl-churn" min="0" max="1" step=".01" value="0"><output id="o-churn">off</output>';secs.m.append(r);
+ const i=r.querySelector("input"),o=r.querySelector("output");rows.churn=r;
+ i.oninput=()=>{churn=+i.value;o.textContent=churn?Math.round(churn*100)+"%":"off";lastChurn=0;invalidate()}}
+{const r=document.createElement("div");r.className="row";r.innerHTML='<label for="sl-reach">Explore reach</label><input type="range" id="sl-reach" min=".1" max="1" step=".01" value=".5"><output id="o-reach">50%</output>';secs.m.append(r);
+ const i=r.querySelector("input"),o=r.querySelector("output");i.oninput=()=>{reach=+i.value;o.textContent=Math.round(reach*100)+"%";if(exploring)makePanes()}}
+
+function fmt(k,v){const f=SPEC[k].f;if(f)return f(v);return SPEC[k].step>=1?String(v):(+v).toFixed(2)}
+function refresh(){
+  const star=isStar(S),flippable=!star&&S.tile!=="chevron",warped=S.warp!=="none";
+  for(const k in SPEC){const sp=SPEC[k];inputs[k].value=S[k];outputs[k].textContent=fmt(k,S[k]);
+    rows[k].hidden=(sp.lattice&&star)||(sp.star&&!star)||(sp.flippable&&!flippable)||(sp.warped&&!warped)}
+  outputs.cellN&&(rows.cellN.querySelector("label").textContent=S.tile==="chevron"?"Width":"Repeat");
+  $("reseed").hidden=!flippable;
+  for(const k in chipEls)for(const[v,b]of chipEls[k]){const on=S[k]===v;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on)}
+  [...document.querySelectorAll(".pal")].forEach((b,i)=>b.classList.toggle("on",i===S.pal));
+  rows.churn.hidden=star||S.tile==="chevron";
+}
+function afterChange(){flips=[];refresh();invalidate()}
+
+/* random + mutate */
+const clampSpec=(k,v)=>{const s=SPEC[k];v=Math.min(s.max,Math.max(s.min,v));return s.step>=1?Math.round(v):Math.round(v/s.step)*s.step};
+function randomise(){
+  const R=Math.random,T=clone(S),pick=a=>a[Math.floor(R()*a.length)];
+  T.tile=pick(["brick","brick","cube","cube","chevron","star","star"]);
+  T.cellN=T.tile==="chevron"?1+Math.floor(R()*3):1+Math.floor(R()*3);
+  T.scramble=T.tile==="chevron"?0:(R()<.3?0:R()*.8);T.seed=1+Math.floor(R()*99990);
+  T.folds=pick([3,4,5,5,6,7,8]);T.shift=R();
+  T.strands=2+Math.floor(R()*9);T.weight=.3+R()*.4;T.curve=R()<.6?0:clampSpec("curve",-.6+R()*2.4);
+  T.size=isStar(T)?.07+R()*.1:.08+R()*.14;T.rot=R()<.5?0:Math.round(R()*180);
+  T.diag=R()<.8?"short":"long";T.polarity=R()<.8?0:1;
+  T.warp=R()<.55?"none":pick(["bulge","twist","ripple","wave"]);T.warpAmt=.25+R()*.7;T.warpFreq=.5+R()*2;
+  T.swell=R()<.6?0:(R()-.5)*.6;T.swellFreq=.4+R()*2.5;
+  T.pal=R()<.25?0:Math.floor(R()*PALS.length);T.tileTint=R()<.5?0:R();T.ringTint=R()<.6?0:R();
+  T.panX=(R()-.5)*.6;T.panY=(R()-.5)*.6;
+  return regen(T);
+}
+function mutate(B,seedR,force){
+  const T=clone(B),R=seedR,pick=a=>a[Math.floor(R()*a.length)];
+  const star=isStar(T),flippable=!star&&T.tile!=="chevron";
+  const num=["strands","weight","weight","curve","size","rot","swell","tileTint","ringTint"];
+  if(star)num.push("folds","shift","shift");else{num.push("cellN");if(flippable)num.push("scramble","scramble")}
+  if(T.warp!=="none")num.push("warpAmt","warpFreq");
+  const n=1+Math.floor(R()*3)+(force?1:0);
+  for(let c=0;c<n;c++){
+    const k=pick(num),s=SPEC[k],span=s.max-s.min;
+    let d=(R()*2-1)*reach*span*.45;
+    if(s.step>=1)d=(R()<.5?-1:1)*Math.max(1,Math.round(Math.abs(d)));
+    if(k==="shift"){T.shift=(T.shift+d+1)%1;continue}
+    if(k==="rot"){T.rot=mod(Math.round(T.rot+d),180);continue}
+    T[k]=clampSpec(k,T[k]+d);
+  }
+  if(R()<reach*.5){const w=pick(["pal","warp","diag","seed","tile","polarity"]);
+    if(w==="pal")T.pal=Math.floor(R()*PALS.length);
+    if(w==="warp"){T.warp=pick(["none","bulge","twist","ripple","wave"])}
+    if(w==="diag")T.diag=T.diag==="short"?"long":"short";
+    if(w==="polarity")T.polarity=T.polarity?0:1;
+    if(w==="seed"&&flippable){T.seed=1+Math.floor(R()*99990);T.scramble=Math.max(T.scramble,.2)}
+    if(w==="tile"&&reach>.3){T.tile=pick(["brick","cube","chevron","star"])}
+  }
+  return regen(T);
+}
+function makePanes(){
+  settleFlips();
+  panes=[];const R=Math.random;
+  for(let i=0;i<9;i++)panes.push(i===4?clone(S):mutate(S,R,i%2===1));
+  invalidate();
+}
+function setExplore(on){
+  settleFlips();exploring=on;$("explore").classList.toggle("on",on);$("grid").classList.toggle("on",on);
+  if(on)makePanes();invalidate();
+  say(on?"Pick a variation to move there. The centre tile leaves Explore.":"");
+}
+for(let i=0;i<9;i++){const b=document.createElement("button");b.setAttribute("aria-label",i===4?"Keep current pattern and leave Explore":"Variation "+(i<4?i+1:i));if(i===4)b.className="c";
+  b.onclick=()=>{if(i===4){setExplore(false);return}commit();S=clone(panes[i]);refresh();makePanes()};$("grid").append(b)}
+
+$("rand").onclick=()=>{commit();S=randomise();afterChange();if(exploring)makePanes()};
+$("reset").onclick=()=>{commit();S=freshDefault();$("sl-churn").value=0;churn=0;$("o-churn").textContent="off";afterChange();if(exploring)makePanes()};
+$("undo").onclick=undo;$("undo").disabled=true;
+$("explore").onclick=()=>setExplore(!exploring);
+$("show").onclick=toggleClean;
+function toggleClean(){$("app").classList.toggle("clean");resize()}
+
+/* saving */
+let dl=null;
+/* in claude.ai the downloads capability saves; elsewhere an ordinary browser download does */
+const linkSave={save:async({filename,data})=>{const url=URL.createObjectURL(data instanceof Blob?data:new Blob([data],{type:"image/svg+xml"}));
+  const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}};
+(async()=>{try{dl=window.claude&&claude.use?await claude.use("downloads"):null}catch(e){dl=null}if(!dl)dl=linkSave})();
+function stamp(){return"lozengineer-"+Date.now().toString(36)}
+async function saveData(name,data,ok){try{await dl.save({filename:name,data});say(ok)}catch(e){if(e&&e.code==="declined")say("Save cancelled.");else say("That save did not go through.")}}
+$("svg").onclick=async()=>{
+  const s=exportSVG(),kb=Math.round(s.length/1024);
+  await saveData(stamp()+".svg",s,"Saved SVG, "+kb+" KB.");
+};
+$("png").onclick=async()=>{
+  settleFlips();
+  const scale=Math.min(4096/Math.max(CSSW,CSSH),6);
+  const sw=cv.width,sh=cv.height,d0=dpr,wasExp=exploring;
+  exploring=false;dpr=scale;cv.width=Math.round(CSSW*scale);cv.height=Math.round(CSSH*scale);
+  if(!mainMesh)mainMesh=newMesh();render(performance.now());
+  const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+  dpr=d0;cv.width=sw;cv.height=sh;exploring=wasExp;invalidate();
+  if(blob)await saveData(stamp()+".png",blob,"Saved PNG, "+Math.round(blob.size/1024)+" KB.");
+};
+
+/* pointer: drag pans, tap turns a hexagon, wheel and pinch zoom */
+const pts=new Map();let moved=0,pinch=null,started=false;
+function zoom(f){if(!started){commit();started=true;clearTimeout(zoom.t)}zoom.t=setTimeout(()=>started=false,400);
+  const v=Math.min(SPEC.size.max,Math.max(SPEC.size.min,S.size*f)),ratio=v/S.size;S.size=v;S.panX*=ratio;S.panY*=ratio;refresh();invalidate()}
+cv.addEventListener("wheel",e=>{e.preventDefault();if(!exploring)zoom(Math.exp(-e.deltaY*.0012))},{passive:false});
+cv.addEventListener("pointerdown",e=>{if(exploring)return;cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);moved=0;
+  if(pts.size===2){const[a,b]=[...pts.values()];pinch=Math.hypot(a[0]-b[0],a[1]-b[1])}});
+cv.addEventListener("pointermove",e=>{const p=pts.get(e.pointerId);if(!p)return;const dx=e.clientX-p[0],dy=e.clientY-p[1];p[0]=e.clientX;p[1]=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
+  if(pts.size===1){const mn=Math.min(CSSW,CSSH);S.panX+=dx/mn;S.panY+=dy/mn;invalidate()}
+  else if(pts.size===2&&pinch){const[a,b]=[...pts.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);zoom(d/pinch);pinch=d}});
+function up(e){if(!pts.has(e.pointerId))return;const was=pts.size;pts.delete(e.pointerId);if(pts.size<2)pinch=null;
+  if(was===1&&moved<7&&!isStar(S)&&!exploring&&e.type==="pointerup"){
+    const r=cv.getBoundingClientRect(),v=pickVertex(e.clientX-r.left,e.clientY-r.top);
+    if(v){commit();if(startFlip(v[0],v[1],performance.now()))invalidate()}
+  }}
+cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
+addEventListener("keydown",e=>{if(e.target.matches&&e.target.matches("input")&&e.key.length>1)return;if(e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key.toLowerCase();
+  if(k==="r")$("rand").click();else if(k==="e")$("explore").click();else if(k==="z")undo();else if(k==="h")toggleClean();else if(k==="escape"&&exploring)setExplore(false)});
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change",invalidate);
+new ResizeObserver(resize).observe(stage);
+if(!gl){say("This toy needs WebGL 2, which this browser did not provide.")}
+refresh();resize();
+</script>
+
+</body>
+</html>

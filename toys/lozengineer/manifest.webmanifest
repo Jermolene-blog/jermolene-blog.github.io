@@ -1,0 +1,43 @@
+{
+	"name": "Lozengineer",
+	"short_name": "Lozengineer",
+	"description": "An op art explorer of lozenge tilings, the flat shadows of stacked cubes, with every rhombus striped along one diagonal so the stripes run on unbroken from tile to tile, curling into hooks and forking at the corners. Tap the pattern to turn a hexagon of tiles, tweak the sliders, randomise, explore variations and save SVG or PNG",
+	"id": "/toys/lozengineer/",
+	"start_url": "/toys/lozengineer/",
+	"scope": "/toys/lozengineer/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#fbfbf9",
+	"background_color": "#fbfbf9",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

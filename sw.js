@@ -30,7 +30,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "1af97506e429f426",
+	"version": "fb90901eb9901e68",
 	"urls": [
 		"/games/",
 		"/toys/",
@@ -174,6 +174,12 @@ self.PRECACHE = {
 		"/toys/knottery/icon.svg",
 		"/toys/knottery/",
 		"/toys/knottery/manifest.webmanifest",
+		"/toys/lozengineer/apple-touch-icon.png",
+		"/toys/lozengineer/icon-192.png",
+		"/toys/lozengineer/icon-512.png",
+		"/toys/lozengineer/icon.svg",
+		"/toys/lozengineer/",
+		"/toys/lozengineer/manifest.webmanifest",
 		"/toys/marblelous/apple-touch-icon.png",
 		"/toys/marblelous/icon-192.png",
 		"/toys/marblelous/icon-512.png",
@@ -271,6 +277,7 @@ self.PRECACHE = {
 		"/screenshots/games/jumbleword.webp",
 		"/screenshots/toys/knottery.webp",
 		"/screenshots/games/lala-yala.webp",
+		"/screenshots/toys/lozengineer.webp",
 		"/screenshots/games/marble-flick.webp",
 		"/screenshots/toys/marblelous.webp",
 		"/screenshots/games/meadow-games.webp",
@@ -305,6 +312,7 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap",
 		"https://fonts.googleapis.com/css2?family=Shrikhand&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap",
+		"https://fonts.googleapis.com/css2?family=Monoton&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Instrument+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
