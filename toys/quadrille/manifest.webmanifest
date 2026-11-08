@@ -1,0 +1,43 @@
+{
+	"name": "Quadrille",
+	"short_name": "Quadrille",
+	"description": "A pattern toy that builds interlaced op art bands from one element, a striped quarter disc in the corner of a square: stack the discs in each cell and their stripes join into arches, S-bends, chains and braids. Tap a cell to change it, try the presets taken from hand-drawn sketches, randomise, explore variations and save SVG or PNG",
+	"id": "/toys/quadrille/",
+	"start_url": "/toys/quadrille/",
+	"scope": "/toys/quadrille/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#e9ecf6",
+	"background_color": "#e9ecf6",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

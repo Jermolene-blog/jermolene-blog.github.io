@@ -1,0 +1,43 @@
+{
+	"name": "Arterial Britain",
+	"short_name": "Arterial Britain",
+	"description": "Posters of the roads of England, Scotland and Wales, drawn by where they take you: watersheds that split the country by which of a few places is nearest by car, all roads leading to one place with each road as thick as the land or people it serves, and the fairest place for up to eight travellers to meet. Routing runs in the browser over motorways, A and B roads and ferries. Tap the map to choose places, randomise, explore variations and save SVG or PNG",
+	"id": "/toys/arterial-britain/",
+	"start_url": "/toys/arterial-britain/",
+	"scope": "/toys/arterial-britain/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#e9e7e0",
+	"background_color": "#e9e7e0",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jermolene">
+<meta property="og:title" content="Swelled Rules">
+<meta property="og:description" content="Columns of swelled rules, the printer's ornamental lines that are thick in the middle and fine at the ends, bent into S-curves that rise, fall or cross so the rules weave into feathers, stripes and lattices. Click a column to change its direction, try the presets drawn from hand-made sketches, randomise, explore variations and save SVG or PNG">
+<meta property="og:url" content="https://jermolene.com/toys/swelled-rules/">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://jermolene.com/social/toys/swelled-rules.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Swelled Rules: Printer's swelled rules bent into curves that weave into feathers and lattices">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#dde2e4">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../pwa.js" defer></script>
+<title>Swelled Rules</title>
+<meta name="description" content="Columns of swelled rules, the printer's ornamental lines that are thick in the middle and fine at the ends, bent into S-curves that rise, fall or cross so the rules weave into feathers, stripes and lattices. Click a column to change its direction, try the presets drawn from hand-made sketches, randomise, explore variations and save SVG or PNG">
+<meta name="toy-tagline" content="Printer's swelled rules bent into curves that weave into feathers and lattices">
+<meta name="toy-category" content="trifles">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=Libre+Franklin:wght@400;500;600&display=swap">
+<style>
+/* Layout: a sheet of paper beside a composing stick of controls. */
+:root {
+  --bg: #dde2e4;
+  --panel: #eef1f2;
+  --fg: #1a2230;
+  --muted: #5b6675;
+  --line: #b6bfc7;
+  --accent: #4b43cf;
+  --on-accent: #ffffff;
+  --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --ui: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171f; --panel: #1e222c; --fg: #e7ebf2; --muted: #9aa4b3; --line: #3b4351;
+    --accent: #a29cff; --on-accent: #14171f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171f; --panel: #1e222c; --fg: #e7ebf2; --muted: #9aa4b3; --line: #3b4351;
+  --accent: #a29cff; --on-accent: #14171f; color-scheme: dark;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font: 13px/1.35 var(--ui); }
+* { box-sizing: border-box; }
+.app {
+  height: 100%;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 12px;
+  grid-template: "top top" auto "stage panel" minmax(0, 1fr) / minmax(0, 1fr) 340px;
+}
+.top { grid-area: top; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+h1 { margin: 0 auto 0 0; font: italic 500 27px/1.1 var(--display); letter-spacing: .005em; }
+.actions, .explore-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+button { font: 500 13px/1 var(--ui); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 2px; padding: 8px 11px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--fg); }
+button:disabled { opacity: .4; cursor: default; }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.explore-tools label { color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.explore-tools input { width: 96px; }
+
+.stage { grid-area: stage; position: relative; min-height: 0; display: grid; gap: 8px; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.stage.exploring { grid-template: repeat(3, minmax(0, 1fr)) / repeat(3, minmax(0, 1fr)); }
+.cell { position: relative; min-width: 0; min-height: 0; padding: 0; border: 0; border-radius: 2px; overflow: hidden; background: transparent; display: block; width: 100%; height: 100%; }
+.cell canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+button.cell:hover { box-shadow: inset 0 0 0 2px var(--accent); }
+.cell span { position: absolute; left: 6px; bottom: 6px; background: var(--panel); color: var(--fg); font: 500 11px/1 var(--ui); padding: 4px 6px; border-radius: 2px; }
+#main.editable { cursor: grab; touch-action: none; }
+#main.dragging { cursor: grabbing; }
+.zoombar { position: absolute; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--panel); border-radius: 2px; cursor: default; }
+.zoombar button { padding: 5px 8px; border-color: transparent; }
+.zoombar output { min-width: 46px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+#main.current-tile { box-shadow: 0 0 0 2px var(--accent); }
+#hover { position: absolute; top: 0; bottom: 0; pointer-events: none; border-inline: 1px solid #fff; mix-blend-mode: difference; }
+#hint { position: absolute; left: 10px; bottom: 10px; background: var(--panel); color: var(--muted); padding: 5px 8px; border-radius: 2px; font-size: 12px; pointer-events: none; max-width: calc(100% - 200px); }
+
+.panel { grid-area: panel; background: var(--panel); border-radius: 2px; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+section { display: flex; flex-direction: column; gap: 9px; }
+section + section::before { content: ""; display: block; height: 3px; background: var(--muted); clip-path: ellipse(50% 50% at 50% 50%); margin-bottom: 5px; }
+h2 { margin: 0; font: italic 500 17px/1.1 var(--display); }
+.presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.preset { padding: 0; border: 1px solid var(--line); display: flex; flex-direction: column; overflow: hidden; }
+.preset canvas { display: block; width: 100%; aspect-ratio: 1; }
+.preset span { padding: 5px 2px; font-size: 10.5px; font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chips button { padding: 6px 8px; font-size: 12px; }
+#strip { display: flex; flex-wrap: wrap; gap: 3px; }
+#strip button { width: 25px; height: 38px; padding: 2px; display: grid; place-items: center; }
+#strip svg { width: 100%; height: 100%; display: block; }
+.row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 46px; align-items: center; gap: 8px; }
+.row label { color: var(--muted); }
+.row output { text-align: right; font-variant-numeric: tabular-nums; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 1px; background: var(--muted); }
+input[type="range"]::-moz-range-track { height: 1px; background: var(--muted); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 8px; height: 18px; margin-top: -9px; background: var(--accent); border: 0; border-radius: 1px; }
+input[type="range"]::-moz-range-thumb { width: 8px; height: 18px; background: var(--accent); border: 0; border-radius: 1px; }
+.swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.swatches label { display: flex; flex-direction: column; gap: 3px; color: var(--muted); font-size: 11px; }
+input[type="color"] { width: 100%; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 2px; background: none; cursor: pointer; }
+.check { display: flex; align-items: center; gap: 7px; color: var(--muted); }
+.check input { margin: 0; accent-color: var(--accent); }
+.checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+#status { color: var(--muted); min-height: 1.3em; margin: 0; }
+#fallback { width: 100%; height: 80px; font: 11px monospace; background: transparent; color: var(--fg); border: 1px solid var(--line); }
+
+@media (max-width: 860px) {
+  .app { height: auto; grid-template: "top" auto "stage" auto "panel" auto / minmax(0, 1fr); }
+  .stage { height: min(72vh, 125vw); }
+  .panel { overflow: visible; }
+  .exploring .zoombar { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Swelled Rules</h1>
+    <div class="explore-tools" id="exploreTools" hidden>
+      <label for="stepSize">Step <input type="range" id="stepSize" min="0.08" max="1" step="0.01" value="0.4"></label>
+      <button id="reroll">New neighbours</button>
+    </div>
+    <div class="actions">
+      <button id="undo" disabled>Undo</button>
+      <button id="reset">Reset</button>
+      <button id="explore" aria-pressed="false">Explore</button>
+      <button id="randomise" class="primary">Randomise</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"></main>
+
+  <aside class="panel">
+    <section>
+      <h2>Sketches</h2>
+      <div class="presets" id="presets"></div>
+    </section>
+    <section>
+      <h2>Columns</h2>
+      <div id="strip"></div>
+      <div class="chips" id="rhythms"></div>
+      <div id="sl-columns"></div>
+    </section>
+    <section>
+      <h2>Rules</h2>
+      <div id="sl-rules"></div>
+    </section>
+    <section>
+      <h2>Spine</h2>
+      <label class="check"><input type="checkbox" id="spine"> Draw a spine down the centre</label>
+      <div id="sl-spine"></div>
+    </section>
+    <section>
+      <h2>Colour</h2>
+      <div class="chips" id="palettes"></div>
+      <div class="swatches" id="swatches"></div>
+      <div id="sl-colour"></div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="blend"> Multiply bands</label>
+        <label class="check"><input type="checkbox" id="riseOnTop"> Rising rules on top</label>
+      </div>
+    </section>
+    <section>
+      <h2>Output</h2>
+      <div class="chips">
+        <button id="saveSvg" hidden>Save SVG</button>
+        <button id="savePng" hidden>Save PNG</button>
+        <button id="copySvg">Copy SVG</button>
+      </div>
+      <p id="status" role="status"></p>
+      <textarea id="fallback" readonly hidden aria-label="SVG source"></textarea>
+    </section>
+  </aside>
+</div>
+
+<script>
+"use strict";
+// ---- Parameters ------------------------------------------------------------
+const SLIDERS = {
+  count:   {into:"sl-columns", label:"Columns", min:1, max:24, step:1},
+  w:       {into:"sl-columns", label:"Width", min:30, max:260, step:1},
+  stagger: {into:"sl-columns", label:"Stagger", min:0, max:12, step:.05, fmt:v=>v.toFixed(1)},
+  n:       {into:"sl-rules", label:"Lines", min:2, max:140, step:1},
+  p:       {into:"sl-rules", label:"Pitch", min:3, max:48, step:.05, fmt:v=>v.toFixed(1)},
+  rise:    {into:"sl-rules", label:"Rise", min:0, max:30, step:.01, fmt:v=>v.toFixed(2)},
+  k:       {into:"sl-rules", label:"Tension", min:0, max:1, step:.01, fmt:v=>v.toFixed(2)},
+  t:       {into:"sl-rules", label:"Weight", min:0, max:1.2, step:.01, fmt:v=>Math.round(v*100)+"%"},
+  drift:   {into:"sl-rules", label:"Weight drift", min:-1, max:1, step:.01, fmt:v=>v.toFixed(2)},
+  hair:    {into:"sl-rules", label:"Hairline", min:0, max:2, step:.05, fmt:v=>v.toFixed(2)},
+  spineW:  {into:"sl-spine", label:"Width", min:1, max:40, step:.5, fmt:v=>v.toFixed(1)},
+  tail:    {into:"sl-spine", label:"Tail", min:0, max:300, step:1},
+  alpha:   {into:"sl-colour", label:"Band opacity", min:0, max:1, step:.01, fmt:v=>Math.round(v*100)+"%"},
+};
+const COLOURS = {paper:"Paper", rule:"Rule", a:"Band 1", b:"Band 2", spineC:"Spine"};
+
+// Measured from the sketches: the rise equals the column width.
+const BASE = {cols:[...("xudxduxuu")], w:125.8, n:57, p:18.6, rise:125.8/18.6, k:.47, t:.22, drift:0, hair:.1, stagger:0,
+  spine:false, spineW:9, tail:98, paper:"#ffffff", rule:"#000000", a:"#e16155", b:"#f0e69b", spineC:"#6e8e5c", alpha:0, blend:false, riseOnTop:false};
+const PRESETS = [
+  {name:"Mixed", s:{}},
+  {name:"Feather", s:{cols:["x","x"], w:125.5, n:56, t:.15, hair:.2, spine:true, rule:"#633428", alpha:.6}},
+  {name:"Stripe", s:{cols:["u"], w:124, n:56, rise:124/18.6, t:.19, hair:.15, rule:"#d93a30", a:"#f5a3a1", b:"#8582f6", alpha:1}},
+  {name:"Lattice", s:{cols:["x","x","x","x"], w:132.5, n:57, p:9.35, rise:132.5/9.35, t:.3, hair:.1}},
+];
+const PALETTES = [
+  {name:"Ink", paper:"#ffffff", rule:"#000000", a:"#e16155", b:"#f0e69b", spineC:"#6e8e5c", alpha:0},
+  {name:"Feather", paper:"#ffffff", rule:"#633428", a:"#e16155", b:"#f0e69b", spineC:"#6e8e5c", alpha:.6},
+  {name:"Stripe", paper:"#ffffff", rule:"#d93a30", a:"#f5a3a1", b:"#8582f6", spineC:"#6e8e5c", alpha:1},
+  {name:"Banknote", paper:"#eef2e6", rule:"#274a3a", a:"#9dbf8f", b:"#d9c98a", spineC:"#274a3a", alpha:.55},
+  {name:"Prussian", paper:"#f4f4ee", rule:"#123a6b", a:"#3f7fbf", b:"#f4b942", spineC:"#123a6b", alpha:.55},
+  {name:"Kraft", paper:"#c9a77c", rule:"#2b1d12", a:"#fff4e0", b:"#8a3b1e", spineC:"#2b1d12", alpha:.7},
+  {name:"Plum", paper:"#fbfaf5", rule:"#4a1942", a:"#f29e4c", b:"#48bfa0", spineC:"#4a1942", alpha:.6},
+  {name:"Night", paper:"#10111c", rule:"#f5f5ff", a:"#ff2e88", b:"#00c2ff", spineC:"#f5f5ff", alpha:.5},
+  {name:"Chalk", paper:"#000000", rule:"#ffffff", a:"#ffffff", b:"#ffffff", spineC:"#ffffff", alpha:0},
+];
+const TYPE_NAMES = {x:"Crossed", u:"Rising", d:"Falling", o:"Empty"};
+const NEXT_TYPE = {x:"u", u:"d", d:"o", o:"x"};
+
+const clone = s => ({...s, cols:[...s.cols]});
+const fromPreset = i => ({...clone(BASE), ...PRESETS[i].s});
+const rnd = (a=0, b=1) => a + Math.random()*(b-a);
+const irnd = (a, b) => Math.floor(rnd(a, b+1));
+const pick = a => a[irnd(0, a.length-1)];
+const limit = (k, v) => { const d = SLIDERS[k]; v = Math.min(d.max, Math.max(d.min, v)); return +(Math.round(v/d.step)*d.step).toFixed(4); };
+
+let S = fromPreset(0);
+
+// ---- Geometry: one generator, written to either a canvas path or SVG path data
+function bounds(s) {
+  const H = s.rise*s.p, tMax = s.t*s.p*(1+Math.abs(s.drift));
+  const staggered = s.cols.length > 1 ? s.stagger*s.p : 0;
+  const body = (s.n-1)*s.p + H + tMax + staggered;
+  return {w:s.cols.length*s.w, body, h:body + (s.spine ? s.tail : 0)};
+}
+const weightOf = (s, i) => Math.max(0, s.t*s.p*(1 + s.drift*(s.n>1 ? 2*i/(s.n-1)-1 : 0)));
+
+function ribbon(out, s, c, rising, y, a, b) {
+  const H = s.rise*s.p, kH = s.k*H, L = c*s.w, R = L+s.w;
+  const yL = rising ? y+H : y, yR = rising ? y : y+H;
+  const c1 = rising ? yL-kH : yL+kH, c2 = rising ? yR+kH : yR-kH;
+  out.m(L, yL+a);
+  out.c(L, c1+a, R, c2+a, R, yR+a);
+  out.l(R, yR+b);
+  out.c(R, c2+b, L, c1+b, L, yL+b);
+  out.z();
+}
+function eachColumn(s, rising, clip, fn) {
+  s.cols.forEach((type, c) => {
+    if (type !== "x" && type !== (rising ? "u" : "d")) return;
+    if (clip && ((c+1)*s.w < clip.x0 || c*s.w > clip.x1)) return;
+    fn(c, c%2 ? s.stagger*s.p : 0);
+  });
+}
+// Only the rows that can reach the visible area, so deep zooms stay quick.
+function rowRange(s, off, clip) {
+  if (!clip) return [0, s.n-1];
+  const H = s.rise*s.p, m = 4*s.p;
+  return [Math.max(0, Math.floor((clip.y0-off-H-m)/s.p)), Math.min(s.n-1, Math.ceil((clip.y1-off+m)/s.p))];
+}
+function traceRules(out, s, rising, clip) {
+  eachColumn(s, rising, clip, (c, off) => {
+    const [a, b] = rowRange(s, off, clip);
+    for (let i=a; i<=b; i++) ribbon(out, s, c, rising, off+i*s.p, 0, weightOf(s,i));
+  });
+}
+function traceBands(out, s, rising, which, clip) {
+  eachColumn(s, rising, clip, (c, off) => {
+    const [a, b] = rowRange(s, off, clip);
+    for (let i=a+((a+which)%2); i<Math.min(b+1, s.n-1); i+=2) ribbon(out, s, c, rising, off+i*s.p, weightOf(s,i)/2, s.p+weightOf(s,i+1)/2);
+  });
+}
+const layerOrder = s => s.riseOnTop ? [false, true] : [true, false];
+
+const canvasOut = g => ({m:(x,y)=>g.moveTo(x,y), l:(x,y)=>g.lineTo(x,y), c:(a,b,c,d,e,f)=>g.bezierCurveTo(a,b,c,d,e,f), z:()=>g.closePath()});
+function svgOut() {
+  const parts = [], n = v => String(+v.toFixed(2));
+  return {m:(x,y)=>parts.push("M"+n(x)+" "+n(y)), l:(x,y)=>parts.push("L"+n(x)+" "+n(y)),
+    c:(a,b,c,d,e,f)=>parts.push("C"+[a,b,c,d,e,f].map(n).join(" ")), z:()=>parts.push("Z"), d:()=>parts.join("")};
+}
+
+// ---- Rendering --------------------------------------------------------------
+function paint(g, s, W, H, marginFrac=.055, view=null) {
+  g.setTransform(g.__dpr||1, 0, 0, g.__dpr||1, 0, 0);
+  g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+  g.fillStyle = s.paper; g.fillRect(0, 0, W, H);
+  const b = bounds(s), m = Math.min(W,H)*marginFrac;
+  const fitSc = Math.min((W-2*m)/b.w, (H-2*m)/b.h), sc = fitSc*(view ? view.z : 1);
+  const ox = (W-b.w*sc)/2 + (view ? view.x : 0), oy = (H-b.h*sc)/2 + (view ? view.y : 0);
+  g.translate(ox, oy); g.scale(sc, sc);
+  const clip = view ? {x0:-ox/sc, x1:(W-ox)/sc, y0:-oy/sc, y1:(H-oy)/sc} : null;
+  const out = canvasOut(g);
+  g.lineJoin = "round";
+  for (const rising of layerOrder(s)) {
+    if (s.alpha > 0) {
+      g.globalAlpha = s.alpha;
+      g.globalCompositeOperation = s.blend ? "multiply" : "source-over";
+      [s.a, s.b].forEach((colour, which) => {
+        g.fillStyle = colour; g.beginPath(); traceBands(out, s, rising, which, clip); g.fill();
+      });
+      g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+    }
+    g.fillStyle = g.strokeStyle = s.rule;
+    g.beginPath(); traceRules(out, s, rising, clip); g.fill();
+    if (s.hair > 0) { g.lineWidth = s.hair; g.stroke(); }
+  }
+  if (s.spine) {
+    g.fillStyle = s.spineC;
+    g.fillRect(b.w/2 - s.spineW/2, 0, s.spineW, b.h);
+  }
+  return {ox, oy, sc, W, H, fitSc, bw:b.w, bh:b.h};
+}
+function fit(cv, maxDpr) {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio||1, maxDpr);
+  const w = Math.max(1, Math.round(r.width*dpr)), h = Math.max(1, Math.round(r.height*dpr));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  const g = cv.getContext("2d"); g.__dpr = dpr;
+  return {g, W:r.width, H:r.height};
+}
+
+function toSVG(s) {
+  const b = bounds(s), m = Math.max(b.w, b.h)*.055, x = -m, y = -m, w = b.w+2*m, h = b.h+2*m;
+  const f = v => +v.toFixed(2), out = [];
+  out.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f(x)} ${f(y)} ${f(w)} ${f(h)}" width="${f(w)}" height="${f(h)}">`);
+  out.push(`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" fill="${s.paper}"/>`);
+  const path = (trace, attrs) => { const o = svgOut(); trace(o); out.push(`<path d="${o.d()}" ${attrs}/>`); };
+  const blend = s.blend ? ' style="mix-blend-mode:multiply"' : "";
+  for (const rising of layerOrder(s)) {
+    if (s.alpha > 0) [s.a, s.b].forEach((colour, which) => {
+      path(o => traceBands(o, s, rising, which), `fill="${colour}" fill-opacity="${s.alpha}"${blend}`);
+    });
+    const stroke = s.hair > 0 ? ` stroke="${s.rule}" stroke-width="${s.hair}" stroke-linejoin="round"` : "";
+    path(o => traceRules(o, s, rising), `fill="${s.rule}"${stroke}`);
+  }
+  if (s.spine) out.push(`<rect x="${f(b.w/2-s.spineW/2)}" y="0" width="${s.spineW}" height="${f(b.h)}" fill="${s.spineC}"/>`);
+  out.push("</svg>");
+  return out.join("\n");
+}
+
+// ---- Stage ------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const stage = $("stage");
+const AXES = ["Rhythm","Pitch","Rise","Curve","Colour","Weight","Drift","Mixed"];
+const cells = [];
+let mainLayout = null, exploring = false, neighbours = [], view = {z:1, x:0, y:0};
+const HINT = "Click a column to change it. Drag to pan, scroll or pinch to zoom.";
+for (let i=0; i<9; i++) {
+  if (i === 4) {
+    const d = document.createElement("div");
+    d.className = "cell editable"; d.id = "main";
+    d.innerHTML = '<canvas id="mainCanvas" aria-label="Pattern. Click a column to change its direction, drag to pan, scroll or pinch to zoom."></canvas><div id="hover" hidden></div><div id="hint">' + HINT + '</div><div class="zoombar"><button id="zoomOut" aria-label="Zoom out">−</button><output id="zoomLevel">100%</output><button id="zoomIn" aria-label="Zoom in">+</button><button id="zoomFit">Fit</button></div>';
+    stage.append(d); cells.push(d);
+  } else {
+    const b = document.createElement("button");
+    b.className = "cell"; b.hidden = true;
+    b.innerHTML = "<canvas></canvas><span></span>";
+    const n = i > 4 ? i-1 : i;
+    b.querySelector("span").textContent = AXES[n];
+    b.setAttribute("aria-label", "Move to this " + AXES[n] + " variation");
+    b.addEventListener("click", () => { if (neighbours[n]) { remember(); S = clone(neighbours[n]); changed(); } });
+    stage.append(b); cells.push(b);
+  }
+}
+const main = $("main"), mainCanvas = $("mainCanvas"), hover = $("hover"), hint = $("hint");
+
+let raf = 0;
+function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawMain(); }); }
+function drawMain() {
+  const {g,W,H} = fit(mainCanvas, 2);
+  mainLayout = paint(g, S, W, H, .055, view);
+  $("zoomLevel").textContent = Math.round(view.z*100) + "%";
+}
+function drawNeighbours() {
+  cells.forEach((c, i) => {
+    if (i === 4 || !neighbours[i>4 ? i-1 : i]) return;
+    const {g,W,H} = fit(c.querySelector("canvas"), 1.5);
+    paint(g, neighbours[i>4 ? i-1 : i], W, H, .08, view);
+  });
+}
+new ResizeObserver(() => { drawMain(); if (exploring) drawNeighbours(); }).observe(stage);
+
+function columnAt(ev) {
+  if (!mainLayout) return -1;
+  const r = main.getBoundingClientRect();
+  const c = Math.floor((ev.clientX - r.left - mainLayout.ox) / (S.w*mainLayout.sc));
+  return c >= 0 && c < S.cols.length ? c : -1;
+}
+// Pan and zoom. The view is an offset and scale on top of the fitted sheet.
+const ZOOM_MIN = .5, ZOOM_MAX = 60;
+const pointers = new Map();
+let pressedAt = null, moved = false, pinchGap = null, pinchCentre = null, settleTimer = 0;
+const localPoint = ev => { const r = main.getBoundingClientRect(); return {x:ev.clientX-r.left, y:ev.clientY-r.top}; };
+function viewChanged() {
+  if (mainLayout) {
+    const {W, H, fitSc, bw, bh} = mainLayout, keep = 40;
+    const mx = bw*fitSc*view.z/2 + W/2 - keep, my = bh*fitSc*view.z/2 + H/2 - keep;
+    view.x = Math.min(mx, Math.max(-mx, view.x));
+    view.y = Math.min(my, Math.max(-my, view.y));
+  }
+  schedule();
+  if (exploring) { clearTimeout(settleTimer); settleTimer = setTimeout(drawNeighbours, 120); }
+}
+function zoomAt(px, py, factor) {
+  if (!mainLayout) return;
+  const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, view.z*factor)), k = z/view.z;
+  const cx = px - mainLayout.W/2, cy = py - mainLayout.H/2;
+  view.x = cx - (cx-view.x)*k;
+  view.y = cy - (cy-view.y)*k;
+  view.z = z;
+  viewChanged();
+}
+function fitView() { view = {z:1, x:0, y:0}; viewChanged(); }
+const zoomCentre = factor => zoomAt(mainLayout.W/2, mainLayout.H/2, factor);
+$("zoomIn").addEventListener("click", () => zoomCentre(1.5));
+$("zoomOut").addEventListener("click", () => zoomCentre(1/1.5));
+$("zoomFit").addEventListener("click", fitView);
+main.addEventListener("wheel", ev => {
+  ev.preventDefault();
+  const p = localPoint(ev), unit = ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? 400 : 1;
+  zoomAt(p.x, p.y, Math.exp(-ev.deltaY*unit*(ev.ctrlKey ? .01 : .0015)));
+}, {passive:false});
+main.addEventListener("pointerdown", ev => {
+  if (ev.target.closest(".zoombar") || (ev.pointerType === "mouse" && ev.button !== 0)) return;
+  main.setPointerCapture(ev.pointerId);
+  const p = localPoint(ev);
+  if (!pointers.size) { moved = false; pressedAt = p; } else moved = true;
+  pointers.set(ev.pointerId, p);
+  pinchGap = pinchCentre = null;
+});
+function dragPointer(ev) {
+  const last = pointers.get(ev.pointerId), now = localPoint(ev);
+  if (!moved && Math.hypot(now.x-pressedAt.x, now.y-pressedAt.y) < 5) return;
+  moved = true;
+  main.classList.add("dragging");
+  hover.hidden = true;
+  pointers.set(ev.pointerId, now);
+  if (pointers.size === 1) {
+    view.x += now.x-last.x; view.y += now.y-last.y;
+    viewChanged();
+    return;
+  }
+  const [a, b] = [...pointers.values()];
+  const gap = Math.hypot(a.x-b.x, a.y-b.y), centre = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
+  if (pinchGap) {
+    view.x += centre.x-pinchCentre.x; view.y += centre.y-pinchCentre.y;
+    zoomAt(centre.x, centre.y, gap/pinchGap);
+  }
+  pinchGap = gap; pinchCentre = centre;
+}
+function endPointer(ev) {
+  if (!pointers.delete(ev.pointerId)) return;
+  pinchGap = pinchCentre = null;
+  if (pointers.size) return;
+  main.classList.remove("dragging");
+  if (!moved && ev.type === "pointerup") cycleColumnAt(ev);
+}
+main.addEventListener("pointerup", endPointer);
+main.addEventListener("pointercancel", endPointer);
+main.addEventListener("pointermove", ev => {
+  if (pointers.has(ev.pointerId)) { dragPointer(ev); return; }
+  const c = ev.target.closest(".zoombar") ? -1 : columnAt(ev);
+  hover.hidden = c < 0 || ev.pointerType === "touch";
+  if (c >= 0) {
+    hover.style.left = (mainLayout.ox + c*S.w*mainLayout.sc) + "px";
+    hover.style.width = (S.w*mainLayout.sc) + "px";
+    hint.textContent = `Column ${c+1} of ${S.cols.length}: ${TYPE_NAMES[S.cols[c]]}. Click to change.`;
+  }
+});
+main.addEventListener("pointerleave", () => { hover.hidden = true; hint.textContent = HINT; });
+function cycleColumnAt(ev) {
+  const c = columnAt(ev);
+  if (c < 0) return;
+  remember(); S.cols[c] = NEXT_TYPE[S.cols[c]];
+  hint.textContent = `Column ${c+1} of ${S.cols.length}: ${TYPE_NAMES[S.cols[c]]}. Click to change.`;
+  changed();
+}
+
+// ---- Controls ---------------------------------------------------------------
+const history = [];
+function remember(s = S) { history.push(clone(s)); if (history.length > 200) history.shift(); $("undo").disabled = false; }
+
+const sliderEls = {};
+let pending = null;
+for (const [k, d] of Object.entries(SLIDERS)) {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<label for="r-${k}">${d.label}</label><input type="range" id="r-${k}" min="${d.min}" max="${d.max}" step="${d.step}"><output for="r-${k}"></output>`;
+  $(d.into).append(row);
+  const input = row.querySelector("input"), output = row.querySelector("output");
+  sliderEls[k] = {input, output, d};
+  input.addEventListener("input", () => {
+    if (!pending) pending = clone(S);
+    const v = +input.value;
+    if (k === "count") setCount(v); else S[k] = v;
+    changed(true);
+  });
+  input.addEventListener("change", () => { if (pending) { remember(pending); pending = null; } queueNeighbours(); });
+}
+function setCount(n) {
+  const old = S.cols;
+  S.cols = Array.from({length:n}, (_, i) => old[i] ?? old[i % old.length]);
+}
+for (const [k, label] of Object.entries(COLOURS)) {
+  const l = document.createElement("label");
+  l.innerHTML = `${label}<input type="color" id="c-${k}">`;
+  $("swatches").append(l);
+  const input = l.querySelector("input");
+  input.addEventListener("input", () => { if (!pending) pending = clone(S); S[k] = input.value; changed(true); });
+  input.addEventListener("change", () => { if (pending) { remember(pending); pending = null; } queueNeighbours(); });
+}
+["spine","blend","riseOnTop"].forEach(k => $(k).addEventListener("change", e => { remember(); S[k] = e.target.checked; changed(); }));
+
+const RHYTHMS = {
+  "Crossed": n => Array(n).fill("x"),
+  "Chevrons": n => Array.from({length:n}, (_, i) => i%2 ? "d" : "u"),
+  "Sawtooth": n => Array(n).fill("u"),
+  "Shuffle": n => Array.from({length:n}, () => pick(["x","x","u","d"])),
+};
+for (const [name, make] of Object.entries(RHYTHMS)) {
+  const b = document.createElement("button"); b.textContent = name;
+  b.addEventListener("click", () => { remember(); S.cols = make(S.cols.length); changed(); });
+  $("rhythms").append(b);
+}
+PALETTES.forEach(p => {
+  const b = document.createElement("button"); b.textContent = p.name;
+  b.addEventListener("click", () => { remember(); applyPalette(S, p); changed(); });
+  $("palettes").append(b);
+});
+function applyPalette(s, p) { for (const k of ["paper","rule","a","b","spineC","alpha"]) s[k] = p[k]; }
+
+PRESETS.forEach((p, i) => {
+  const b = document.createElement("button");
+  b.className = "preset";
+  b.innerHTML = `<canvas></canvas><span>${p.name}</span>`;
+  b.addEventListener("click", () => { remember(); S = fromPreset(i); fitView(); changed(); });
+  $("presets").append(b);
+});
+function drawPresets() {
+  document.querySelectorAll(".preset canvas").forEach((cv, i) => {
+    const s = fromPreset(i), {g,W,H} = fit(cv, 2);
+    paint(g, s, W, H, .07);
+  });
+}
+
+const glyph = type => {
+  const curve = "M3 30 C3 18 17 22 17 10", down = "M3 10 C3 22 17 18 17 30";
+  const d = type === "x" ? curve + down : type === "u" ? curve : type === "d" ? down : "";
+  return `<svg viewBox="0 0 20 40" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>`;
+};
+function renderStrip() {
+  const strip = $("strip");
+  while (strip.children.length < S.cols.length) {
+    const b = document.createElement("button");
+    b.addEventListener("click", () => { const i = [...strip.children].indexOf(b); remember(); S.cols[i] = NEXT_TYPE[S.cols[i]]; changed(); });
+    strip.append(b);
+  }
+  while (strip.children.length > S.cols.length) strip.lastChild.remove();
+  S.cols.forEach((t, i) => {
+    const b = strip.children[i];
+    if (b.dataset.t !== t) { b.dataset.t = t; b.innerHTML = glyph(t); }
+    b.setAttribute("aria-label", `Column ${i+1}: ${TYPE_NAMES[t]}. Change direction.`);
+  });
+}
+function syncControls() {
+  for (const [k, {input, output, d}] of Object.entries(sliderEls)) {
+    const v = k === "count" ? S.cols.length : S[k];
+    if (+input.value !== v) input.value = v;
+    output.textContent = d.fmt ? d.fmt(v) : v;
+  }
+  for (const k of Object.keys(COLOURS)) { const i = $("c-"+k); if (i.value !== S[k]) i.value = S[k]; }
+  ["spine","blend","riseOnTop"].forEach(k => $(k).checked = S[k]);
+  renderStrip();
+}
+function changed(skipNeighbours = false) {
+  syncControls();
+  schedule();
+  if (!skipNeighbours && exploring) queueNeighbours();
+}
+
+$("undo").addEventListener("click", () => {
+  if (history.length) { S = history.pop(); $("undo").disabled = !history.length; changed(); }
+});
+$("reset").addEventListener("click", () => { remember(); S = fromPreset(0); fitView(); changed(); });
+$("randomise").addEventListener("click", () => { remember(); S = randomState(); fitView(); changed(); });
+
+// ---- Randomise --------------------------------------------------------------
+function randomRhythm(n) {
+  const mode = pick(["crossed","chevron","saw","palindrome","palindrome","free"]);
+  if (mode === "crossed") return RHYTHMS.Crossed(n);
+  if (mode === "chevron") return RHYTHMS.Chevrons(n);
+  if (mode === "saw") return Array(n).fill(pick(["u","d"]));
+  if (mode === "free") return RHYTHMS.Shuffle(n);
+  const half = Array.from({length:Math.ceil(n/2)}, () => pick(["x","u","d"]));
+  const mirror = {x:"x", u:"d", d:"u"};
+  return Array.from({length:n}, (_, i) => i < half.length ? half[i] : mirror[half[n-1-i]]);
+}
+function randomState() {
+  const s = clone(BASE);
+  s.spine = Math.random() < .25;
+  let n = pick([1,2,2,3,4,4,5,6,7,8,9,10,12]);
+  if (s.spine && n % 2) n++;
+  s.w = irnd(70, 170);
+  s.cols = randomRhythm(n);
+  s.p = limit("p", rnd(7, 30));
+  const height = rnd(520, 1250);
+  s.n = limit("n", height/s.p);
+  s.rise = limit("rise", Math.random() < .55 ? s.w/s.p*rnd(.7,1.3) : irnd(1, Math.min(24, Math.round(1.8*s.w/s.p))));
+  s.k = limit("k", rnd(.15, .9));
+  s.t = limit("t", rnd(.12, .55));
+  s.hair = limit("hair", rnd(.1, .4));
+  s.drift = Math.random() < .3 ? limit("drift", rnd(-.9, .9)) : 0;
+  s.stagger = Math.random() < .25 ? limit("stagger", irnd(1, Math.min(12, Math.round(s.rise)||1))) : 0;
+  applyPalette(s, Math.random() < .25 ? PALETTES[0] : pick(PALETTES));
+  s.riseOnTop = Math.random() < .3;
+  s.blend = s.paper !== "#000000" && s.paper !== "#10111c" && Math.random() < .25;
+  s.tail = irnd(0, 140);
+  return s;
+}
+
+// ---- Explore: eight neighbours around the current pattern ----------------------
+function rotateHex(hex, deg) {
+  const v = parseInt(hex.slice(1), 16), R = (v>>16&255)/255, G = (v>>8&255)/255, B = (v&255)/255;
+  const max = Math.max(R,G,B), min = Math.min(R,G,B), l = (max+min)/2, d = max-min;
+  if (!d) return hex;
+  const sat = d/(1-Math.abs(2*l-1));
+  let h = max===R ? ((G-B)/d)%6 : max===G ? (B-R)/d+2 : (R-G)/d+4;
+  h = ((h*60+deg)%360+360)%360;
+  const c = (1-Math.abs(2*l-1))*sat, x = c*(1-Math.abs((h/60)%2-1)), m = l-c/2;
+  const t = [[c,x,0],[x,c,0],[0,c,x],[0,x,c],[x,0,c],[c,0,x]][Math.floor(h/60)%6];
+  return "#" + t.map(u => Math.round((u+m)*255).toString(16).padStart(2,"0")).join("");
+}
+const nudge = () => (Math.random()<.5?-1:1)*rnd(.4,1);
+const MUTATE = {
+  Rhythm(s, step) {
+    const edits = Math.ceil(.5 + step*s.cols.length*.6);
+    for (let i=0; i<edits; i++) {
+      const c = irnd(0, s.cols.length-1), options = ["x","u","d"].filter(t => t !== s.cols[c]);
+      s.cols[c] = pick(options);
+    }
+    if (step > .6 && Math.random() < .5) { s.cols.push(pick(["x","u","d"])); s.cols.length = Math.min(24, s.cols.length); }
+  },
+  Pitch(s, step) {
+    const run = (s.n-1)*s.p, H = s.rise*s.p;
+    s.p = limit("p", s.p*(1+nudge()*step*.7));
+    s.n = limit("n", run/s.p + 1);
+    s.rise = limit("rise", H/s.p);
+  },
+  Rise(s, step) { s.rise = limit("rise", s.rise*(1+nudge()*step*.9) + nudge()*step); },
+  Curve(s, step) { s.k = limit("k", s.k + nudge()*step*.5); },
+  Weight(s, step) { s.t = limit("t", s.t + nudge()*step*.35); s.hair = limit("hair", s.hair*(1+nudge()*step*.6)); },
+  Drift(s, step) {
+    if (Math.random() < .5) s.drift = limit("drift", s.drift + nudge()*step*1.2);
+    else s.stagger = limit("stagger", s.stagger + Math.abs(nudge())*step*Math.max(2, s.rise));
+  },
+  Colour(s, step) {
+    if (s.alpha === 0 || step > .7) { applyPalette(s, pick(PALETTES.filter(p => p.alpha > 0))); return; }
+    const turn = nudge()*step*140;
+    s.rule = rotateHex(s.rule, turn); s.a = rotateHex(s.a, turn); s.b = rotateHex(s.b, turn*.6);
+    s.alpha = limit("alpha", s.alpha + nudge()*step*.2);
+  },
+  Mixed(s, step) {
+    for (const f of ["Pitch","Rise","Curve","Weight"]) MUTATE[f](s, step*.55);
+    s.w = limit("w", s.w*(1+nudge()*step*.4));
+    if (Math.random() < step) MUTATE.Rhythm(s, step*.5);
+  },
+};
+function makeNeighbours() {
+  const step = +$("stepSize").value;
+  neighbours = AXES.map(axis => { const s = clone(S); MUTATE[axis](s, step); return s; });
+  drawNeighbours();
+}
+let neighbourTimer = 0;
+function queueNeighbours() { if (!exploring) return; clearTimeout(neighbourTimer); neighbourTimer = setTimeout(makeNeighbours, 120); }
+function setExplore(on) {
+  exploring = on;
+  $("explore").setAttribute("aria-pressed", on);
+  $("exploreTools").hidden = !on;
+  stage.classList.toggle("exploring", on);
+  main.classList.toggle("current-tile", on);
+  cells.forEach((c, i) => { if (i !== 4) c.hidden = !on; });
+  hint.hidden = on;
+  view = {z:1, x:0, y:0};
+  drawMain();
+  if (on) makeNeighbours();
+}
+$("explore").addEventListener("click", () => setExplore(!exploring));
+$("reroll").addEventListener("click", makeNeighbours);
+$("stepSize").addEventListener("change", makeNeighbours);
+
+// ---- Output -----------------------------------------------------------------
+let downloads = null;
+const browserDownloads = {
+  async save({filename, data}) {
+    const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], {type:"image/svg+xml"}));
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
+};
+const status = t => { $("status").textContent = t; };
+function pngBlob() {
+  const b = bounds(S), m = Math.max(b.w, b.h)*.055;
+  const scale = Math.min(4, 6000/Math.max(b.w+2*m, b.h+2*m));
+  const W = b.w+2*m, H = b.h+2*m, cv = document.createElement("canvas");
+  cv.width = Math.round(W*scale); cv.height = Math.round(H*scale);
+  const g = cv.getContext("2d"); g.__dpr = scale;
+  paint(g, S, W, H, m/Math.min(W,H));
+  return new Promise(res => cv.toBlob(res, "image/png"));
+}
+async function save(filename, data) {
+  try { await downloads.save({filename, data}); status("Saved " + filename + "."); }
+  catch (e) { status(e && e.code === "declined" ? "Save cancelled." : "Could not save the file here. Copy the SVG instead."); }
+}
+$("saveSvg").addEventListener("click", () => save("swelled-rules.svg", toSVG(S)));
+$("savePng").addEventListener("click", async () => save("swelled-rules.png", await pngBlob()));
+$("copySvg").addEventListener("click", () => {
+  const text = toSVG(S), fb = $("fallback");
+  const showFallback = () => { fb.hidden = false; fb.value = text; fb.select(); status("Copy blocked here. The SVG is selected below."); };
+  if (!navigator.clipboard) return showFallback();
+  navigator.clipboard.writeText(text).then(() => { fb.hidden = true; status("SVG copied."); }, showFallback);
+});
+(async () => {
+  // Inside a Claude artifact, saving goes through the downloads capability; on a plain web page, an ordinary download.
+  downloads = window.claude && window.claude.use ? await window.claude.use("downloads") : browserDownloads;
+  if (downloads) { $("saveSvg").hidden = false; $("savePng").hidden = false; }
+})();
+
+syncControls();
+drawMain();
+drawPresets();
+</script>
+
+</body>
+</html>

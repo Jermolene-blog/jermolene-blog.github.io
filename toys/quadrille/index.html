@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jermolene">
+<meta property="og:title" content="Quadrille">
+<meta property="og:description" content="A pattern toy that builds interlaced op art bands from one element, a striped quarter disc in the corner of a square: stack the discs in each cell and their stripes join into arches, S-bends, chains and braids. Tap a cell to change it, try the presets taken from hand-drawn sketches, randomise, explore variations and save SVG or PNG">
+<meta property="og:url" content="https://jermolene.com/toys/quadrille/">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://jermolene.com/social/toys/quadrille.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Quadrille: Striped quarter discs stacked on a grid interlace into op art bands and braids">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#e9ecf6">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../pwa.js" defer></script>
+<title>Quadrille</title>
+<meta name="description" content="A pattern toy that builds interlaced op art bands from one element, a striped quarter disc in the corner of a square: stack the discs in each cell and their stripes join into arches, S-bends, chains and braids. Tap a cell to change it, try the presets taken from hand-drawn sketches, randomise, explore variations and save SVG or PNG">
+<meta name="toy-tagline" content="Striped quarter discs stacked on a grid interlace into op art bands and braids">
+<meta name="toy-category" content="trifles">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@75..150,500..900&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: the sheet takes the window; one narrow control column beside it, stacked under it on phones. */
+:root {
+  --bg: #e9ecf6; --raise: #f7f8fd; --fg: #1b2250; --dim: #5a638f; --rule: #c6cce4; --accent: #4659a8; --on-accent: #ffffff;
+  --display: "Anybody", "Arial Narrow", sans-serif;
+  --body: "Instrument Sans", system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11152b; --raise: #1b2140; --fg: #e5e8f7; --dim: #9aa3cc; --rule: #343c66; --accent: #9aabf0; --on-accent: #11152b; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #11152b; --raise: #1b2140; --fg: #e5e8f7; --dim: #9aa3cc; --rule: #343c66; --accent: #9aabf0; --on-accent: #11152b; color-scheme: dark;
+}
+html, body { height: 100%; }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font: 14px/1.4 var(--body);
+  display: grid; grid-template-columns: minmax(0, 1fr) 312px; gap: 16px;
+  padding-block: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow: hidden;
+}
+#stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; touch-action: manipulation; }
+#sheet, #overlay { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#sheet { cursor: pointer; touch-action: none; }
+#sheet.dragging { cursor: grabbing; }
+#sheet:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#zoombar { position: absolute; right: 0; bottom: 0; display: flex; align-items: stretch; background: var(--raise); border: 1px solid var(--rule); border-top-left-radius: 16px; overflow: hidden; }
+#zoombar button { min-width: 38px; height: 36px; padding: 0 8px; border: 0; background: none; cursor: pointer; font-size: 16px; font-weight: 600; }
+#zoombar button:hover:not(:disabled) { color: var(--accent); }
+#zoombar button:disabled { opacity: .4; cursor: default; }
+#zoombar button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#zfit { font-size: 13px !important; border-left: 1px solid var(--rule) !important; }
+#zv { align-self: center; min-width: 50px; text-align: center; font: 12px var(--mono); font-variant-numeric: tabular-nums; color: var(--dim); }
+#overlay { pointer-events: none; mix-blend-mode: difference; }
+#explore { position: absolute; inset: 0; display: grid; grid-template: repeat(3, minmax(0, 1fr)) / repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--bg); }
+.var { position: relative; padding: 0; border: 0; background: none; cursor: pointer; min-width: 0; min-height: 0; overflow: hidden; }
+.var canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.var span { position: absolute; left: 0; bottom: 0; padding: 2px 10px 2px 6px; font: 11px/1.4 var(--mono); background: var(--raise); color: var(--fg); border-top-right-radius: 12px; }
+.var.here { outline: 2px solid var(--accent); outline-offset: -2px; }
+.var:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+#panel { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding-right: 2px; }
+header { display: flex; align-items: center; gap: 10px; }
+#mark { width: 44px; height: 44px; flex: none; }
+h1 { margin: 0; font: 800 28px/1 var(--display); font-stretch: 130%; letter-spacing: -.01em; }
+section { display: flex; flex-direction: column; gap: 10px; }
+h2 { margin: 0; font: 500 11px/1.2 var(--mono); letter-spacing: .09em; text-transform: uppercase; color: var(--dim); }
+.note { margin: 0; color: var(--dim); font-size: 12.5px; }
+
+button { font: inherit; color: inherit; }
+.actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.btn { padding: 9px 4px; border: 1px solid var(--rule); background: var(--raise); cursor: pointer; font-weight: 600; font-size: 13px; border-top-right-radius: 14px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary, .btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn:disabled { opacity: .45; cursor: default; }
+:is(.btn, .seg button, .preset, .swatch):focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid var(--rule); }
+.seg button { padding: 7px 2px; border: 0; background: var(--raise); cursor: pointer; font-size: 12.5px; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+
+.presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.preset { padding: 0; border: 1px solid var(--rule); background: var(--raise); cursor: pointer; display: flex; flex-direction: column; min-width: 0; }
+.preset:hover { border-color: var(--accent); }
+.preset canvas { width: 100%; aspect-ratio: 4 / 3; display: block; }
+.preset span { font-size: 11.5px; padding: 3px 0 4px; text-align: center; }
+
+.row { display: grid; grid-template-columns: 76px minmax(0, 1fr) 40px; align-items: center; gap: 8px; }
+.row label { font-size: 13px; }
+.row output { font: 12px var(--mono); text-align: right; font-variant-numeric: tabular-nums; color: var(--dim); }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 8px; background: repeating-linear-gradient(90deg, var(--rule) 0 2px, transparent 2px 5px); }
+input[type=range]::-moz-range-track { height: 8px; background: repeating-linear-gradient(90deg, var(--rule) 0 2px, transparent 2px 5px); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -5px; background: var(--accent); border: 0; border-radius: 0 100% 0 0; }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; background: var(--accent); border: 0; border-radius: 0 100% 0 0; }
+
+.swatches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.swatch { height: 30px; padding: 0; border: 1px solid var(--rule); cursor: pointer; display: flex; overflow: hidden; }
+.swatch i { flex: 1; display: block; }
+.picks { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.picks label { display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; color: var(--dim); }
+input[type=color] { width: 100%; height: 26px; padding: 0; border: 1px solid var(--rule); background: none; cursor: pointer; }
+#status { min-height: 1.4em; }
+#svgout { width: 100%; height: 72px; font: 11px var(--mono); background: var(--raise); color: var(--fg); border: 1px solid var(--rule); }
+
+@media (max-width: 820px) {
+  html, body { height: auto; }
+  body { display: flex; flex-direction: column; overflow: visible; }
+  #stage { flex: none; height: 62vh; min-height: 300px; }
+  #panel { overflow: visible; padding-right: 0; }
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="sheet" tabindex="0" aria-label="Pattern sheet. Drag to pan, scroll or pinch to zoom, tap a tile to change it."></canvas>
+  <canvas id="overlay"></canvas>
+  <div id="zoombar" role="group" aria-label="Zoom">
+    <button id="zout" aria-label="Zoom out">&minus;</button>
+    <output id="zv">100%</output>
+    <button id="zin" aria-label="Zoom in">+</button>
+    <button id="zfit" disabled>Fit</button>
+  </div>
+  <div id="explore" hidden></div>
+</div>
+
+<div id="panel">
+  <header><canvas id="mark" width="132" height="132"></canvas><h1>Quadrille</h1></header>
+
+  <section>
+    <div class="actions">
+      <button class="btn primary" id="rand">Random</button>
+      <button class="btn" id="exploreBtn" aria-pressed="false">Explore</button>
+      <button class="btn" id="undo">Undo</button>
+      <button class="btn" id="reset">Reset</button>
+    </div>
+    <div id="exploreOpts" hidden>
+      <section>
+        <p class="note">The centre is your current pattern. Pick any neighbour to move there and get eight new ones.</p>
+        <div class="seg" id="vary">
+          <button data-k="pattern" aria-pressed="true">Pattern</button>
+          <button data-k="stripes" aria-pressed="true">Stripes</button>
+          <button data-k="colour" aria-pressed="true">Colour</button>
+        </div>
+        <div class="row"><label for="step">Stride</label><input type="range" id="step" min="1" max="4" step="1" value="1"><output id="stepv">1</output></div>
+      </section>
+    </div>
+  </section>
+
+  <section>
+    <h2>From your sketches</h2>
+    <div class="presets" id="presets"></div>
+  </section>
+
+  <section>
+    <h2>Tap a tile to</h2>
+    <div class="seg" id="tools">
+      <button data-k="turn" aria-pressed="true">Turn</button>
+      <button data-k="order">Reorder</button>
+      <button data-k="add">Add</button>
+      <button data-k="remove">Remove</button>
+    </div>
+    <p class="note">Each cell holds a stack of quarter discs, and every repeat of the cell changes with it. Drag to pan. Scroll or pinch to zoom.</p>
+  </section>
+
+  <section>
+    <h2>Stripes</h2>
+    <div class="row"><label for="n">Bands</label><input type="range" id="n" min="2" max="24" step="1"><output id="nv"></output></div>
+    <div class="row"><label for="ink">Ink</label><input type="range" id="ink" min="0.1" max="0.9" step="0.01"><output id="inkv"></output></div>
+    <div class="row"><label for="swell">Swell</label><input type="range" id="swell" min="-1" max="1" step="0.01"><output id="swellv"></output></div>
+    <div class="row"><label for="phase">Slide</label><input type="range" id="phase" min="-0.5" max="0.5" step="0.01"><output id="phasev"></output></div>
+    <button class="btn" id="drift" aria-pressed="false">Drift the stripes</button>
+  </section>
+
+  <section>
+    <h2>Sheet</h2>
+    <div class="row"><label for="cols">Across</label><input type="range" id="cols" min="1" max="24" step="1"><output id="colsv"></output></div>
+    <div class="row"><label for="rows">Down</label><input type="range" id="rows" min="1" max="24" step="1"><output id="rowsv"></output></div>
+    <div class="row"><label for="mw">Repeat w</label><input type="range" id="mw" min="1" max="8" step="1"><output id="mwv"></output></div>
+    <div class="row"><label for="mh">Repeat h</label><input type="range" id="mh" min="1" max="8" step="1"><output id="mhv"></output></div>
+    <div class="row"><label for="shift">Stagger</label><input type="range" id="shift" min="0" max="7" step="1"><output id="shiftv"></output></div>
+  </section>
+
+  <section>
+    <h2>Colour</h2>
+    <div class="seg" id="modes">
+      <button data-k="one">One ink</button>
+      <button data-k="strands">Strands</button>
+      <button data-k="depth">Layers</button>
+      <button data-k="bands">Bands</button>
+    </div>
+    <div class="swatches" id="swatches"></div>
+    <div class="picks">
+      <label>Paper<input type="color" id="c-paper"></label>
+      <label>Ink 1<input type="color" id="c-0"></label>
+      <label>Ink 2<input type="color" id="c-1"></label>
+      <label>Ink 3<input type="color" id="c-2"></label>
+      <label>Ink 4<input type="color" id="c-3"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Take it away</h2>
+    <div class="actions" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+      <button class="btn" id="saveSvg" hidden>Save SVG</button>
+      <button class="btn" id="savePng" hidden>Save PNG</button>
+      <button class="btn" id="copySvg">Copy SVG</button>
+    </div>
+    <p class="note" id="status" role="status"></p>
+    <textarea id="svgout" aria-label="SVG source" hidden readonly></textarea>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clone = o => JSON.parse(JSON.stringify(o));
+
+// Corners of a cell: a top-left, b top-right, c bottom-right, d bottom-left. A cell is a string, bottom layer first.
+const CORNER = { a: [0, 0, 0], b: [1, 0, Math.PI / 2], c: [1, 1, Math.PI], d: [0, 1, 1.5 * Math.PI] };
+const LETTERS = "abcd";
+
+const PALETTES = [
+  { inks: ["#4659a8", "#d9473f", "#e5a823", "#1f8a70"], paper: "#ffffff" },
+  { inks: ["#0078bf", "#ff48b0", "#ffe800", "#00a95c"], paper: "#ffffff" },
+  { inks: ["#c8441b", "#e8a33d", "#6b7f3a", "#3a2a1e"], paper: "#f7ead0" },
+  { inks: ["#f2e9c9", "#7fd1c7", "#f38d68", "#a393eb"], paper: "#14172b" },
+  { inks: ["#111111", "#666666", "#a8a8a8", "#333333"], paper: "#ffffff" },
+  { inks: ["#f5f1e6", "#9fb4e8", "#f0c35a", "#e8815e"], paper: "#25306e" },
+  { inks: ["#0d5c3f", "#7ab648", "#e8b923", "#ee7b3b"], paper: "#f2f7e6" },
+  { inks: ["#ffffff", "#ffe066", "#06d6a0", "#118ab2"], paper: "#ef476f" },
+];
+
+function sketch(cols, rows, mw, mh, cells) {
+  return { cols, rows, mw, mh, motif: cells.trim().split(/\s+/).map(s => s === "." ? "" : s), shift: 0,
+    n: 9, ink: 0.5, swell: 0, phase: 0, mode: "one", inks: PALETTES[0].inks.slice(), paper: PALETTES[0].paper };
+}
+// Layouts recovered tile by tile from the uploaded sketches. Lattice is the one extra, built from the Chain's middle rows.
+const PRESETS = [
+  ["Cable", sketch(8, 4, 8, 4, `d c d c d c d c
+    bc da bc da bc da bc da
+    bc cda bcd cda bcd cda bcd da
+    ac ab abc dba abc ab ab db`)],
+  ["Chain", sketch(8, 4, 2, 4, "d c bc da bc da a b")],
+  ["Braid", sketch(8, 2, 1, 2, "dc ba")],
+  ["Waves", sketch(8, 4, 1, 2, "ac ca")],
+  ["Scales", sketch(8, 4, 1, 1, "ca")],
+  ["Cloud", sketch(6, 4, 6, 4, `. c d c d .
+    c a bc da b d
+    b d bc da c a
+    . b a b a .`)],
+  ["Fragment", sketch(5, 4, 5, 4, `. . c d c
+    da bc d bc da
+    a bc da bc da
+    b a b a b`)],
+  ["Lattice", sketch(8, 6, 2, 2, "bc da da bc")],
+];
+const OPENING = PRESETS[0][1];
+
+let g = clone(OPENING);
+let history = [];
+let driftOn = false, driftPhase = 0, tool = "turn";
+let exploring = false, variants = [];
+let view = null; // null means fit to the stage; otherwise { z, cx, cy }: zoom over fit and the cell coordinate at stage centre
+const vary = { pattern: true, stripes: true, colour: true };
+
+/* ---------- geometry ---------- */
+function stackAt(p, i, j) {
+  const m = Math.floor(j / p.mh);
+  const ii = (((i + p.shift * m) % p.mw) + p.mw) % p.mw;
+  return ii + (j % p.mh) * p.mw;
+}
+function bandTable(p, sign, extra) {
+  const per = 1 / p.n, out = [];
+  const rhoAt = c => clamp(p.ink * (1 + p.swell * (Math.abs(2 * c - 1) - 0.5) * 1.4), 0.03, 0.97);
+  const co = (p.n - 0.5) / p.n;
+  const rOut = co + rhoAt(co) * per / 2;
+  const phi = (((p.phase + extra + 0.5) % 1) + 1) % 1 - 0.5;
+  for (let k = -2; k <= p.n + 1; k++) {
+    const c = (k + 0.5 + phi * sign) * per;
+    const half = rhoAt(c) * per / 2;
+    const r0 = Math.max(0, c - half), r1 = Math.min(rOut, c + half);
+    if (r1 > r0) out.push({ k, r: (r0 + r1) / 2, w: r1 - r0 });
+  }
+  return { rOut, bands: out };
+}
+function strands(p) {
+  const id = new Map(), parent = [];
+  const key = (i, j, l) => i + "," + j + "," + l;
+  const make = k => { if (!id.has(k)) { id.set(k, parent.length); parent.push(parent.length); } return id.get(k); };
+  const find = x => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+  const topOn = (i, j, set) => {
+    const s = p.motif[stackAt(p, i, j)];
+    for (let l = s.length - 1; l >= 0; l--) if (set.includes(s[l])) return key(i, j, l);
+    return null;
+  };
+  const join = (a, b) => { if (a && b) parent[find(make(a))] = find(make(b)); };
+  for (let j = 0; j < p.rows; j++) for (let i = 0; i < p.cols; i++) {
+    const s = p.motif[stackAt(p, i, j)];
+    for (let l = 0; l < s.length; l++) make(key(i, j, l));
+    if (i + 1 < p.cols) join(topOn(i, j, "bc"), topOn(i + 1, j, "ad"));
+    if (j + 1 < p.rows) join(topOn(i, j, "cd"), topOn(i, j + 1, "ab"));
+  }
+  const order = new Map(), result = new Map();
+  for (const [k, v] of id) {
+    const r = find(v);
+    if (!order.has(r)) order.set(r, order.size);
+    result.set(k, order.get(r));
+  }
+  return result;
+}
+function walk(p, extra, tile) {
+  const even = bandTable(p, 1, extra), odd = bandTable(p, -1, extra);
+  const comp = p.mode === "strands" ? strands(p) : null;
+  for (let j = 0; j < p.rows; j++) for (let i = 0; i < p.cols; i++) {
+    const s = p.motif[stackAt(p, i, j)];
+    for (let l = 0; l < s.length; l++) {
+      const [dx, dy, a0] = CORNER[s[l]];
+      const lx = i + dx, ly = j + dy;
+      const table = (lx + ly) % 2 ? odd : even;
+      const base = p.mode === "strands" ? comp.get(i + "," + j + "," + l) : p.mode === "depth" ? l : 0;
+      tile(lx, ly, a0, table, k => {
+        if (p.mode === "bands") return p.inks[((Math.min(k, p.n - 1 - k) % 4) + 4) % 4];
+        return p.inks[base % 4];
+      });
+    }
+  }
+}
+
+/* ---------- drawing ---------- */
+function layout(p, W, H, frac) {
+  const m = Math.max(4, Math.floor(Math.min(W, H) * frac));
+  const S = Math.max(1, Math.floor(Math.min((W - 2 * m) / p.cols, (H - 2 * m) / p.rows)));
+  return { S, ox: Math.floor((W - S * p.cols) / 2), oy: Math.floor((H - S * p.rows) / 2) };
+}
+function paint(ctx, p, W, H, L, extra) {
+  ctx.fillStyle = p.paper; ctx.fillRect(0, 0, W, H);
+  ctx.lineCap = "butt";
+  const { S, ox, oy } = L;
+  walk(p, extra, (lx, ly, a0, table, colour) => {
+    const x = ox + lx * S, y = oy + ly * S, a1 = a0 + Math.PI / 2;
+    if (x + S < 0 || x - S > W || y + S < 0 || y - S > H) return;
+    ctx.fillStyle = p.paper;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, table.rOut * S, a0, a1); ctx.closePath(); ctx.fill();
+    for (const b of table.bands) {
+      ctx.strokeStyle = colour(b.k); ctx.lineWidth = b.w * S;
+      ctx.beginPath(); ctx.arc(x, y, b.r * S, a0, a1); ctx.stroke();
+    }
+  });
+}
+function fitCanvas(c) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const w = Math.max(1, Math.round(c.clientWidth * dpr)), h = Math.max(1, Math.round(c.clientHeight * dpr));
+  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+  return [w, h];
+}
+let mainL = null;
+function drawMain() {
+  const c = $("sheet");
+  const [W, H] = fitCanvas(c);
+  mainL = viewLayout(W, H);
+  paint(c.getContext("2d"), g, W, H, mainL, driftPhase);
+  drawHover();
+  $("zv").textContent = Math.round((view ? view.z : 1) * 100) + "%";
+  $("zfit").disabled = !view;
+}
+const FIT = 0.05;
+function viewLayout(W, H) {
+  const base = layout(g, W, H, FIT);
+  if (!view) return base;
+  const S = Math.max(1, Math.round(base.S * view.z));
+  return { S, ox: Math.round(W / 2 - view.cx * S), oy: Math.round(H / 2 - view.cy * S) };
+}
+let drawQueued = false;
+function queueDraw() {
+  if (drawQueued) return;
+  drawQueued = true;
+  requestAnimationFrame(() => { drawQueued = false; drawMain(); });
+}
+function currentView(W, H) { return view || { z: 1, cx: g.cols / 2, cy: g.rows / 2 }; }
+function setView(z, cx, cy, W, H, S) {
+  const keep = Math.min(40 * (window.devicePixelRatio || 1), W / 4, H / 4);
+  view = {
+    z,
+    cx: clamp(cx, (keep - W / 2) / S, (W / 2 - keep) / S + g.cols),
+    cy: clamp(cy, (keep - H / 2) / S, (H / 2 - keep) / S + g.rows),
+  };
+  mainL = viewLayout(W, H);
+  queueDraw();
+}
+function zoomAt(px, py, factor) {
+  const { width: W, height: H } = $("sheet");
+  const base = layout(g, W, H, FIT).S, v = currentView(W, H);
+  const zMax = Math.max(1, 4 * Math.max(W, H) / base);
+  const z = clamp(v.z * factor, 0.4, zMax);
+  const S0 = Math.max(1, Math.round(base * v.z)), S1 = Math.max(1, Math.round(base * z));
+  const u = v.cx + (px - W / 2) / S0, w = v.cy + (py - H / 2) / S0;
+  setView(z, u - (px - W / 2) / S1, w - (py - H / 2) / S1, W, H, S1);
+}
+function panBy(dx, dy) {
+  const { width: W, height: H } = $("sheet");
+  const base = layout(g, W, H, FIT).S, v = currentView(W, H);
+  const S = Math.max(1, Math.round(base * v.z));
+  setView(v.z, v.cx - dx / S, v.cy - dy / S, W, H, S);
+}
+function fitView() { view = null; queueDraw(); }
+function drawThumb(c, p) {
+  const [W, H] = fitCanvas(c);
+  paint(c.getContext("2d"), p, W, H, layout(p, W, H, 0.06), 0);
+}
+
+/* ---------- hover and tap ---------- */
+let hover = null;
+function drawHover() {
+  const o = $("overlay");
+  const [W, H] = fitCanvas(o);
+  const x = o.getContext("2d");
+  x.clearRect(0, 0, W, H);
+  if (!hover || exploring || !mainL) return;
+  const { S, ox, oy } = mainL, t = stackAt(g, hover[0], hover[1]);
+  const lw = clamp(Math.round(S / 40), 1, Math.ceil(window.devicePixelRatio || 1));
+  for (let j = 0; j < g.rows; j++) for (let i = 0; i < g.cols; i++) {
+    if (stackAt(g, i, j) !== t) continue;
+    const main = i === hover[0] && j === hover[1];
+    x.strokeStyle = main ? "rgba(255,255,255,1)" : "rgba(255,255,255,.55)";
+    x.lineWidth = main ? lw * 2 : lw;
+    x.strokeRect(ox + i * S + x.lineWidth / 2, oy + j * S + x.lineWidth / 2, S - x.lineWidth, S - x.lineWidth);
+  }
+}
+function cellFrom(ev) {
+  const c = $("sheet"), r = c.getBoundingClientRect();
+  if (!mainL) return null;
+  const k = c.width / r.width;
+  const i = Math.floor(((ev.clientX - r.left) * k - mainL.ox) / mainL.S);
+  const j = Math.floor(((ev.clientY - r.top) * k - mainL.oy) / mainL.S);
+  return i >= 0 && j >= 0 && i < g.cols && j < g.rows ? [i, j] : null;
+}
+function applyTool(s) {
+  if (tool === "turn") {
+    if (!s) return "a";
+    let t = LETTERS[(LETTERS.indexOf(s[s.length - 1]) + 1) % 4];
+    const rest = s.slice(0, -1);
+    for (let n = 0; n < 4 && rest.includes(t); n++) t = LETTERS[(LETTERS.indexOf(t) + 1) % 4];
+    return rest + t;
+  }
+  if (tool === "order") return s.length > 1 ? s[s.length - 1] + s.slice(0, -1) : s;
+  if (tool === "add") { const free = [...LETTERS].filter(l => !s.includes(l)); return free.length ? s + free[0] : s; }
+  return s.slice(0, -1);
+}
+const ptrs = new Map();
+let gesture = null;
+function devicePoint(ev) {
+  const c = $("sheet"), r = c.getBoundingClientRect(), k = c.width / r.width;
+  return [(ev.clientX - r.left) * k, (ev.clientY - r.top) * k, k];
+}
+function tapCell(ev) {
+  const c = cellFrom(ev);
+  if (!c) return;
+  const t = stackAt(g, c[0], c[1]), next = applyTool(g.motif[t]);
+  if (next === g.motif[t]) return;
+  remember();
+  g.motif[t] = next;
+  render();
+}
+const sheet = $("sheet");
+sheet.addEventListener("pointerdown", e => {
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  try { sheet.setPointerCapture(e.pointerId); } catch (_) { /* synthetic pointers cannot be captured */ }
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 1) gesture = { tap: true, sx: e.clientX, sy: e.clientY };
+  else if (gesture) gesture.tap = false;
+  hover = null; drawHover();
+});
+sheet.addEventListener("pointermove", e => {
+  const p = ptrs.get(e.pointerId);
+  if (!p) {
+    if (e.pointerType === "touch") return;
+    const c = cellFrom(e);
+    if (String(c) !== String(hover)) { hover = c; drawHover(); }
+    return;
+  }
+  if (ptrs.size === 1) {
+    if (gesture.tap && Math.hypot(e.clientX - gesture.sx, e.clientY - gesture.sy) < 6) return;
+    gesture.tap = false;
+    sheet.classList.add("dragging");
+    const k = sheet.width / sheet.getBoundingClientRect().width;
+    panBy((e.clientX - p.x) * k, (e.clientY - p.y) * k);
+    p.x = e.clientX; p.y = e.clientY;
+    return;
+  }
+  const [a, b] = [...ptrs.values()];
+  const d0 = Math.hypot(a.x - b.x, a.y - b.y), mx0 = (a.x + b.x) / 2, my0 = (a.y + b.y) / 2;
+  p.x = e.clientX; p.y = e.clientY;
+  const d1 = Math.hypot(a.x - b.x, a.y - b.y), mx1 = (a.x + b.x) / 2, my1 = (a.y + b.y) / 2;
+  const r = sheet.getBoundingClientRect(), k = sheet.width / r.width;
+  if (d0 > 0) zoomAt((mx1 - r.left) * k, (my1 - r.top) * k, d1 / d0);
+  panBy((mx1 - mx0) * k, (my1 - my0) * k);
+});
+function pointerEnd(e, cancelled) {
+  if (!ptrs.delete(e.pointerId)) return;
+  if (ptrs.size) return;
+  sheet.classList.remove("dragging");
+  if (gesture && gesture.tap && !cancelled) tapCell(e);
+  gesture = null;
+}
+sheet.addEventListener("pointerup", e => pointerEnd(e, false));
+sheet.addEventListener("pointercancel", e => pointerEnd(e, true));
+sheet.addEventListener("pointerleave", () => { if (!ptrs.size) { hover = null; drawHover(); } });
+sheet.addEventListener("wheel", e => {
+  e.preventDefault();
+  const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
+  const [x, y] = devicePoint(e);
+  zoomAt(x, y, Math.exp(-e.deltaY * unit * (e.ctrlKey ? 0.01 : 0.0018)));
+}, { passive: false });
+sheet.addEventListener("keydown", e => {
+  const stepX = sheet.width / 10, stepY = sheet.height / 10;
+  const act = {
+    "+": () => zoomCentre(1.4), "=": () => zoomCentre(1.4), "-": () => zoomCentre(1 / 1.4), "0": fitView,
+    ArrowLeft: () => panBy(stepX, 0), ArrowRight: () => panBy(-stepX, 0), ArrowUp: () => panBy(0, stepY), ArrowDown: () => panBy(0, -stepY),
+  }[e.key];
+  if (act) { e.preventDefault(); act(); }
+});
+function zoomCentre(f) { zoomAt(sheet.width / 2, sheet.height / 2, f); }
+$("zin").addEventListener("click", () => zoomCentre(1.5));
+$("zout").addEventListener("click", () => zoomCentre(1 / 1.5));
+$("zfit").addEventListener("click", fitView);
+
+/* ---------- state ---------- */
+function remember() { history.push(JSON.stringify(g)); if (history.length > 200) history.shift(); $("undo").disabled = false; }
+function setG(next, keep) { if (keep !== false) remember(); g = next; view = null; render(); }
+function resizeMotif(p, mw, mh) {
+  const out = [];
+  for (let j = 0; j < mh; j++) for (let i = 0; i < mw; i++) out.push(p.motif[(j % p.mh) * p.mw + (i % p.mw)]);
+  p.motif = out; p.mw = mw; p.mh = mh;
+  p.shift = Math.min(p.shift, mw - 1);
+}
+function render() {
+  syncUI();
+  drawMain();
+  if (exploring) rollVariants();
+}
+
+/* ---------- random and mutation ---------- */
+const STACK_FAMILIES = [
+  () => pick(["dc", "ba", "bc", "da", "cd", "ab", "cb", "ad"]),
+  () => pick(["ac", "ca", "bd", "db"]),
+  () => pick([..."abcd"]),
+  () => pick(["bcd", "cda", "abc", "dba", "acd", "bda"]),
+];
+function randomStack() {
+  const r = Math.random();
+  return STACK_FAMILIES[r < 0.45 ? 0 : r < 0.72 ? 1 : r < 0.92 ? 2 : 3]();
+}
+const MIRROR_X = { a: "b", b: "a", c: "d", d: "c" }, MIRROR_Y = { a: "d", d: "a", b: "c", c: "b" }, ROT180 = { a: "c", c: "a", b: "d", d: "b" }, ROT90 = { a: "b", b: "c", c: "d", d: "a" };
+const mapStack = (s, m) => [...s].map(l => m[l]).join("");
+function randomMotif(mw, mh) {
+  const motif = new Array(mw * mh).fill("");
+  const sym = pick(["none", "none", "x", "y", "r"]);
+  for (let j = 0; j < mh; j++) for (let i = 0; i < mw; i++) {
+    let v;
+    if (sym === "x" && i >= Math.ceil(mw / 2)) v = mapStack(motif[j * mw + (mw - 1 - i)], MIRROR_X);
+    else if (sym === "y" && j >= Math.ceil(mh / 2)) v = mapStack(motif[(mh - 1 - j) * mw + i], MIRROR_Y);
+    else if (sym === "r" && j >= Math.ceil(mh / 2)) v = mapStack(motif[(mh - 1 - j) * mw + (mw - 1 - i)], ROT180);
+    else v = randomStack();
+    motif[j * mw + i] = v;
+  }
+  return motif;
+}
+function randomPattern(p) {
+  p.mw = pick([1, 2, 2, 2, 3, 4]); p.mh = pick([1, 2, 2, 3, 4]);
+  p.motif = randomMotif(p.mw, p.mh);
+  p.shift = Math.random() < 0.3 ? ri(0, p.mw - 1) : 0;
+  p.cols = p.mw * ri(Math.ceil(5 / p.mw), Math.max(2, Math.floor(12 / p.mw)));
+  p.rows = p.mh * ri(Math.ceil(3 / p.mh), Math.max(1, Math.floor(8 / p.mh)));
+}
+function randomStripes(p) {
+  p.n = ri(4, 14); p.ink = 0.3 + Math.random() * 0.4;
+  p.swell = Math.random() < 0.25 ? -1 + 2 * Math.random() : 0;
+  p.phase = 0;
+}
+function randomColour(p) {
+  const c = pick(PALETTES);
+  p.inks = c.inks.slice(); p.paper = c.paper;
+  p.mode = pick(["one", "one", "strands", "strands", "depth", "bands"]);
+}
+function hueShift(hex, deg) {
+  const n = parseInt(hex.slice(1), 16);
+  let r = (n >> 16 & 255) / 255, gg = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), l = (mx + mn) / 2, d = mx - mn;
+  let h = 0; const s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+  if (d) h = mx === r ? ((gg - b) / d) % 6 : mx === gg ? (b - r) / d + 2 : (r - gg) / d + 4;
+  h = (h * 60 + deg + 360) % 360;
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
+  const t = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][Math.floor(h / 60) % 6];
+  return "#" + t.map(v => Math.round((v + m) * 255).toString(16).padStart(2, "0")).join("");
+}
+const MUTATIONS = {
+  pattern: [
+    p => { const t = ri(0, p.motif.length - 1); p.motif[t] = randomStack(); return "new tile"; },
+    p => { const t = ri(0, p.motif.length - 1); p.motif[t] = mapStack(p.motif[t], ROT90); return "turn tile"; },
+    p => { p.motif = p.motif.map(s => mapStack(s, ROT90)); return "turn all"; },
+    p => { p.motif = p.motif.map(s => [...s].reverse().join("")); return "flip layers"; },
+    p => { p.motif = p.motif.map(s => mapStack(s, MIRROR_X)); return "mirror"; },
+    p => { const m = clamp(p.mw + pick([-1, 1]), 1, 6); resizeMotif(p, m, p.mh); return "repeat w " + m; },
+    p => { const m = clamp(p.mh + pick([-1, 1]), 1, 6); resizeMotif(p, p.mw, m); return "repeat h " + m; },
+    p => { p.shift = ri(0, p.mw - 1); return "stagger " + p.shift; },
+    p => { p.cols = clamp(p.cols + pick([-2, -1, 1, 2]), 1, 16); return "across " + p.cols; },
+    p => { p.rows = clamp(p.rows + pick([-2, -1, 1, 2]), 1, 12); return "down " + p.rows; },
+  ],
+  stripes: [
+    p => { p.n = clamp(p.n + pick([-3, -2, -1, 1, 2, 3]), 2, 24); return "bands " + p.n; },
+    p => { p.ink = clamp(p.ink + pick([-0.15, -0.08, 0.08, 0.15]), 0.1, 0.9); return "ink " + Math.round(p.ink * 100); },
+    p => { p.swell = clamp(p.swell + pick([-0.5, -0.25, 0.25, 0.5]), -1, 1); return "swell " + p.swell.toFixed(2); },
+    p => { p.phase = clamp(p.phase + pick([-0.25, 0.25]), -0.5, 0.5); return "slide " + p.phase.toFixed(2); },
+  ],
+  colour: [
+    p => { const c = pick(PALETTES); p.inks = c.inks.slice(); p.paper = c.paper; return "palette"; },
+    p => { p.mode = pick(["one", "strands", "depth", "bands"].filter(m => m !== p.mode)); return ({ one: "one ink", strands: "strands", depth: "layers", bands: "bands" })[p.mode]; },
+    p => { const d = pick([-50, -25, 25, 50]); p.inks = p.inks.map(c => hueShift(c, d)); return "hue " + (d > 0 ? "+" : "") + d; },
+    p => { p.inks = [...p.inks.slice(1), p.inks[0]]; return "rotate inks"; },
+  ],
+};
+function mutate(base, stride) {
+  const kinds = Object.keys(vary).filter(k => vary[k]);
+  const p = clone(base);
+  let label = "";
+  for (let s = 0; s < stride; s++) {
+    if (!kinds.length) break;
+    label = pick(MUTATIONS[pick(kinds)])(p);
+  }
+  return { p, label: stride > 1 ? label + " +" + (stride - 1) : label };
+}
+function rollVariants() {
+  const box = $("explore"), stride = +$("step").value;
+  const seen = new Set([JSON.stringify(g)]);
+  variants = [];
+  for (let v = 0; v < 8; v++) {
+    let m = mutate(g, stride), tries = 0;
+    while (seen.has(JSON.stringify(m.p)) && tries++ < 30) m = mutate(g, stride);
+    seen.add(JSON.stringify(m.p));
+    variants.push(m);
+  }
+  variants.splice(4, 0, { p: g, label: "current" });
+  box.replaceChildren();
+  variants.forEach((m, n) => {
+    const b = document.createElement("button");
+    b.className = "var" + (n === 4 ? " here" : "");
+    b.setAttribute("aria-label", n === 4 ? "Current pattern, roll eight new neighbours" : "Use variation: " + m.label);
+    const c = document.createElement("canvas"), s = document.createElement("span");
+    s.textContent = m.label;
+    b.append(c, s);
+    b.addEventListener("click", () => { n === 4 ? rollVariants() : setG(clone(m.p)); });
+    box.append(b);
+  });
+  requestAnimationFrame(drawVariants);
+}
+function drawVariants() { if (exploring) [...$("explore").querySelectorAll("canvas")].forEach((c, n) => drawThumb(c, variants[n].p)); }
+
+/* ---------- controls ---------- */
+const SLIDERS = {
+  n: v => v, ink: v => Math.round(v * 100) + "%", swell: v => (+v).toFixed(2), phase: v => (+v).toFixed(2),
+  cols: v => v, rows: v => v, mw: v => v, mh: v => v, shift: v => v,
+};
+let sliderLive = false;
+for (const k of Object.keys(SLIDERS)) {
+  const el = $(k);
+  el.addEventListener("input", () => {
+    if (!sliderLive) { remember(); sliderLive = true; }
+    const v = +el.value;
+    if (k === "mw") resizeMotif(g, v, g.mh);
+    else if (k === "mh") resizeMotif(g, g.mw, v);
+    else g[k] = v;
+    syncUI(); drawMain();
+  });
+  el.addEventListener("change", () => { sliderLive = false; if (exploring) rollVariants(); });
+}
+function syncUI() {
+  for (const k of Object.keys(SLIDERS)) { $(k).value = g[k]; $(k + "v").textContent = SLIDERS[k](g[k]); }
+  $("shift").max = Math.max(0, g.mw - 1);
+  $("c-paper").value = g.paper;
+  g.inks.forEach((c, n) => { $("c-" + n).value = c; });
+  document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === g.mode));
+  $("undo").disabled = !history.length;
+}
+function seg(id, fn) {
+  $(id).addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (b) fn(b.dataset.k, b);
+  });
+}
+seg("tools", k => { tool = k; document.querySelectorAll("#tools button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k)); });
+seg("modes", k => { remember(); g.mode = k; render(); });
+seg("vary", (k, b) => {
+  vary[k] = !vary[k];
+  b.setAttribute("aria-pressed", vary[k]);
+  if (exploring) rollVariants();
+});
+$("step").addEventListener("input", () => { $("stepv").textContent = $("step").value; });
+$("step").addEventListener("change", () => { if (exploring) rollVariants(); });
+
+function colourInput(id, set) {
+  let live = false;
+  $(id).addEventListener("input", e => { if (!live) { remember(); live = true; } set(e.target.value); drawMain(); });
+  $(id).addEventListener("change", () => { live = false; if (exploring) rollVariants(); });
+}
+colourInput("c-paper", v => { g.paper = v; });
+g.inks.forEach((_, n) => colourInput("c-" + n, v => { g.inks[n] = v; }));
+
+PALETTES.forEach(c => {
+  const b = document.createElement("button");
+  b.className = "swatch"; b.setAttribute("aria-label", "Use this palette");
+  [c.paper, ...c.inks].forEach((col, n) => { const i = document.createElement("i"); i.style.background = col; if (n === 0) i.style.flex = "1.4"; b.append(i); });
+  b.addEventListener("click", () => { remember(); g.inks = c.inks.slice(); g.paper = c.paper; render(); });
+  $("swatches").append(b);
+});
+const presetCanvases = [];
+PRESETS.forEach(([name, p]) => {
+  const b = document.createElement("button");
+  b.className = "preset";
+  const c = document.createElement("canvas"), s = document.createElement("span");
+  s.textContent = name; b.append(c, s);
+  b.addEventListener("click", () => setG(clone(p)));
+  $("presets").append(b);
+  presetCanvases.push([c, p]);
+});
+
+$("rand").addEventListener("click", () => {
+  const p = clone(g);
+  randomPattern(p); randomStripes(p); randomColour(p);
+  setG(p);
+});
+$("reset").addEventListener("click", () => {
+  driftPhase = 0; if (driftOn) toggleDrift();
+  setG(clone(OPENING));
+});
+$("undo").addEventListener("click", () => { if (history.length) { g = JSON.parse(history.pop()); render(); } });
+$("exploreBtn").addEventListener("click", () => {
+  exploring = !exploring;
+  $("exploreBtn").setAttribute("aria-pressed", exploring);
+  $("explore").hidden = !exploring;
+  $("exploreOpts").hidden = !exploring;
+  $("zoombar").hidden = exploring;
+  if (exploring) rollVariants(); else drawMain();
+});
+
+let raf = 0, last = 0;
+function tick(t) {
+  if (!driftOn) return;
+  driftPhase = (driftPhase + Math.min(50, t - last) * 0.00012) % 1; last = t;
+  if (!exploring) drawMain();
+  raf = requestAnimationFrame(tick);
+}
+function toggleDrift() {
+  driftOn = !driftOn;
+  $("drift").setAttribute("aria-pressed", driftOn);
+  $("drift").textContent = driftOn ? "Stop drifting" : "Drift the stripes";
+  if (driftOn) { last = performance.now(); raf = requestAnimationFrame(tick); } else cancelAnimationFrame(raf);
+}
+$("drift").addEventListener("click", toggleDrift);
+
+/* ---------- export ---------- */
+function svgText(p) {
+  const S = 100, f = n => +n.toFixed(3), eps = 0.0015;
+  const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${p.cols * S} ${p.rows * S}" width="${p.cols * S}" height="${p.rows * S}">`,
+    `<rect width="${p.cols * S}" height="${p.rows * S}" fill="${p.paper}"/>`, `<g fill="none" stroke-linecap="butt">`];
+  walk(p, driftPhase, (lx, ly, a0, t, colour) => {
+    const x = lx * S, y = ly * S, a1 = a0 + Math.PI / 2, R = t.rOut * S;
+    const P = (r, a) => f(x + r * Math.cos(a)) + " " + f(y + r * Math.sin(a));
+    out.push(`<path d="M${f(x)} ${f(y)}L${P(R, a0)}A${f(R)} ${f(R)} 0 0 1 ${P(R, a1)}Z" fill="${p.paper}"/>`);
+    for (const b of t.bands) {
+      const r = b.r * S;
+      out.push(`<path d="M${P(r, a0 - eps)}A${f(r)} ${f(r)} 0 0 1 ${P(r, a1 + eps)}" stroke="${colour(b.k)}" stroke-width="${f(b.w * S)}"/>`);
+    }
+  });
+  out.push("</g></svg>");
+  return out.join("\n");
+}
+function pngBlob(p) {
+  const S = Math.floor(Math.min(240, 6000 / Math.max(p.cols, p.rows)));
+  const c = document.createElement("canvas");
+  c.width = p.cols * S; c.height = p.rows * S;
+  paint(c.getContext("2d"), p, c.width, c.height, { S, ox: 0, oy: 0 }, driftPhase);
+  return new Promise(res => c.toBlob(res, "image/png"));
+}
+const say = t => { $("status").textContent = t; };
+$("copySvg").addEventListener("click", () => {
+  const text = svgText(g);
+  const fallback = () => { const o = $("svgout"); o.hidden = false; o.value = text; o.select(); say("Select this text and copy it."); };
+  if (!navigator.clipboard) return fallback();
+  navigator.clipboard.writeText(text).then(() => say("SVG copied."), fallback);
+});
+(async () => {
+  // Outside the Claude viewer there is no downloads capability, so save with a plain link.
+  const linkSave = { save: async ({ filename, data }) => {
+    const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type: "image/svg+xml" }));
+    const link = document.createElement("a");
+    link.href = url; link.download = filename; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return { status: "saved" };
+  } };
+  const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : linkSave;
+  if (!dl) return;
+  $("saveSvg").hidden = $("savePng").hidden = false;
+  const save = async (name, make) => {
+    try { await dl.save({ filename: name, data: await make() }); say("Saved " + name + "."); }
+    catch (e) { say(e && e.code === "declined" ? "Save cancelled." : "That save did not go through. Copy the SVG instead."); }
+  };
+  $("saveSvg").addEventListener("click", () => save("quadrille.svg", () => svgText(g)));
+  $("savePng").addEventListener("click", () => save("quadrille.png", () => pngBlob(g)));
+})();
+
+/* ---------- boot ---------- */
+function drawMark() {
+  const p = sketch(2, 2, 2, 2, "c d b a");
+  const c = $("mark"), x = c.getContext("2d");
+  p.n = 5;
+  p.inks = [getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#4659a8", "", "", ""];
+  p.paper = getComputedStyle(document.body).backgroundColor;
+  paint(x, p, 132, 132, { S: 66, ox: 0, oy: 0 }, 0);
+}
+function layoutAll() {
+  drawMain();
+  drawVariants();
+  presetCanvases.forEach(([c, p]) => drawThumb(c, p));
+  drawMark();
+}
+function start(data) {
+  if (data && data.g) g = data.g;
+  window.claude?.hot?.snapshot?.(() => ({ g }));
+  syncUI();
+  layoutAll();
+  new ResizeObserver(layoutAll).observe($("stage"));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawMark);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutAll);
+}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
