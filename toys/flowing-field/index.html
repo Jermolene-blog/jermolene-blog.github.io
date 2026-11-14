@@ -67,12 +67,12 @@ button{font:inherit;color:inherit}
 .bar button[aria-pressed="true"] kbd{color:#0c0b10;border-color:rgba(0,0,0,.3)}
 @media (max-width:620px){.bar kbd{display:none}.bar button{padding:8px 9px;font-size:12px}}
 
-.panel{width:330px;flex:none;box-sizing:border-box;background:var(--lacquer);border-left:1px solid var(--line);overflow-y:auto;padding:14px 16px 24px;padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+.panel{width:330px;flex:none;box-sizing:border-box;background:var(--lacquer);border-left:1px solid var(--line);overflow-y:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));scroll-padding-top:env(safe-area-inset-top,0px);padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
 @media (max-width:820px){
   html,body{height:auto;overflow:visible}
   #app{flex-direction:column;height:auto}
   #stage{flex:none;height:62vh;min-height:300px}
-  .panel{width:auto;border-left:0;border-top:1px solid var(--line);overflow:visible;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .panel{width:auto;border-left:0;border-top:1px solid var(--line);overflow:visible;padding-top:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 }
 .acts{display:flex;flex-wrap:wrap;gap:6px}
 .acts button{border:1px solid var(--line);background:rgba(236,230,218,.06);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
@@ -733,7 +733,13 @@ const bPause=document.getElementById('bPause');const setPause=v=>{paused=v;dirty
 bPause.onclick=()=>setPause(!paused);
 const bPurr=document.getElementById('bPurr');const setPurr=v=>{purrOn=v;bPurr.setAttribute('aria-pressed',v);try{localStorage.setItem(LS+'-purr',v?'1':'0')}catch(e){}};
 bPurr.onclick=()=>{initAudio();setPurr(!purrOn)};
-document.getElementById('bDl').onclick=()=>new Promise(r=>{snapCb=r;snapMain=true;dirty=true}).then(url=>{const a=document.createElement('a');a.href=url;a.download='flowing-field.png';document.body.appendChild(a);a.click();a.remove()});
+// On iPad and iPhone a download link does nothing useful (and in a home screen app it opens a page with no way back), so the PNG goes to the share sheet, whose Save Image puts it in Photos.
+// The snapshot arrives on the next frame, well inside the click's user activation, and is turned into a file synchronously so share() still counts as a response to the tap.
+const isIOS=/iP(ad|hone|od)/.test(navigator.platform)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function dataUrlFile(url,name){const b=atob(url.slice(url.indexOf(',')+1)),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new File([u],name,{type:'image/png'})}
+document.getElementById('bDl').onclick=()=>new Promise(r=>{snapCb=r;snapMain=true;dirty=true}).then(url=>{
+  if(isIOS&&navigator.canShare){const file=dataUrlFile(url,'flowing-field.png');if(navigator.canShare({files:[file]})){navigator.share({files:[file]}).catch(()=>{});return}}
+  const a=document.createElement('a');a.href=url;a.download='flowing-field.png';document.body.appendChild(a);a.click();a.remove()});
 addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.key!==' ')return;const k=e.key.toLowerCase();
   if(k==='r')document.getElementById('bRand').click();else if(k==='e')bExp.click();else if(k===' '){e.preventDefault();setPause(!paused)}else if(k==='h')document.body.classList.toggle('hideui');else if(k==='d')setDbg(dbg.hidden);else if(k==='escape'&&exploring)setExplore(false)});
 
