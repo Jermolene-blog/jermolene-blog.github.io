@@ -102,6 +102,7 @@ input[type=checkbox]{accent-color:var(--accent);margin:0}
       <button id="undo" disabled>Undo</button>
       <button id="reset">Reset</button>
       <button id="svg" hidden>Download SVG</button>
+      <button id="copySvg">Copy SVG</button>
     </div>
     <div id="exploreBox" hidden class="ctrls">
       <div class="row"><label for="strength">Variation</label><input type="range" id="strength" min="0.03" max="0.6" step="0.01" value="0.18"><output id="strengthOut">0.18</output></div>
@@ -682,6 +683,14 @@ let downloads=null;
 const blobSaver={save:async({filename,data})=>{const u=URL.createObjectURL(new Blob([data],{type:'image/svg+xml'}));const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return {status:'saved'}}};
 (async()=>{try{downloads=window.claude?.use?await window.claude.use('downloads'):blobSaver}catch(e){downloads=null}
   if(downloads)$('svg').hidden=false})();
+$('copySvg').addEventListener('click',()=>copySvgText(buildSVG(P,phase),$('copySvg')));
+// Copy SVG puts the SVG source on the clipboard, for pasting straight into a drawing program. The button briefly reads Copied; where the
+// asynchronous clipboard is missing or refuses (some browsers on pages opened from disk) a hidden text area and execCommand stand in.
+function copySvgText(text,btn){const label=btn.dataset.label||(btn.dataset.label=btn.textContent);
+  const show=t=>{btn.textContent=t;clearTimeout(btn.copyTimer);btn.copyTimer=setTimeout(()=>{btn.textContent=label},1600)};
+  const legacy=()=>{const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();show(ok?'Copied':'Could not copy')};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>show('Copied'),legacy);else legacy()}
 $('svg').addEventListener('click',async()=>{
   const b=$('svg'),t=b.textContent;
   try{await downloads.save({filename:'radialator.svg',data:buildSVG(P,phase)});b.textContent='Saved'}

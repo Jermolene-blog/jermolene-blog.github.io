@@ -107,6 +107,7 @@ kbd{font:inherit;font-weight:600;color:var(--ink)}
       <button class="b" id="undo">Undo</button>
       <button class="b" id="svg">Save SVG</button>
       <button class="b" id="png">Save PNG</button>
+      <button class="b" id="copysvg">Copy SVG</button>
     </div>
     <p id="msg" role="status"></p>
     <div id="controls" style="display:contents"></div>
@@ -639,6 +640,14 @@ const linkSave={save:async({filename,data})=>{const url=URL.createObjectURL(data
 (async()=>{try{dl=window.claude&&claude.use?await claude.use("downloads"):null}catch(e){dl=null}if(!dl)dl=linkSave})();
 function stamp(){return"lozengineer-"+Date.now().toString(36)}
 async function saveData(name,data,ok){try{await dl.save({filename:name,data});say(ok)}catch(e){if(e&&e.code==="declined")say("Save cancelled.");else say("That save did not go through.")}}
+$("copysvg").onclick=()=>copySvgText(exportSVG(),$("copysvg"));
+// Copy SVG puts the SVG source on the clipboard, for pasting straight into a drawing program. The button briefly reads Copied; where the
+// asynchronous clipboard is missing or refuses (some browsers on pages opened from disk) a hidden text area and execCommand stand in.
+function copySvgText(text,btn){const label=btn.dataset.label||(btn.dataset.label=btn.textContent);
+  const show=t=>{btn.textContent=t;clearTimeout(btn.copyTimer);btn.copyTimer=setTimeout(()=>{btn.textContent=label},1600)};
+  const legacy=()=>{const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();show(ok?'Copied':'Could not copy')};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>show('Copied'),legacy);else legacy()}
 $("svg").onclick=async()=>{
   const s=exportSVG(),kb=Math.round(s.length/1024);
   await saveData(stamp()+".svg",s,"Saved SVG, "+kb+" KB.");

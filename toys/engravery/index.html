@@ -217,6 +217,7 @@ input,textarea{-webkit-user-select:text;user-select:text}
     <details class="dl"><summary>Download ▾</summary><div class="dlmenu">
       <button id="download">PNG</button>
       <button id="downloadSvg">SVG</button>
+      <button id="copySvg">Copy SVG</button>
     </div></details>
   </aside>
 </main>
@@ -714,6 +715,14 @@ function saveFile(filename, type, data) {
 // the Download menu closes once a format is picked, or on a tap elsewhere
 document.querySelectorAll('details.dl button').forEach(b=>b.addEventListener('click',()=>b.closest('details').open=false));
 document.addEventListener('pointerdown',e=>document.querySelectorAll('details.dl[open]').forEach(d=>{if(!d.contains(e.target))d.open=false}));
+$("copySvg").addEventListener("click", () => copySvgText(buildSVG(), $("download").closest("details").querySelector("summary")));
+// Copy SVG puts the SVG source on the clipboard, for pasting straight into a drawing program. The button briefly reads Copied; where the
+// asynchronous clipboard is missing or refuses (some browsers on pages opened from disk) a hidden text area and execCommand stand in.
+function copySvgText(text,btn){const label=btn.dataset.label||(btn.dataset.label=btn.textContent);
+  const show=t=>{btn.textContent=t;clearTimeout(btn.copyTimer);btn.copyTimer=setTimeout(()=>{btn.textContent=label},1600)};
+  const legacy=()=>{const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();show(ok?'Copied':'Could not copy')};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>show('Copied'),legacy);else legacy()}
 $("downloadSvg").addEventListener("click", () => {
   // Generic MIME type rather than image/svg+xml: iOS maps SVG to an image
   // UTI, making the share sheet offer "Save Image" (to Photos, which cannot

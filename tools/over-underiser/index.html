@@ -98,6 +98,7 @@
     <button id="undo">Undo</button>
     <button id="redo">Redo</button>
     <button id="export" class="primary">Download SVG</button>
+    <button id="copySvg">Copy SVG</button>
   </div>
   <span class="status" id="status"></span>
 </header>
@@ -1210,7 +1211,7 @@ function saveFile(filename, type, data){
 
 // The canvas is already the finished drawing, so exporting is a clone with
 // the hover highlight stripped and the framing put back to the whole page
-$("export").addEventListener("click", () => {
+function exportSvgText() {
   render();                       // never export a frame that is still pending
   const clone = svg.cloneNode(true);
   clone.querySelectorAll("#overlay").forEach(node => node.remove());
@@ -1219,12 +1220,23 @@ $("export").addEventListener("click", () => {
   clone.setAttribute("width", num(state.box.w));
   clone.setAttribute("height", num(state.box.h));
   clone.setAttribute("xmlns", SVG_NS);
-  const out = '<?xml version="1.0" encoding="UTF-8"?>\n' + clone.outerHTML + "\n";
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' + clone.outerHTML + "\n";
+}
+$("export").addEventListener("click", () => {
   // a generic MIME type rather than image/svg+xml: iOS maps SVG to an image
   // UTI, so the share sheet would offer "Save Image" (to Photos, which cannot
   // hold SVGs) instead of "Save to Files"
-  saveFile("woven.svg", "application/octet-stream", out);
+  saveFile("woven.svg", "application/octet-stream", exportSvgText());
 });
+$("copySvg").addEventListener("click", () => copySvgText(exportSvgText(), $("copySvg")));
+// Copy SVG puts the SVG source on the clipboard, for pasting straight into a drawing program. The button briefly reads Copied; where the
+// asynchronous clipboard is missing or refuses (some browsers on pages opened from disk) a hidden text area and execCommand stand in.
+function copySvgText(text,btn){const label=btn.dataset.label||(btn.dataset.label=btn.textContent);
+  const show=t=>{btn.textContent=t;clearTimeout(btn.copyTimer);btn.copyTimer=setTimeout(()=>{btn.textContent=label},1600)};
+  const legacy=()=>{const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();show(ok?'Copied':'Could not copy')};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>show('Copied'),legacy);else legacy()}
+
 
 // ------------------------------------------------------------------ examples
 

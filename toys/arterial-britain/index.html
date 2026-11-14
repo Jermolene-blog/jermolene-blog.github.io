@@ -122,7 +122,7 @@ hr{border:0;border-top:1px solid var(--line);margin:0;width:100%}
    <button class="btn pri" id="play">Play the journey</button>
    <button class="btn" id="rand">Randomise</button><button class="btn" id="reset">Reset</button>
    <button class="btn" id="eight">8 variations</button><button class="btn" id="zr">Whole map</button>
-   <button class="btn" id="png">Save map as PNG</button><button class="btn" id="svg">Save map as SVG</button><button class="btn" id="rec" style="grid-column:span 2">Record video</button>
+   <button class="btn" id="png">Save map as PNG</button><button class="btn" id="svg">Save map as SVG</button><button class="btn" id="copysvg">Copy map as SVG</button><button class="btn" id="rec">Record video</button>
   </div>
   <p class="hint">Drive times are modelled from road class and local density, with no traffic or one-way streets. B roads date from 2015, minor roads are left out, and People is an estimate from town populations.</p>
  </aside>
@@ -395,7 +395,18 @@ class SvgCtx{constructor(){this.o=[];this.d=[];this.fillStyle='#000';this.stroke
  text(t,x,y,k){const bl=this.textBaseline==='middle'?' dominant-baseline="central"':'',an=this.textAlign==='right'?' text-anchor="end"':this.textAlign==='center'?' text-anchor="middle"':'';this.o.push(`<text x="${f1(x)}" y="${f1(y)}" style="font:${this.font.replace(/"/g,"'")}"${bl}${an} ${this.paint(k)}>${escX(t)}</text>`)}
  fillText(t,x,y){this.text(t,x,y,'f')}strokeText(t,x,y){this.text(t,x,y,'s')}
  svg(x,y,w,h){return `<svg xmlns="http://www.w3.org/2000/svg" width="${f1(w)}" height="${f1(h)}" viewBox="${f1(x)} ${f1(y)} ${f1(w)} ${f1(h)}"><style>${$('fonts').textContent}</style>\n${this.o.join('\n')}\n</svg>`}}
-$('svg').onclick=async()=>{if(!scene)return;toast('Drawing the map…');await new Promise(r=>setTimeout(r,30));const F=fitOf(S),[cx,cy,cw,ch]=exportCrop(F);const x=new SvgCtx();drawMapLayer(x,scene,F,V);$('toast').hidden=true;saveBlob(new Blob([x.svg(cx,cy,cw,ch)],{type:'image/svg+xml'}),slug(scene)+'.svg')};
+function mapSvg(){const F=fitOf(S),[cx,cy,cw,ch]=exportCrop(F);const x=new SvgCtx();drawMapLayer(x,scene,F,V);return x.svg(cx,cy,cw,ch)}
+$('svg').onclick=async()=>{if(!scene)return;toast('Drawing the map…');await new Promise(r=>setTimeout(r,30));const s=mapSvg();$('toast').hidden=true;saveBlob(new Blob([s],{type:'image/svg+xml'}),slug(scene)+'.svg')};
+// Copying draws the map straight away, without the toast's pause, so the clipboard write still counts as a response to the tap
+$('copysvg').onclick=()=>{if(scene)copySvgText(mapSvg(),$('copysvg'))};
+// Copy SVG puts the SVG source on the clipboard, for pasting straight into a drawing program. The button briefly reads Copied; where the
+// asynchronous clipboard is missing or refuses (some browsers on pages opened from disk) a hidden text area and execCommand stand in.
+function copySvgText(text,btn){const label=btn.dataset.label||(btn.dataset.label=btn.textContent);
+  const show=t=>{btn.textContent=t;clearTimeout(btn.copyTimer);btn.copyTimer=setTimeout(()=>{btn.textContent=label},1600)};
+  const legacy=()=>{const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();show(ok?'Copied':'Could not copy')};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>show('Copied'),legacy);else legacy()}
+
 $('rec').onclick=()=>{if(!scene)return;if(!window.MediaRecorder||!mapC.captureStream)return toast('This browser cannot record video. Try Chrome, Edge or Firefox.');const F=fitOf(S);const v=document.createElement('canvas');v.width=mapC.width&~1;v.height=mapC.height&~1;const x=v.getContext('2d');const paint=()=>{x.drawImage(mapC,0,0);x.drawImage(overC,0,0)};paint();const st=v.captureStream(30);const mime=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));let r;try{r=new MediaRecorder(st,{mimeType:mime,videoBitsPerSecond:12e6})}catch(e){return toast('Recording is not available in this view.')}const chunks=[];r.ondataavailable=e=>e.data.size&&chunks.push(e.data);const name=slug(scene);r.onstop=()=>{saveBlob(new Blob(chunks,{type:mime}),name+(mime.includes('mp4')?'.mp4':'.webm'))};r.start();toast('Recording…');play(paint,()=>{paint();setTimeout(()=>{r.state!=='inactive'&&r.stop()},900)})};
 /* ---------- randomise, reset, variations ---------- */
 const rnd=a=>a[Math.random()*a.length|0],rr=(a,b)=>a+Math.random()*(b-a);
