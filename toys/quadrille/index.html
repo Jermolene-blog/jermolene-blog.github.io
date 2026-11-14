@@ -182,6 +182,15 @@ input[type=color] { width: 100%; height: 26px; padding: 0; border: 1px solid var
   </section>
 
   <section>
+    <h2>Finishing</h2>
+    <div class="actions" style="grid-template-columns: repeat(2, minmax(0, 1fr))">
+      <button class="btn" id="finish" aria-pressed="false">Finish the edges</button>
+      <button class="btn" id="finishInner" aria-pressed="true">Cap inner ends</button>
+    </div>
+    <p class="note">Turns every stripe that would end at the edge of the sheet back on itself with a half disc. Inner ends are stripes that stop at an empty neighbour.</p>
+  </section>
+
+  <section>
     <h2>Sheet</h2>
     <div class="row"><label for="cols">Across</label><input type="range" id="cols" min="1" max="24" step="1"><output id="colsv"></output></div>
     <div class="row"><label for="rows">Down</label><input type="range" id="rows" min="1" max="24" step="1"><output id="rowsv"></output></div>
@@ -245,7 +254,7 @@ const PALETTES = [
 
 function sketch(cols, rows, mw, mh, cells) {
   return { cols, rows, mw, mh, motif: cells.trim().split(/\s+/).map(s => s === "." ? "" : s), shift: 0,
-    n: 9, ink: 0.5, swell: 0, phase: 0, mode: "one", inks: PALETTES[0].inks.slice(), paper: PALETTES[0].paper };
+    n: 9, ink: 0.5, swell: 0, phase: 0, finish: false, finishInner: true, mode: "one", inks: PALETTES[0].inks.slice(), paper: PALETTES[0].paper };
 }
 // Layouts recovered tile by tile from the uploaded sketches. Lattice is the one extra, built from the Chain's middle rows.
 const PRESETS = [
@@ -294,18 +303,42 @@ function bandTable(p, sign, extra) {
     const r0 = Math.max(0, c - half), r1 = Math.min(rOut, c + half);
     if (r1 > r0) out.push({ k, r: (r0 + r1) / 2, w: r1 - r0 });
   }
-  return { rOut, bands: out };
+  return { rOut, phi, bands: out };
 }
+// The topmost layer of cell (i, j) whose disc sits in one of the corners in set, or -1.
+// Corners ab touch the top edge, cd the bottom, ad the left and bc the right.
+function topLayer(p, i, j, set) {
+  if (i < 0 || j < 0 || i >= p.cols || j >= p.rows) return -1;
+  const s = p.motif[stackAt(p, i, j)];
+  for (let l = s.length - 1; l >= 0; l--) if (set.includes(s[l])) return l;
+  return -1;
+}
+// Concentric half rings that turn band k back into band n-1-k, centred m along an edge from a lattice point.
+// A ring narrower than its own width becomes a filled half disc (solid: true).
+function capTable(p, table, sign) {
+  const m = 0.5 + table.phi * sign / p.n, near = 0.25 / p.n, rings = [];
+  for (const b of table.bands) {
+    const twin = 2 * m - b.r;
+    if (b.r > m && table.bands.some(o => Math.abs(o.r - twin) < near)) continue;
+    const rho = Math.abs(b.r - m);
+    rings.push(rho < b.w / 2 ? { k: b.k, R: rho + b.w / 2, solid: true } : { k: b.k, r: rho, w: b.w });
+  }
+  return { m, rOut: Math.max(0, ...rings.map(q => q.solid ? q.R : q.r + q.w / 2)), rings };
+}
+// Edges where stripes end with nothing on the far side: for each side of a cell, its corners, the neighbour's
+// facing corners, the lattice point the edge starts from, the edge direction and the angle the cap starts at.
+const SIDES = [
+  { set: "ab", far: "cd", di: 0, dj: -1, px: 0, py: 0, ux: 1, uy: 0, a0: Math.PI },
+  { set: "cd", far: "ab", di: 0, dj: 1, px: 0, py: 1, ux: 1, uy: 0, a0: 0 },
+  { set: "ad", far: "bc", di: -1, dj: 0, px: 0, py: 0, ux: 0, uy: 1, a0: Math.PI / 2 },
+  { set: "bc", far: "ad", di: 1, dj: 0, px: 1, py: 0, ux: 0, uy: 1, a0: -Math.PI / 2 },
+];
 function strands(p) {
   const id = new Map(), parent = [];
   const key = (i, j, l) => i + "," + j + "," + l;
   const make = k => { if (!id.has(k)) { id.set(k, parent.length); parent.push(parent.length); } return id.get(k); };
   const find = x => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
-  const topOn = (i, j, set) => {
-    const s = p.motif[stackAt(p, i, j)];
-    for (let l = s.length - 1; l >= 0; l--) if (set.includes(s[l])) return key(i, j, l);
-    return null;
-  };
+  const topOn = (i, j, set) => { const l = topLayer(p, i, j, set); return l < 0 ? null : key(i, j, l); };
   const join = (a, b) => { if (a && b) parent[find(make(a))] = find(make(b)); };
   for (let j = 0; j < p.rows; j++) for (let i = 0; i < p.cols; i++) {
     const s = p.motif[stackAt(p, i, j)];
@@ -321,28 +354,41 @@ function strands(p) {
   }
   return result;
 }
-function walk(p, extra, tile) {
+function walk(p, extra, tile, cap) {
   const even = bandTable(p, 1, extra), odd = bandTable(p, -1, extra);
   const comp = p.mode === "strands" ? strands(p) : null;
+  const colourOf = (i, j, l) => {
+    const base = p.mode === "strands" ? comp.get(i + "," + j + "," + l) : p.mode === "depth" ? l : 0;
+    return k => p.mode === "bands" ? p.inks[((Math.min(k, p.n - 1 - k) % 4) + 4) % 4] : p.inks[base % 4];
+  };
   for (let j = 0; j < p.rows; j++) for (let i = 0; i < p.cols; i++) {
     const s = p.motif[stackAt(p, i, j)];
     for (let l = 0; l < s.length; l++) {
       const [dx, dy, a0] = CORNER[s[l]];
       const lx = i + dx, ly = j + dy;
-      const table = (lx + ly) % 2 ? odd : even;
-      const base = p.mode === "strands" ? comp.get(i + "," + j + "," + l) : p.mode === "depth" ? l : 0;
-      tile(lx, ly, a0, table, k => {
-        if (p.mode === "bands") return p.inks[((Math.min(k, p.n - 1 - k) % 4) + 4) % 4];
-        return p.inks[base % 4];
-      });
+      tile(lx, ly, a0, (lx + ly) % 2 ? odd : even, colourOf(i, j, l));
     }
   }
+  if (!p.finish || !cap) return;
+  // Finishing: a half disc over every open edge, drawn above the discs, so no stripe ends in a butt.
+  const caps = [capTable(p, even, 1), capTable(p, odd, -1)], inner = p.finishInner !== false;
+  for (let j = 0; j < p.rows; j++) for (let i = 0; i < p.cols; i++) for (const e of SIDES) {
+    const l = topLayer(p, i, j, e.set);
+    if (l < 0) continue;
+    const ni = i + e.di, nj = j + e.dj;
+    const outside = ni < 0 || nj < 0 || ni >= p.cols || nj >= p.rows;
+    if (outside ? false : !inner || topLayer(p, ni, nj, e.far) >= 0) continue;
+    const lx = i + e.px, ly = j + e.py, t = caps[(lx + ly) % 2];
+    cap(lx + e.ux * t.m, ly + e.uy * t.m, e.a0, t, colourOf(i, j, l));
+  }
 }
+// The sheet's extent in cells, with half a cell each side for the caps when it is finished.
+const margin = p => p.finish ? 0.5 : 0;
 
 /* ---------- drawing ---------- */
 function layout(p, W, H, frac) {
   const m = Math.max(4, Math.floor(Math.min(W, H) * frac));
-  const S = Math.max(1, Math.floor(Math.min((W - 2 * m) / p.cols, (H - 2 * m) / p.rows)));
+  const e = 2 * margin(p), S = Math.max(1, Math.floor(Math.min((W - 2 * m) / (p.cols + e), (H - 2 * m) / (p.rows + e))));
   return { S, ox: Math.floor((W - S * p.cols) / 2), oy: Math.floor((H - S * p.rows) / 2) };
 }
 function paint(ctx, p, W, H, L, extra) {
@@ -357,6 +403,16 @@ function paint(ctx, p, W, H, L, extra) {
     for (const b of table.bands) {
       ctx.strokeStyle = colour(b.k); ctx.lineWidth = b.w * S;
       ctx.beginPath(); ctx.arc(x, y, b.r * S, a0, a1); ctx.stroke();
+    }
+  }, (cx, cy, a0, t, colour) => {
+    const x = ox + cx * S, y = oy + cy * S, a1 = a0 + Math.PI;
+    if (x + S < 0 || x - S > W || y + S < 0 || y - S > H) return;
+    ctx.fillStyle = p.paper;
+    ctx.beginPath(); ctx.arc(x, y, t.rOut * S, a0, a1); ctx.closePath(); ctx.fill();
+    for (const q of t.rings) {
+      if (q.solid) { ctx.fillStyle = colour(q.k); ctx.beginPath(); ctx.arc(x, y, q.R * S, a0, a1); ctx.closePath(); ctx.fill(); continue; }
+      ctx.strokeStyle = colour(q.k); ctx.lineWidth = q.w * S;
+      ctx.beginPath(); ctx.arc(x, y, q.r * S, a0, a1); ctx.stroke();
     }
   });
 }
@@ -618,6 +674,7 @@ const MUTATIONS = {
     p => { p.shift = ri(0, p.mw - 1); return "stagger " + p.shift; },
     p => { p.cols = clamp(p.cols + pick([-2, -1, 1, 2]), 1, 16); return "across " + p.cols; },
     p => { p.rows = clamp(p.rows + pick([-2, -1, 1, 2]), 1, 12); return "down " + p.rows; },
+    p => { p.finish = !p.finish; return p.finish ? "finished" : "raw edges"; },
   ],
   stripes: [
     p => { p.n = clamp(p.n + pick([-3, -2, -1, 1, 2, 3]), 2, 24); return "bands " + p.n; },
@@ -693,7 +750,12 @@ function syncUI() {
   g.inks.forEach((c, n) => { $("c-" + n).value = c; });
   document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === g.mode));
   $("undo").disabled = !history.length;
+  $("finish").setAttribute("aria-pressed", !!g.finish);
+  $("finishInner").setAttribute("aria-pressed", g.finishInner !== false);
+  $("finishInner").disabled = !g.finish;
 }
+$("finish").addEventListener("click", () => { remember(); g.finish = !g.finish; view = null; render(); });
+$("finishInner").addEventListener("click", () => { remember(); g.finishInner = g.finishInner === false; render(); });
 function seg(id, fn) {
   $(id).addEventListener("click", e => {
     const b = e.target.closest("button");
@@ -731,7 +793,7 @@ PRESETS.forEach(([name, p]) => {
   b.className = "preset";
   const c = document.createElement("canvas"), s = document.createElement("span");
   s.textContent = name; b.append(c, s);
-  b.addEventListener("click", () => setG(clone(p)));
+  b.addEventListener("click", () => setG({ ...clone(p), finish: !!g.finish, finishInner: g.finishInner !== false }));
   $("presets").append(b);
   presetCanvases.push([c, p]);
 });
@@ -772,9 +834,10 @@ $("drift").addEventListener("click", toggleDrift);
 
 /* ---------- export ---------- */
 function svgText(p) {
-  const S = 100, f = n => +n.toFixed(3), eps = 0.0015;
-  const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${p.cols * S} ${p.rows * S}" width="${p.cols * S}" height="${p.rows * S}">`,
-    `<rect width="${p.cols * S}" height="${p.rows * S}" fill="${p.paper}"/>`, `<g fill="none" stroke-linecap="butt">`];
+  const S = 100, f = n => +n.toFixed(3), eps = 0.0015, o = margin(p) * S;
+  const w = p.cols * S + 2 * o, h = p.rows * S + 2 * o;
+  const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-o} ${-o} ${w} ${h}" width="${w}" height="${h}">`,
+    `<rect x="${-o}" y="${-o}" width="${w}" height="${h}" fill="${p.paper}"/>`, `<g fill="none" stroke-linecap="butt">`];
   walk(p, driftPhase, (lx, ly, a0, t, colour) => {
     const x = lx * S, y = ly * S, a1 = a0 + Math.PI / 2, R = t.rOut * S;
     const P = (r, a) => f(x + r * Math.cos(a)) + " " + f(y + r * Math.sin(a));
@@ -783,15 +846,25 @@ function svgText(p) {
       const r = b.r * S;
       out.push(`<path d="M${P(r, a0 - eps)}A${f(r)} ${f(r)} 0 0 1 ${P(r, a1 + eps)}" stroke="${colour(b.k)}" stroke-width="${f(b.w * S)}"/>`);
     }
+  }, (cx, cy, a0, t, colour) => {
+    const x = cx * S, y = cy * S, a1 = a0 + Math.PI;
+    const P = (r, a) => f(x + r * Math.cos(a)) + " " + f(y + r * Math.sin(a));
+    const half = (r, fill) => `<path d="M${P(r, a0)}A${f(r)} ${f(r)} 0 0 1 ${P(r, a1)}Z" fill="${fill}"/>`;
+    out.push(half(t.rOut * S, p.paper));
+    for (const q of t.rings) {
+      if (q.solid) { out.push(half(q.R * S, colour(q.k))); continue; }
+      const r = q.r * S;
+      out.push(`<path d="M${P(r, a0 - eps)}A${f(r)} ${f(r)} 0 0 1 ${P(r, a1 + eps)}" stroke="${colour(q.k)}" stroke-width="${f(q.w * S)}"/>`);
+    }
   });
   out.push("</g></svg>");
   return out.join("\n");
 }
 function pngBlob(p) {
-  const S = Math.floor(Math.min(240, 6000 / Math.max(p.cols, p.rows)));
-  const c = document.createElement("canvas");
-  c.width = p.cols * S; c.height = p.rows * S;
-  paint(c.getContext("2d"), p, c.width, c.height, { S, ox: 0, oy: 0 }, driftPhase);
+  const e = 2 * margin(p), S = 2 * Math.floor(Math.min(120, 3000 / (Math.max(p.cols, p.rows) + e)));
+  const c = document.createElement("canvas"), o = margin(p) * S;
+  c.width = (p.cols + e) * S; c.height = (p.rows + e) * S;
+  paint(c.getContext("2d"), p, c.width, c.height, { S, ox: o, oy: o }, driftPhase);
   return new Promise(res => c.toBlob(res, "image/png"));
 }
 const say = t => { $("status").textContent = t; };
