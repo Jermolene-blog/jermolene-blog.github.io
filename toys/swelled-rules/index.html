@@ -120,6 +120,18 @@ input[type="color"] { width: 100%; height: 28px; padding: 0; border: 1px solid v
 .check { display: flex; align-items: center; gap: 7px; color: var(--muted); }
 .check input { margin: 0; accent-color: var(--accent); }
 .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.curves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.curve { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.curve-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; color: var(--muted); }
+.curve-head button { padding: 4px 7px; font-size: 11px; }
+.curve svg { display: block; width: 100%; aspect-ratio: 1; background: var(--bg); border-radius: 2px; touch-action: none; cursor: crosshair; }
+.curve svg .grid { fill: none; stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.curve svg .ref { fill: none; stroke: var(--accent); stroke-width: 1; opacity: .55; vector-effect: non-scaling-stroke; }
+.curve svg .cv { fill: none; stroke: var(--fg); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.curve svg circle { fill: var(--bg); stroke: var(--fg); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.curve svg circle.sel { fill: var(--fg); }
+.curve output { min-height: 1.3em; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.curve-hint { margin: 0; color: var(--muted); font-size: 11px; }
 #status { color: var(--muted); min-height: 1.3em; margin: 0; }
 #fallback { width: 100%; height: 80px; font: 11px monospace; background: transparent; color: var(--fg); border: 1px solid var(--line); }
 
@@ -163,6 +175,8 @@ input[type="color"] { width: 100%; height: 28px; padding: 0; border: 1px solid v
     <section>
       <h2>Rules</h2>
       <div id="sl-rules"></div>
+      <div class="curves" id="curves"></div>
+      <p class="curve-hint">From the first rule (left) to the last (right). Drag a point; click to add one; double-click, or Delete, to remove it.</p>
     </section>
     <section>
       <h2>Spine</h2>
@@ -204,7 +218,6 @@ const SLIDERS = {
   rise:    {into:"sl-rules", label:"Rise", min:0, max:30, step:.01, fmt:v=>v.toFixed(2)},
   k:       {into:"sl-rules", label:"Tension", min:0, max:1, step:.01, fmt:v=>v.toFixed(2)},
   t:       {into:"sl-rules", label:"Weight", min:0, max:1.2, step:.01, fmt:v=>Math.round(v*100)+"%"},
-  drift:   {into:"sl-rules", label:"Weight drift", min:-1, max:1, step:.01, fmt:v=>v.toFixed(2)},
   hair:    {into:"sl-rules", label:"Hairline", min:0, max:2, step:.05, fmt:v=>v.toFixed(2)},
   spineW:  {into:"sl-spine", label:"Width", min:1, max:40, step:.5, fmt:v=>v.toFixed(1)},
   tail:    {into:"sl-spine", label:"Tail", min:0, max:300, step:1},
@@ -213,7 +226,8 @@ const SLIDERS = {
 const COLOURS = {paper:"Paper", rule:"Rule", a:"Band 1", b:"Band 2", spineC:"Spine"};
 
 // Measured from the sketches: the rise equals the column width.
-const BASE = {cols:[...("xudxduxuu")], w:125.8, n:57, p:18.6, rise:125.8/18.6, k:.47, t:.22, drift:0, hair:.1, stagger:0,
+const BASE = {cols:[...("xudxduxuu")], w:125.8, n:57, p:18.6, rise:125.8/18.6, k:.47, t:.22, hair:.1,
+  wCurve:[[0,.5],[1,.5]], sCurve:[[0,0],[1,1]], stagger:0,
   spine:false, spineW:9, tail:98, paper:"#ffffff", rule:"#000000", a:"#e16155", b:"#f0e69b", spineC:"#6e8e5c", alpha:0, blend:false, riseOnTop:false};
 const PRESETS = [
   {name:"Mixed", s:{}},
@@ -235,7 +249,37 @@ const PALETTES = [
 const TYPE_NAMES = {x:"Crossed", u:"Rising", d:"Falling", o:"Empty"};
 const NEXT_TYPE = {x:"u", u:"d", d:"o", o:"x"};
 
-const clone = s => ({...s, cols:[...s.cols]});
+// Two curves over the run of rules, 0 (first rule) to 1 (last), each a list of [x, y] points in 0..1.
+// Weight: y is the rule's weight, 0.5 meaning the Weight slider's value and 1 twice it.
+// Spacing: y is where the rule sits down the run, so the diagonal spaces them evenly.
+const CURVES = {
+  wCurve: {title:"Weight", ref:[[0,.5],[1,.5]], read:(x,y)=>`rule ${Math.round(x*100)}% · ${(2*y).toFixed(2)}×`},
+  sCurve: {title:"Spacing", ref:[[0,0],[1,1]], read:(x,y)=>`rule ${Math.round(x*100)}% · at ${Math.round(y*100)}%`},
+};
+const clonePts = c => c.map(p => [...p]);
+const clone = s => ({...s, cols:[...s.cols], wCurve:clonePts(s.wCurve), sCurve:clonePts(s.sCurve)});
+const clamp01 = v => Math.min(1, Math.max(0, v));
+const r3 = v => +v.toFixed(3);
+// A smooth curve through the points that never overshoots them (monotone cubic, Fritsch and Carlson).
+function curveFn(pts) {
+  const n = pts.length, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  if (n < 2) return () => ys[0] ?? 0;
+  const d = [], m = [];
+  for (let i=0; i<n-1; i++) d.push((ys[i+1]-ys[i]) / Math.max(1e-6, xs[i+1]-xs[i]));
+  m[0] = d[0]; m[n-1] = d[n-2];
+  for (let i=1; i<n-1; i++) m[i] = d[i-1]*d[i] <= 0 ? 0 : (d[i-1]+d[i])/2;
+  for (let i=0; i<n-1; i++) {
+    if (!d[i]) { m[i] = m[i+1] = 0; continue; }
+    const a = m[i]/d[i], b = m[i+1]/d[i], h = a*a + b*b;
+    if (h > 9) { const t = 3/Math.sqrt(h); m[i] = t*a*d[i]; m[i+1] = t*b*d[i]; }
+  }
+  return x => {
+    x = clamp01(x);
+    let i = 0; while (i < n-2 && x > xs[i+1]) i++;
+    const h = Math.max(1e-6, xs[i+1]-xs[i]), t = clamp01((x-xs[i])/h), t2 = t*t, t3 = t2*t;
+    return clamp01((2*t3-3*t2+1)*ys[i] + (t3-2*t2+t)*h*m[i] + (-2*t3+3*t2)*ys[i+1] + (t3-t2)*h*m[i+1]);
+  };
+}
 const fromPreset = i => ({...clone(BASE), ...PRESETS[i].s});
 const rnd = (a=0, b=1) => a + Math.random()*(b-a);
 const irnd = (a, b) => Math.floor(rnd(a, b+1));
@@ -245,13 +289,21 @@ const limit = (k, v) => { const d = SLIDERS[k]; v = Math.min(d.max, Math.max(d.m
 let S = fromPreset(0);
 
 // ---- Geometry: one generator, written to either a canvas path or SVG path data
+// Where each rule sits (ys, measured from the column top) and how heavy it is (ws), from the two curves.
+function rows(s) {
+  const f = curveFn(s.sCurve), g = curveFn(s.wCurve), run = (s.n-1)*s.p, ys = [], ws = [];
+  for (let i=0; i<s.n; i++) {
+    const u = s.n > 1 ? i/(s.n-1) : .5;
+    ys.push(run*f(u)); ws.push(s.t*s.p*2*g(u));
+  }
+  return {ys, ws};
+}
 function bounds(s) {
-  const H = s.rise*s.p, tMax = s.t*s.p*(1+Math.abs(s.drift));
+  const H = s.rise*s.p, tMax = Math.max(0, ...rows(s).ws);
   const staggered = s.cols.length > 1 ? s.stagger*s.p : 0;
   const body = (s.n-1)*s.p + H + tMax + staggered;
   return {w:s.cols.length*s.w, body, h:body + (s.spine ? s.tail : 0)};
 }
-const weightOf = (s, i) => Math.max(0, s.t*s.p*(1 + s.drift*(s.n>1 ? 2*i/(s.n-1)-1 : 0)));
 
 function ribbon(out, s, c, rising, y, a, b) {
   const H = s.rise*s.p, kH = s.k*H, L = c*s.w, R = L+s.w;
@@ -271,21 +323,26 @@ function eachColumn(s, rising, clip, fn) {
   });
 }
 // Only the rows that can reach the visible area, so deep zooms stay quick.
-function rowRange(s, off, clip) {
-  if (!clip) return [0, s.n-1];
-  const H = s.rise*s.p, m = 4*s.p;
-  return [Math.max(0, Math.floor((clip.y0-off-H-m)/s.p)), Math.min(s.n-1, Math.ceil((clip.y1-off+m)/s.p))];
+function rowWindow(s, off, clip) {
+  if (!clip) return [-Infinity, Infinity];
+  const H = s.rise*s.p, m = 4*s.p + 2*s.t*s.p;
+  return [clip.y0-off-H-m, clip.y1-off+m];
 }
 function traceRules(out, s, rising, clip) {
+  const {ys, ws} = rows(s);
   eachColumn(s, rising, clip, (c, off) => {
-    const [a, b] = rowRange(s, off, clip);
-    for (let i=a; i<=b; i++) ribbon(out, s, c, rising, off+i*s.p, 0, weightOf(s,i));
+    const [lo, hi] = rowWindow(s, off, clip);
+    for (let i=0; i<s.n; i++) if (ys[i] >= lo && ys[i] <= hi) ribbon(out, s, c, rising, off+ys[i], 0, ws[i]);
   });
 }
 function traceBands(out, s, rising, which, clip) {
+  const {ys, ws} = rows(s);
   eachColumn(s, rising, clip, (c, off) => {
-    const [a, b] = rowRange(s, off, clip);
-    for (let i=a+((a+which)%2); i<Math.min(b+1, s.n-1); i+=2) ribbon(out, s, c, rising, off+i*s.p, weightOf(s,i)/2, s.p+weightOf(s,i+1)/2);
+    const [lo, hi] = rowWindow(s, off, clip);
+    for (let i=which; i<s.n-1; i+=2) {
+      if (Math.max(ys[i], ys[i+1]) < lo || Math.min(ys[i], ys[i+1]) > hi) continue;
+      ribbon(out, s, c, rising, off+ys[i], ws[i]/2, ys[i+1]-ys[i]+ws[i+1]/2);
+    }
   });
 }
 const layerOrder = s => s.riseOnTop ? [false, true] : [true, false];
@@ -358,7 +415,7 @@ function toSVG(s) {
 // ---- Stage ------------------------------------------------------------------
 const $ = id => document.getElementById(id);
 const stage = $("stage");
-const AXES = ["Rhythm","Pitch","Rise","Curve","Colour","Weight","Drift","Mixed"];
+const AXES = ["Rhythm","Pitch","Rise","Curve","Colour","Weight","Curves","Mixed"];
 const cells = [];
 let mainLayout = null, exploring = false, neighbours = [], view = {z:1, x:0, y:0};
 const HINT = "Click a column to change it. Drag to pan, scroll or pinch to zoom.";
@@ -528,6 +585,112 @@ for (const [k, label] of Object.entries(COLOURS)) {
 }
 ["spine","blend","riseOnTop"].forEach(k => $(k).addEventListener("change", e => { remember(); S[k] = e.target.checked; changed(); }));
 
+// Curve editors, after the Curves panel in image editors: drag points, click to add, double-click to remove.
+const curveEds = {};
+const SVGNS = "http://www.w3.org/2000/svg";
+for (const [key, d] of Object.entries(CURVES)) {
+  const box = document.createElement("div");
+  box.className = "curve";
+  box.innerHTML = `<div class="curve-head"><span>${d.title}</span><button type="button">Reset</button></div>
+<svg viewBox="-5 -5 110 110" tabindex="0" role="application" aria-label="${d.title} curve. Arrow keys move the selected point, Page Up and Page Down select another, Delete removes it.">
+<path class="grid" d="M0 0H100V100H0Z M25 0V100 M50 0V100 M75 0V100 M0 25H100 M0 50H100 M0 75H100"/>
+<path class="ref" d="M${d.ref.map(([x,y]) => x*100 + " " + (1-y)*100).join("L")}"/>
+<path class="cv"/><g></g></svg><output></output>`;
+  $("curves").append(box);
+  const svg = box.querySelector("svg");
+  const e = curveEds[key] = {svg, path:svg.querySelector(".cv"), dots:svg.querySelector("g"), out:box.querySelector("output"), sel:-1, drag:null, before:null, lastTap:null};
+  box.querySelector("button").addEventListener("click", () => { remember(); S[key] = clonePts(d.ref); e.sel = -1; changed(); });
+
+  const unit = ev => {
+    const r = svg.getBoundingClientRect(), sc = r.width/110;
+    return {x:((ev.clientX-r.left)/sc - 5)/100, y:1 - ((ev.clientY-r.top)/sc - 5)/100, px:sc*100};
+  };
+  const nearest = u => {
+    let best = -1, bd = 14/u.px;
+    S[key].forEach(([x,y], i) => { const dd = Math.hypot(x-u.x, y-u.y); if (dd < bd) { bd = dd; best = i; } });
+    return best;
+  };
+  const move = (i, x, y) => {
+    const pts = S[key], last = pts.length-1;
+    x = i === 0 ? 0 : i === last ? 1 : Math.min(pts[i+1][0]-.01, Math.max(pts[i-1][0]+.01, x));
+    pts[i] = [r3(x), r3(clamp01(y))];
+  };
+  const remove = i => {
+    if (i <= 0 || i >= S[key].length-1) return false;
+    S[key].splice(i, 1); e.sel = -1; return true;
+  };
+  svg.addEventListener("pointerdown", ev => {
+    if (ev.pointerType === "mouse" && ev.button !== 0) return;
+    ev.preventDefault(); svg.focus();
+    const u = unit(ev), now = performance.now();
+    let i = nearest(u);
+    e.before = clone(S);
+    if (i >= 0 && e.lastTap && e.lastTap.i === i && now - e.lastTap.t < 350) {
+      e.lastTap = null;
+      if (remove(i)) { remember(e.before); e.before = null; changed(); }
+      return;
+    }
+    if (i < 0) {
+      const pts = S[key], x = clamp01(u.x);
+      i = pts.findIndex(p => p[0] > x);
+      if (i <= 0 || x - pts[i-1][0] < .02 || pts[i][0] - x < .02) { e.before = null; return; }
+      pts.splice(i, 0, [r3(x), r3(clamp01(u.y))]);
+    }
+    e.lastTap = {i, t:now};
+    e.sel = i; e.drag = ev.pointerId;
+    svg.setPointerCapture(ev.pointerId);
+    changed(true);
+  });
+  svg.addEventListener("pointermove", ev => {
+    if (e.drag !== ev.pointerId) return;
+    const u = unit(ev);
+    move(e.sel, u.x, u.y);
+    e.lastTap = null;
+    changed(true);
+  });
+  const end = ev => {
+    if (e.drag !== ev.pointerId) return;
+    e.drag = null;
+    if (e.before && JSON.stringify(e.before[key]) !== JSON.stringify(S[key])) { remember(e.before); queueNeighbours(); }
+    e.before = null;
+  };
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+  svg.addEventListener("keydown", ev => {
+    const pts = S[key], step = ev.shiftKey ? .05 : .01;
+    const dir = {ArrowLeft:[-step,0], ArrowRight:[step,0], ArrowUp:[0,step], ArrowDown:[0,-step]}[ev.key];
+    if (ev.key === "PageUp" || ev.key === "PageDown") {
+      e.sel = ((e.sel < 0 ? 0 : e.sel + (ev.key === "PageDown" ? 1 : -1)) + pts.length) % pts.length;
+    } else if (dir) {
+      if (e.sel < 0) e.sel = 0;
+      remember(); move(e.sel, pts[e.sel][0]+dir[0], pts[e.sel][1]+dir[1]);
+    } else if (ev.key === "Delete" || ev.key === "Backspace") {
+      const before = clone(S);
+      if (!remove(e.sel)) return;
+      remember(before);
+    } else return;
+    ev.preventDefault();
+    changed();
+  });
+}
+function renderCurves() {
+  for (const [key, d] of Object.entries(CURVES)) {
+    const e = curveEds[key], pts = S[key], f = curveFn(pts);
+    let path = "";
+    for (let i=0; i<=120; i++) { const x = i/120; path += (i ? "L" : "M") + (x*100).toFixed(2) + " " + ((1-f(x))*100).toFixed(2); }
+    e.path.setAttribute("d", path);
+    if (e.sel >= pts.length) e.sel = -1;
+    while (e.dots.children.length < pts.length) e.dots.append(document.createElementNS(SVGNS, "circle"));
+    while (e.dots.children.length > pts.length) e.dots.lastChild.remove();
+    pts.forEach(([x,y], i) => {
+      const c = e.dots.children[i];
+      c.setAttribute("cx", x*100); c.setAttribute("cy", (1-y)*100); c.setAttribute("r", 3.4);
+      c.classList.toggle("sel", i === e.sel);
+    });
+    e.out.textContent = e.sel >= 0 ? d.read(...pts[e.sel]) : "";
+  }
+}
+
 const RHYTHMS = {
   "Crossed": n => Array(n).fill("x"),
   "Chevrons": n => Array.from({length:n}, (_, i) => i%2 ? "d" : "u"),
@@ -588,6 +751,7 @@ function syncControls() {
   for (const k of Object.keys(COLOURS)) { const i = $("c-"+k); if (i.value !== S[k]) i.value = S[k]; }
   ["spine","blend","riseOnTop"].forEach(k => $(k).checked = S[k]);
   renderStrip();
+  renderCurves();
 }
 function changed(skipNeighbours = false) {
   syncControls();
@@ -612,6 +776,18 @@ function randomRhythm(n) {
   const mirror = {x:"x", u:"d", d:"u"};
   return Array.from({length:n}, (_, i) => i < half.length ? half[i] : mirror[half[n-1-i]]);
 }
+// Mostly even weight and spacing; sometimes a straight drift, a swell or a squeeze.
+function randomWeightCurve() {
+  const r = Math.random();
+  if (r < .65) return clonePts(CURVES.wCurve.ref);
+  if (r < .85) { const d = rnd(-.45, .45); return [[0, r3(.5-d)], [1, r3(.5+d)]]; }
+  return [[0, r3(rnd(.2,.6))], [r3(rnd(.3,.7)), r3(rnd(.15,.95))], [1, r3(rnd(.2,.6))]];
+}
+function randomSpacingCurve() {
+  if (Math.random() < .75) return clonePts(CURVES.sCurve.ref);
+  const x = rnd(.25, .75);
+  return [[0,0], [r3(x), r3(clamp01(x + rnd(-.22, .22)))], [1,1]];
+}
 function randomState() {
   const s = clone(BASE);
   s.spine = Math.random() < .25;
@@ -626,7 +802,8 @@ function randomState() {
   s.k = limit("k", rnd(.15, .9));
   s.t = limit("t", rnd(.12, .55));
   s.hair = limit("hair", rnd(.1, .4));
-  s.drift = Math.random() < .3 ? limit("drift", rnd(-.9, .9)) : 0;
+  s.wCurve = randomWeightCurve();
+  s.sCurve = randomSpacingCurve();
   s.stagger = Math.random() < .25 ? limit("stagger", irnd(1, Math.min(12, Math.round(s.rise)||1))) : 0;
   applyPalette(s, Math.random() < .25 ? PALETTES[0] : pick(PALETTES));
   s.riseOnTop = Math.random() < .3;
@@ -666,9 +843,18 @@ const MUTATE = {
   Rise(s, step) { s.rise = limit("rise", s.rise*(1+nudge()*step*.9) + nudge()*step); },
   Curve(s, step) { s.k = limit("k", s.k + nudge()*step*.5); },
   Weight(s, step) { s.t = limit("t", s.t + nudge()*step*.35); s.hair = limit("hair", s.hair*(1+nudge()*step*.6)); },
-  Drift(s, step) {
-    if (Math.random() < .5) s.drift = limit("drift", s.drift + nudge()*step*1.2);
-    else s.stagger = limit("stagger", s.stagger + Math.abs(nudge())*step*Math.max(2, s.rise));
+  Curves(s, step) {
+    const r = Math.random();
+    if (r < .2) { s.stagger = limit("stagger", s.stagger + Math.abs(nudge())*step*Math.max(2, s.rise)); return; }
+    const key = r < .6 ? "wCurve" : "sCurve", pts = s[key];
+    if (pts.length < 4 && Math.random() < step) {
+      const x = rnd(.15, .85), i = pts.findIndex(p => p[0] > x);
+      if (x - pts[i-1][0] > .05 && pts[i][0] - x > .05) pts.splice(i, 0, [r3(x), r3(curveFn(pts)(x))]);
+    }
+    pts.forEach((p, i) => {
+      if (key === "sCurve" && (i === 0 || i === pts.length-1)) return;
+      p[1] = r3(clamp01(p[1] + nudge()*step*.3));
+    });
   },
   Colour(s, step) {
     if (s.alpha === 0 || step > .7) { applyPalette(s, pick(PALETTES.filter(p => p.alpha > 0))); return; }
