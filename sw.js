@@ -30,7 +30,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "5cf9af49d5b2c5de",
+	"version": "8f35749e0fddafc6",
 	"urls": [
 		"/games/",
 		"/toys/",
