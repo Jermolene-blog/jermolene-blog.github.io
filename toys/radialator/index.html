@@ -146,7 +146,9 @@ const SPEC=[
  {k:'dome',l:'Dome',min:0,max:.999,step:.0005,d:.9785,g:'A'},
  {k:'twist',l:'Twist',min:-6,max:6,step:.05,d:0,g:'A'},
  {k:'layers',l:'Layers',min:1,max:3,step:1,d:1,g:'A'},
- {k:'layerScale',l:'Layer scale',min:.3,max:1.5,step:.01,d:.6,g:'A'},
+ {k:'layerScale',l:'Layer scale',min:.1,max:1.5,step:.0005,d:.6,g:'A'},
+ {k:'layerSize',l:'Layer size',min:.5,max:2,step:.0005,d:1,g:'A'},
+ {k:'nest',l:'Nest at cover',min:0,max:60,step:1,d:0,g:'A'},
  {k:'rings',l:'Rings',min:0,max:24,step:1,d:0,g:'B'},
  {k:'spokes',l:'Spokes',min:0,max:4,step:.5,d:2,g:'B'},
  {k:'outline',l:'Outline',min:0,max:4,step:.25,d:1,g:'B'},
@@ -174,11 +176,15 @@ const MOSAICS=[
  {n:'Verdigris',a:['#2f6b5e','#c8102e'],b:['#efe6d2'],s:['#14201c'],bg:'#14201c',fr:'#b9a77e',pa:'#efe6d2'},
  {n:'Porphyry',a:['#6e1f2a'],b:['#e8dcc4','#3d6b4f','#c9a34a'],s:['#2a0d12','#16281e','#5c4614'],bg:'#2a0d12',fr:'#b8ad97',pa:'#e8dcc4'},
 ];
+// Nested rosette: a two-scale rosette (toys-src/radialator/reference/nested-rosette.png) of 40 circles crossed by rings through their
+// crossing rows, so every cell is a triangle; where 27 or more outer circles overlap, a finer copy takes over along whole cells
 // San Marco: the pavement roundel in Marcus-Kirche zu Venedig (toys-src/radialator/reference/san-marco.jpeg), fitted to the plate
 const PRESETS={
  'Op art':{},
  'San Marco':{count:32,offset:.5711,radius:.7674,shape:2,aspect:1,spin:1,tilt:0,dome:0,twist:0,layers:1,rings:0,spokes:0,outline:0,
    rim:1,notch:0,hub:.239,clip:3,invert:2,mpal:0,fold:0,bandA:.5,bandB:.48,cut:10,frame:.049,star:8,tiles:24},
+ 'Nested rosette':{count:40,offset:.884,radius:1.1176,shape:2,aspect:1,spin:1,tilt:0,dome:0,twist:0,layers:2,layerScale:.2093,layerSize:.919,
+   nest:27,xrings:1,rings:0,spokes:0,outline:0,rim:1,notch:.076,hub:.03,clip:3,invert:0,palette:0},
 };
 const PALETTES=[
  ['Ink on white','#111111','#ffffff'],
@@ -189,9 +195,9 @@ const PALETTES=[
  ['Sea and coral','#0f5257','#f6a38f'],
  ['Violet','#3a1a6b','#d9f0e4'],
 ];
-const DEFAULTS=Object.fromEntries(SPEC.map(s=>[s.k,s.d]));DEFAULTS.clip=3;DEFAULTS.invert=1;DEFAULTS.palette=0;DEFAULTS.dots=0;DEFAULTS.mpal=0;DEFAULTS.fold=0;
+const DEFAULTS=Object.fromEntries(SPEC.map(s=>[s.k,s.d]));DEFAULTS.clip=3;DEFAULTS.invert=1;DEFAULTS.palette=0;DEFAULTS.dots=0;DEFAULTS.mpal=0;DEFAULTS.fold=0;DEFAULTS.xrings=0;
 // panel groups: sliders carry theirs in SPEC; the selects carry theirs here
-const GROUPS={A:'Shapes',B:'Overlays & motion',C:'Colour & clip',D:'Dots',E:'Mosaic'},SELG={clip:'C',invert:'C',palette:'C',dots:'D',mpal:'E',fold:'E'},SELECTS=Object.keys(SELG);
+const GROUPS={A:'Shapes',B:'Overlays & motion',C:'Colour & clip',D:'Dots',E:'Mosaic'},SELG={xrings:'B',clip:'C',invert:'C',palette:'C',dots:'D',mpal:'E',fold:'E'},SELECTS=Object.keys(SELG);
 const groupKeys=g=>[...SPEC.filter(s=>s.g===g).map(s=>s.k),...SELECTS.filter(k=>SELG[k]===g)];
 const allowed=new Set(Object.keys(GROUPS));
 let P={...DEFAULTS};const history=[];
@@ -200,7 +206,7 @@ let P={...DEFAULTS};const history=[];
 const glc=document.createElement('canvas');
 const gl=glc.getContext('webgl',{preserveDrawingBuffer:true,antialias:false});
 const FS=`precision highp float;
-uniform vec2 uRes;uniform float uHub,uInv,uWarp,uRim,uNotch,uPx,uLine,uN,uD,uR,uP,uAsp,uSpin,uTilt,uTwist,uRings,uSectors,uLayers,uLS,uPhase,uExtent,uClip;
+uniform vec2 uRes;uniform float uHub,uInv,uWarp,uRim,uNotch,uPx,uLine,uN,uD,uR,uP,uAsp,uSpin,uTilt,uTwist,uRings,uSectors,uLayers,uLS,uPhase,uExtent,uClip,uXR,uNest,uLZ;
 uniform vec3 uInk,uPaper;uniform vec2 uPan;uniform float uZoom;
 uniform float uDots,uDotN,uDotSize,uLight,uLightAng;uniform float uFF[20],uFE[20];
 uniform float uMosaic,uBandA,uBandB,uCut,uFrame,uStar,uTiles,uFold,uNA,uNB;
@@ -212,9 +218,12 @@ float sampleAt(vec2 p){
   float rad=length(p);
   p=rot(uTwist*rad)*p;
   float cnt=0.;float any=0.;float sd=1e9;
+  // nest: where the previous layer's shapes cover at least uNest times, the next layer takes over from that count instead of adding to it
+  float cut=0.;
   for(int l=0;l<3;l++){
     if(float(l)>=uLayers)break;
-    float sc=pow(uLS,float(l));float d=uD*sc,r=uR*sc;
+    float sc=pow(uLS,float(l));float d=uD*sc,r=uR*sc*(l>0?uLZ:1.);
+    float lc=0.;
     float sgn=mod(float(l),2.)<.5?1.:-1.;
     for(int i=0;i<120;i++){
       if(float(i)>=uN)break;
@@ -224,9 +233,16 @@ float sampleAt(vec2 p){
       q.x/=uAsp;
       vec2 b=abs(q)/r+1e-6;
       float fv=pow(b.x,uP)+pow(b.y,uP);
-      if(fv<1.){cnt+=1.;any=1.;}
+      if(fv<1.){lc+=1.;any=1.;}
       sd=min(sd,(pow(fv,1./uP)-1.)*r*min(uAsp,1.));
     }
+    float hits=lc;
+    // crossing rings: circles i and i+m of this layer cross at radii where cos(πm/N) = (ρ²+d²−r²)/(2ρd),
+    // so a ring through every crossing row flips parity at each whole m (exact for circles, as buildSVG draws them)
+    if(uXR>.5){float f=(rad*rad+d*d-r*r)/(2.*rad*d+1e-9);lc+=f<=-1.?uN:floor(uN*acos(clamp(f,-1.,1.))/3.1415927);}
+    if(uNest<.5||l==0)cnt+=lc;else if(cut>.5)cnt=uNest+lc;
+    cut=uNest>.5&&hits>=uNest?1.:0.;
+    if(uNest>.5&&cut<.5)break;
   }
   float par=mod(cnt,2.);
   if(uRings>0.)par=abs(par-mod(floor(rad/uExtent*uRings),2.));
@@ -365,14 +381,14 @@ function initGL(){
   prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.useProgram(prog);
   const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uInk uPaper uPan uZoom uDots uDotN uDotSize uLight uLightAng uMosaic uBandA uBandB uCut uFrame uStar uTiles uFold uNA uNB uMA uMB uMS uMBg uMFr uMPaper'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
+  'uRes uHub uInv uWarp uRim uNotch uPx uLine uN uD uR uP uAsp uSpin uTilt uTwist uRings uSectors uLayers uLS uPhase uExtent uClip uXR uNest uLZ uInk uPaper uPan uZoom uDots uDotN uDotSize uLight uLightAng uMosaic uBandA uBandB uCut uFrame uStar uTiles uFold uNA uNB uMA uMB uMS uMBg uMFr uMPaper'.split(' ').forEach(n=>U[n]=gl.getUniformLocation(prog,n));
   const FF=[1,2];while(FF.length<20)FF.push(FF[FF.length-1]+FF[FF.length-2]);
   gl.uniform1fv(gl.getUniformLocation(prog,'uFF'),FF);gl.uniform1fv(gl.getUniformLocation(prog,'uFE'),FF.map(f=>f*GOLD-Math.round(f*GOLD)));
 }
 function extent(p){
   if(p.clip==3)return p.rim;
   const reach=p.shape>2?Math.pow(2,.5-1/p.shape):1;let e=0;
-  for(let l=0;l<p.layers;l++){const s=Math.pow(p.layerScale,l);e=Math.max(e,p.offset*s+p.radius*s*reach*Math.max(p.aspect,1));}
+  for(let l=0;l<p.layers;l++){const s=Math.pow(p.layerScale,l);e=Math.max(e,p.offset*s+p.radius*s*(l?p.layerSize??1:1)*reach*Math.max(p.aspect,1));}
   return Math.max(e,.05);
 }
 // view: zoom and pan (world units, y up) of the main canvas; explore tiles and the SVG always show the whole pattern
@@ -382,7 +398,7 @@ function render(p,target,size,phase=0,view=null){
   gl.uniform2f(U.uRes,size,size);
   gl.uniform1f(U.uN,p.count);gl.uniform1f(U.uD,p.offset);gl.uniform1f(U.uR,p.radius);gl.uniform1f(U.uP,p.shape);
   gl.uniform1f(U.uAsp,p.aspect);gl.uniform1f(U.uSpin,p.spin);gl.uniform1f(U.uTilt,p.tilt);gl.uniform1f(U.uTwist,p.twist);
-  gl.uniform1f(U.uRings,p.rings);gl.uniform1f(U.uSectors,2*Math.round(p.spokes*p.count/2));gl.uniform1f(U.uLine,p.outline);gl.uniform1f(U.uRim,p.rim);gl.uniform1f(U.uWarp,p.dome);gl.uniform1f(U.uInv,p.invert);gl.uniform1f(U.uHub,p.hub);gl.uniform1f(U.uNotch,p.notch);gl.uniform1f(U.uPx,extent(p)*1.0089/(size*.5)*(size/1000));gl.uniform1f(U.uLayers,p.layers);gl.uniform1f(U.uLS,p.layerScale);
+  gl.uniform1f(U.uRings,p.rings);gl.uniform1f(U.uXR,p.xrings||0);gl.uniform1f(U.uNest,p.nest||0);gl.uniform1f(U.uLZ,p.layerSize??1);gl.uniform1f(U.uSectors,2*Math.round(p.spokes*p.count/2));gl.uniform1f(U.uLine,p.outline);gl.uniform1f(U.uRim,p.rim);gl.uniform1f(U.uWarp,p.dome);gl.uniform1f(U.uInv,p.invert);gl.uniform1f(U.uHub,p.hub);gl.uniform1f(U.uNotch,p.notch);gl.uniform1f(U.uPx,extent(p)*1.0089/(size*.5)*(size/1000));gl.uniform1f(U.uLayers,p.layers);gl.uniform1f(U.uLS,p.layerScale);
   gl.uniform1f(U.uDots,p.dots);gl.uniform1f(U.uDotN,p.dotN);gl.uniform1f(U.uDotSize,p.dotSize);gl.uniform1f(U.uLight,p.light);gl.uniform1f(U.uLightAng,p.lightAng);
   gl.uniform1f(U.uPhase,phase);gl.uniform1f(U.uExtent,extent(p));gl.uniform1f(U.uClip,p.clip);
   const pal=PALETTES[p.palette];gl.uniform3fv(U.uInk,hex(pal[1]));gl.uniform3fv(U.uPaper,hex(pal[2]));
@@ -410,6 +426,9 @@ SPEC.forEach(s=>{
   inp.addEventListener('input',()=>{P[s.k]=+inp.value;fmt(s);changed()});
   const rs=()=>resetKeys([s.k]);r.querySelector('label').addEventListener('dblclick',rs);inp.addEventListener('dblclick',rs);
 });
+{const r=document.createElement('div');r.className='sel';
+  r.innerHTML='<label for="xrings">Crossing rings</label><select id="xrings"><option value="0">Off</option><option value="1">On</option></select>';
+  $('p_rings').closest('.row').after(r)}
 // double-click a control to reset it, or a group heading to reset the whole group (the two clicks leave it open or shut as it was)
 function resetKeys(ks){lastPush=0;push();ks.forEach(k=>P[k]=DEFAULTS[k]);syncUI();changed()}
 SELECTS.forEach(k=>document.querySelector(`label[for=${k}]`).addEventListener('dblclick',()=>resetKeys([k])));
@@ -464,6 +483,7 @@ function mutate(p,str){
     if(s.step>=1&&Math.abs(dv)<s.step)dv=Math.sign(dv||1)*s.step;
     q[s.k]=snap(s,q[s.k]+dv)}
   if(mos&&allowed.has('E')&&Math.random()<.08)q.fold=(q.fold+1+Math.floor(Math.random()*2))%3;
+  if(!mos&&allowed.has('B')&&Math.random()<.08)q.xrings=1-q.xrings;
   if(!col)return q;
   // with only colour & clip ticked, change at least one of them so every neighbour differs; a mosaic changes its stones instead of its palette
   const f=n?.08:.3,force=n?-1:Math.floor(Math.random()*3),cyc=(v,m)=>(v+1+Math.floor(Math.random()*(m-1)))%m;
@@ -528,13 +548,14 @@ function randomise(){
   q.aspect=Math.random()<.45?1:q.aspect;
   q.twist=Math.random()<.5?0:q.twist;
   q.layers=Math.random()<.6?1:q.layers;
-  q.rings=Math.random()<.6?0:q.rings;
+  q.rings=Math.random()<.6?0:q.rings;q.xrings=Math.random()<.25?1:0;
+  q.layerSize=Math.random()<.6?1:q.layerSize;q.nest=q.layers>1&&Math.random()<.35?Math.round(R(q.count*.4,q.count*.8)):0;
   q.spokes=Math.random()<.5?0:q.spokes;q.hub=Math.random()<.6?0:q.hub*.4;q.dome=Math.random()<.4?0:q.dome;q.outline=Math.random()<.5?1:0;
   q.clip=Math.floor(Math.random()*4);q.invert=Math.random()<.5?1:0;
   q.palette=Math.random()<.5?0:Math.floor(Math.random()*PALETTES.length);
   // about one in five is a mosaic, mostly with plain circles, whose ribbons read best
   if(Math.random()<.2){q.invert=2;q.mpal=Math.floor(Math.random()*MOSAICS.length);q.fold=Math.random()<.6?0:1+Math.floor(Math.random()*2);
-    if(Math.random()<.6){q.shape=2;q.aspect=1}q.layers=1;q.rings=q.spokes=0;q.outline=0;
+    if(Math.random()<.6){q.shape=2;q.aspect=1}q.layers=1;q.rings=q.spokes=q.xrings=q.nest=0;q.outline=0;
     q.bandA=snap(SPEC.find(s=>s.k==='bandA'),R(.25,.7));q.bandB=snap(SPEC.find(s=>s.k==='bandB'),R(.25,.7));
     q.cut=0;q.frame=Math.random()<.5?0:+R(.01,.06).toFixed(3);q.hub=Math.random()<.5?0:+R(.12,.3).toFixed(3)}
   return q;
@@ -617,9 +638,22 @@ function buildMosaicSVG(p,ph){
   drawMain();
   return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000" width="2000" height="2000">\n<rect x="-1000" y="-1000" width="2000" height="2000" fill="${cols[0]}"/>\n${body}</svg>\n`;
 }
+// Nested layers swap one lattice for another along the shapes' outlines, which even-odd fill can't express, so their SVG is traced
+// from a 2048px render like the mosaic's: ink pixels become closed loops, straightened to 0.7px.
+function buildTracedSVG(p,ph){
+  const S=2048,pal=PALETTES[p.palette],ink=hex(pal[1]).map(v=>v*255),pap=hex(pal[2]).map(v=>v*255);
+  render({...p,dots:0},null,S,ph);const px=new Uint8Array(S*S*4);gl.readPixels(0,0,S,S,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  const lab=new Uint8Array(S*S),dist=(i,c)=>(px[4*i]-c[0])**2+(px[4*i+1]-c[1])**2+(px[4*i+2]-c[2])**2;
+  for(let i=0;i<S*S;i++)lab[i]=dist(i,ink)<dist(i,pap)?1:0;
+  const u=2000/S,f=v=>(v*u-1000).toFixed(1),g=v=>(1000-v*u).toFixed(1);
+  const d=traceLabel(lab,S,1).map(l=>'M'+simplify(l,.7).map(q=>f(q[0])+' '+g(q[1])).join('L')+'Z').join('');
+  drawMain();
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1000 -1000 2000 2000" width="2000" height="2000">\n<rect x="-1000" y="-1000" width="2000" height="2000" fill="${pal[2]}"/>\n<path fill="${pal[1]}" fill-rule="evenodd" d="${d}"/>\n</svg>\n`;
+}
 function buildSVG(p,ph){
   if(p.dots)return buildDotsSVG(p,ph);
   if(p.invert==2)return buildMosaicSVG(p,ph);
+  if(p.nest>0&&p.layers>1)return buildTracedSVG(p,ph);
   const E=extent(p),V=E*1.0089,K=1000/V,w=p.dome,useW=w>.001,aw=useW?Math.asin(w):1;
   const f=v=>(v*K).toFixed(2);
   const rhoMax=useW?E*(Math.PI/2)/aw:V*1.5;
@@ -633,7 +667,7 @@ function buildSVG(p,ph){
   const poly=pts=>'M'+pts.map(q=>f(q[0])+' '+f(-q[1])).join('L')+'Z';
   const shapes=[];
   for(let l=0;l<p.layers;l++){
-    const sc=Math.pow(p.layerScale,l),d=p.offset*sc,r=p.radius*sc,sg=l%2?-1:1;
+    const sc=Math.pow(p.layerScale,l),d=p.offset*sc,r=p.radius*sc*(l?p.layerSize??1:1),sg=l%2?-1:1;
     for(let i=0;i<p.count;i++){
       const a=2*Math.PI*i/p.count+l*Math.PI/p.count+sg*ph,cx=d*Math.cos(a),cy=d*Math.sin(a),th=a*p.spin+p.tilt,c=Math.cos(th),s=Math.sin(th);
       const pts=[];
@@ -661,6 +695,15 @@ function buildSVG(p,ph){
       const q=toScreen(k*E/p.rings,0),rs=Math.hypot(q[0],q[1]);
       parts.push(`M${f(rs)} 0A${f(rs)} ${f(rs)} 0 1 0 ${f(-rs)} 0A${f(rs)} ${f(rs)} 0 1 0 ${f(rs)} 0Z`);
     }
+  }
+  // crossing rings: per layer, a circle through each row of crossings (m = 1..N; m = N is the edge of the hole the shapes leave
+  // when they cover the centre), both roots where they don't
+  if(p.xrings)for(let l=0;l<p.layers;l++){
+    const sc=Math.pow(p.layerScale,l),d=p.offset*sc,r=p.radius*sc*(l?p.layerSize??1:1),c=d*d-r*r;
+    for(let m=1;m<=p.count;m++){const b=d*Math.cos(Math.PI*m/p.count),disc=b*b-c;if(disc<0)continue;
+      for(const rr of [b+Math.sqrt(disc),b-Math.sqrt(disc)]){if(rr<=1e-9||rr>=rhoMax)continue;
+        const q=toScreen(rr,0),rs=Math.hypot(q[0],q[1]);
+        parts.push(`M${f(rs)} 0A${f(rs)} ${f(rs)} 0 1 0 ${f(-rs)} 0A${f(rs)} ${f(rs)} 0 1 0 ${f(rs)} 0Z`)}}
   }
   if(p.invert)parts.push('M-1000 -1000H1000V1000H-1000Z');
   const pal=PALETTES[p.palette],ink=pal[1],paper=pal[2],lw=p.outline*E*1.0089/500;
