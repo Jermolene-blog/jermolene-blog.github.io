@@ -117,6 +117,15 @@ input[type="range"]::-moz-range-thumb { width: 8px; height: 18px; background: va
 .swatches { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .swatches label { display: flex; flex-direction: column; gap: 3px; color: var(--muted); font-size: 11px; }
 input[type="color"] { width: 100%; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 2px; background: none; cursor: pointer; }
+.seq-head { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.seq-head span { flex: 1; }
+.seq-head button { padding: 3px 7px; font-size: 11px; }
+.seq { display: flex; flex-wrap: wrap; gap: 4px; }
+.seq > div { position: relative; width: 30px; }
+.seq input[type="color"] { height: 26px; }
+.seq .gap { width: 30px; height: 26px; padding: 0; border: 1px dashed var(--muted); border-radius: 2px; background: repeating-linear-gradient(45deg, transparent 0 4px, var(--line) 4px 5px); cursor: pointer; }
+.seq .del { position: absolute; top: -6px; right: -6px; width: 15px; height: 15px; padding: 0; border-radius: 50%; font-size: 10px; line-height: 13px; display: none; }
+.seq > div:hover .del, .seq > div:focus-within .del { display: block; }
 .check { display: flex; align-items: center; gap: 7px; color: var(--muted); }
 .check input { margin: 0; accent-color: var(--accent); }
 .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
@@ -187,6 +196,13 @@ input[type="color"] { width: 100%; height: 28px; padding: 0; border: 1px solid v
       <h2>Colour</h2>
       <div class="chips" id="palettes"></div>
       <div class="swatches" id="swatches"></div>
+      <div class="seq-head"><span>Bands, in turn</span><button id="addF" aria-label="Add a band colour">+ Colour</button><button id="gapF" aria-label="Add a gap">+ Gap</button></div>
+      <div class="seq" id="seqF"></div>
+      <label class="check"><input type="checkbox" id="ownR"> Rising rules have their own bands</label>
+      <div id="wrapR" hidden>
+        <div class="seq-head"><span>Rising bands</span><button id="addR" aria-label="Add a rising band colour">+ Colour</button><button id="gapR" aria-label="Add a rising gap">+ Gap</button></div>
+        <div class="seq" id="seqR"></div>
+      </div>
       <div id="sl-colour"></div>
       <div class="checks">
         <label class="check"><input type="checkbox" id="blend"> Multiply bands</label>
@@ -223,16 +239,23 @@ const SLIDERS = {
   tail:    {into:"sl-spine", label:"Tail", min:0, max:300, step:1},
   alpha:   {into:"sl-colour", label:"Band opacity", min:0, max:1, step:.01, fmt:v=>Math.round(v*100)+"%"},
 };
-const COLOURS = {paper:"Paper", rule:"Rule", a:"Band 1", b:"Band 2", spineC:"Spine"};
+const COLOURS = {paper:"Paper", rule:"Rule", spineC:"Spine"};
 
 // Measured from the sketches: the rise equals the column width.
 const BASE = {cols:[...("xudxduxuu")], w:125.8, n:57, p:18.6, rise:125.8/18.6, k:.47, t:.22, hair:.1,
   wCurve:[[0,.5],[1,.5]], sCurve:[[0,0],[1,1]], stagger:0,
-  spine:false, spineW:9, tail:98, paper:"#ffffff", rule:"#000000", a:"#e16155", b:"#f0e69b", spineC:"#6e8e5c", alpha:0, blend:false, riseOnTop:false};
+  spine:false, spineW:9, tail:98, paper:"#ffffff", rule:"#000000", bands:["#e16155","#f0e69b"], bandsR:null, spineC:"#6e8e5c", alpha:0, blend:false, riseOnTop:false};
 const PRESETS = [
   {name:"Mixed", s:{}},
   {name:"Feather", s:{cols:["x","x"], w:125.5, n:56, t:.15, hair:.2, spine:true, rule:"#633428", alpha:.6}},
-  {name:"Stripe", s:{cols:["u"], w:124, n:56, rise:124/18.6, t:.19, hair:.15, rule:"#d93a30", a:"#f5a3a1", b:"#8582f6", alpha:1}},
+  {name:"Stripe", s:{cols:["u"], w:124, n:56, rise:124/18.6, t:.19, hair:.15, rule:"#d93a30", bands:["#f5a3a1","#8582f6"], alpha:1}},
+  // Bargello: flame stitch, falling and rising columns in turn with opaque bands running through a long gradient; and a sawtooth,
+  // crossed columns with the rising rules on top, whose short run of colours (then gaps) restarts at the foot of each column
+  {name:"Flame", s:{cols:[..."udududud"], w:100, n:60, p:10, rise:12.5, k:.22, t:0, hair:0, paper:"#ece4d6",
+    bands:["#b47c6b","#efe6d6","#c5cdc7","#93a19b","#5e6b64","#7f8d86","#a9b5af","#ece3d3","#e8cfc2"], alpha:1}},
+  {name:"Sawtooth", s:{cols:["x","x","x"], w:100, n:22, p:9, rise:11, k:0, t:0, hair:0, paper:"#ffffff", riseOnTop:true, alpha:1,
+    bands:["#ffffff","#f7d0bb","#f3a27e","#e8703f","#c4502a","#93391f","#c4502a","#e8703f","#f3a27e","#f7d0bb","#d9d9d9"],
+    bandsR:["#155e57","#2a9d8f","#7fd3c8","#2a9d8f","#7a7a7a","#2b2b2b","","","","","","","","","","","","","","","",""]}},
   {name:"Lattice", s:{cols:["x","x","x","x"], w:132.5, n:57, p:9.35, rise:132.5/9.35, t:.3, hair:.1}},
 ];
 const PALETTES = [
@@ -257,7 +280,9 @@ const CURVES = {
   sCurve: {title:"Spacing", ref:[[0,0],[1,1]], read:(x,y)=>`rule ${Math.round(x*100)}% · at ${Math.round(y*100)}%`},
 };
 const clonePts = c => c.map(p => [...p]);
-const clone = s => ({...s, cols:[...s.cols], wCurve:clonePts(s.wCurve), sCurve:clonePts(s.sCurve)});
+const clone = s => ({...s, cols:[...s.cols], wCurve:clonePts(s.wCurve), sCurve:clonePts(s.sCurve), bands:[...s.bands], bandsR:s.bandsR && [...s.bandsR]});
+// The band colours cycle down the run of rules; an empty string is a gap. Rising rules can have a sequence of their own.
+const bandsOf = (s, rising) => rising && s.bandsR ? s.bandsR : s.bands;
 const clamp01 = v => Math.min(1, Math.max(0, v));
 const r3 = v => +v.toFixed(3);
 // A smooth curve through the points that never overshoots them (monotone cubic, Fritsch and Carlson).
@@ -335,11 +360,11 @@ function traceRules(out, s, rising, clip) {
     for (let i=0; i<s.n; i++) if (ys[i] >= lo && ys[i] <= hi) ribbon(out, s, c, rising, off+ys[i], 0, ws[i]);
   });
 }
-function traceBands(out, s, rising, which, clip) {
+function traceBands(out, s, rising, which, clip, every=2) {
   const {ys, ws} = rows(s);
   eachColumn(s, rising, clip, (c, off) => {
     const [lo, hi] = rowWindow(s, off, clip);
-    for (let i=which; i<s.n-1; i+=2) {
+    for (let i=which; i<s.n-1; i+=every) {
       if (Math.max(ys[i], ys[i+1]) < lo || Math.min(ys[i], ys[i+1]) > hi) continue;
       ribbon(out, s, c, rising, off+ys[i], ws[i]/2, ys[i+1]-ys[i]+ws[i+1]/2);
     }
@@ -370,8 +395,10 @@ function paint(g, s, W, H, marginFrac=.055, view=null) {
     if (s.alpha > 0) {
       g.globalAlpha = s.alpha;
       g.globalCompositeOperation = s.blend ? "multiply" : "source-over";
-      [s.a, s.b].forEach((colour, which) => {
-        g.fillStyle = colour; g.beginPath(); traceBands(out, s, rising, which, clip); g.fill();
+      const seq = bandsOf(s, rising);
+      seq.forEach((colour, which) => {
+        if (!colour) return;
+        g.fillStyle = colour; g.beginPath(); traceBands(out, s, rising, which, clip, seq.length); g.fill();
       });
       g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
     }
@@ -401,8 +428,8 @@ function toSVG(s) {
   const path = (trace, attrs) => { const o = svgOut(); trace(o); out.push(`<path d="${o.d()}" ${attrs}/>`); };
   const blend = s.blend ? ' style="mix-blend-mode:multiply"' : "";
   for (const rising of layerOrder(s)) {
-    if (s.alpha > 0) [s.a, s.b].forEach((colour, which) => {
-      path(o => traceBands(o, s, rising, which), `fill="${colour}" fill-opacity="${s.alpha}"${blend}`);
+    if (s.alpha > 0) bandsOf(s, rising).forEach((colour, which, seq) => {
+      if (colour) path(o => traceBands(o, s, rising, which, null, seq.length), `fill="${colour}" fill-opacity="${s.alpha}"${blend}`);
     });
     const stroke = s.hair > 0 ? ` stroke="${s.rule}" stroke-width="${s.hair}" stroke-linejoin="round"` : "";
     path(o => traceRules(o, s, rising), `fill="${s.rule}"${stroke}`);
@@ -584,6 +611,37 @@ for (const [k, label] of Object.entries(COLOURS)) {
   input.addEventListener("change", () => { if (pending) { remember(pending); pending = null; } queueNeighbours(); });
 }
 ["spine","blend","riseOnTop"].forEach(k => $(k).addEventListener("change", e => { remember(); S[k] = e.target.checked; changed(); }));
+// Band sequences: a swatch per band in turn, a hatched box for a gap (click it to fill it); hover or focus shows ×.
+function renderSeq(key) {
+  const box = $(key === "bands" ? "seqF" : "seqR"), seq = S[key] || [], sig = seq.map(c => c ? 1 : 0).join("");
+  // only rebuild when the shape of the sequence changes, so an open colour picker survives its own edits
+  if (box.dataset.sig === sig) { box.querySelectorAll("input").forEach((input, j) => { const c = seq.filter(Boolean)[j]; if (input.value !== c) input.value = c; }); return; }
+  box.dataset.sig = sig;
+  box.replaceChildren(...seq.map((c, i) => {
+    const d = document.createElement("div");
+    if (c) {
+      d.innerHTML = `<input type="color" aria-label="Band ${i+1}">`;
+      const input = d.firstChild; input.value = c;
+      input.addEventListener("input", () => { if (!pending) pending = clone(S); S[key][i] = input.value; changed(true); });
+      input.addEventListener("change", () => { if (pending) { remember(pending); pending = null; } queueNeighbours(); });
+    } else {
+      d.innerHTML = `<button class="gap" aria-label="Band ${i+1}: gap. Fill it."></button>`;
+      d.firstChild.addEventListener("click", () => { remember(); const q = S[key]; q[i] = q.filter(Boolean).at(-1) || "#888888"; changed(); });
+    }
+    if (seq.length > 1) {
+      const x = document.createElement("button"); x.className = "del"; x.textContent = "×"; x.setAttribute("aria-label", `Remove band ${i+1}`);
+      x.addEventListener("click", () => { remember(); S[key].splice(i, 1); changed(); });
+      d.append(x);
+    }
+    return d;
+  }));
+}
+const addBand = (key, gap) => { remember(); const seq = S[key]; seq.push(gap ? "" : (seq.filter(Boolean).at(-1) || "#888888")); changed(); };
+$("addF").addEventListener("click", () => addBand("bands", false));
+$("gapF").addEventListener("click", () => addBand("bands", true));
+$("addR").addEventListener("click", () => addBand("bandsR", false));
+$("gapR").addEventListener("click", () => addBand("bandsR", true));
+$("ownR").addEventListener("change", e => { remember(); S.bandsR = e.target.checked ? [...S.bands] : null; changed(); });
 
 // Curve editors, after the Curves panel in image editors: drag points, click to add, double-click to remove.
 const curveEds = {};
@@ -707,7 +765,7 @@ PALETTES.forEach(p => {
   b.addEventListener("click", () => { remember(); applyPalette(S, p); changed(); });
   $("palettes").append(b);
 });
-function applyPalette(s, p) { for (const k of ["paper","rule","a","b","spineC","alpha"]) s[k] = p[k]; }
+function applyPalette(s, p) { for (const k of ["paper","rule","spineC","alpha"]) s[k] = p[k]; s.bands = [p.a, p.b]; s.bandsR = null; }
 
 PRESETS.forEach((p, i) => {
   const b = document.createElement("button");
@@ -750,6 +808,8 @@ function syncControls() {
   }
   for (const k of Object.keys(COLOURS)) { const i = $("c-"+k); if (i.value !== S[k]) i.value = S[k]; }
   ["spine","blend","riseOnTop"].forEach(k => $(k).checked = S[k]);
+  $("ownR").checked = !!S.bandsR; $("wrapR").hidden = !S.bandsR;
+  renderSeq("bands"); if (S.bandsR) renderSeq("bandsR");
   renderStrip();
   renderCurves();
 }
@@ -859,7 +919,8 @@ const MUTATE = {
   Colour(s, step) {
     if (s.alpha === 0 || step > .7) { applyPalette(s, pick(PALETTES.filter(p => p.alpha > 0))); return; }
     const turn = nudge()*step*140;
-    s.rule = rotateHex(s.rule, turn); s.a = rotateHex(s.a, turn); s.b = rotateHex(s.b, turn*.6);
+    const turnAll = seq => seq.map((c, i) => c && rotateHex(c, turn*(i%2 ? .6 : 1)));
+    s.rule = rotateHex(s.rule, turn); s.bands = turnAll(s.bands); if (s.bandsR) s.bandsR = turnAll(s.bandsR);
     s.alpha = limit("alpha", s.alpha + nudge()*step*.2);
   },
   Mixed(s, step) {
