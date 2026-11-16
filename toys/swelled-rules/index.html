@@ -412,6 +412,100 @@ function paint(g, s, W, H, marginFrac=.055, view=null) {
   }
   return {ox, oy, sc, W, H, fitSc, bw:b.w, bh:b.h};
 }
+// ---- Moving smoothly between states
+// A "spec" is either a state or {a, b, e}: the way from spec a to spec b, e of the way along (eased). Every value is
+// read through it, so a change made mid-way carries on from whatever was on screen. Numbers and colours are mixed;
+// the rule and column counts become fractional, an extra rule or column growing from nothing; a column's falling and
+// rising layers each have a presence, 0 to 1, that scales their rise, weight and bands, so a falling column turns
+// rising by flattening and lifting again; the weight and spacing curves are mixed as functions; band colours are
+// mixed rule by rule, a gap fading.
+const TWEEN_MS = 650;
+const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+const lerp = (a, b, t) => a + (b-a)*t;
+const rgbOf = hex => { const v = parseInt((hex || "#000000").slice(1), 16); return [v>>16 & 255, v>>8 & 255, v & 255]; };
+const rgbCss = c => `rgb(${c.map(Math.round).join(",")})`;
+const isMix = x => x && x.e !== undefined;
+const mixNum = (x, f) => isMix(x) ? lerp(mixNum(x.a, f), mixNum(x.b, f), x.e) : f(x);
+const mixRgb = (x, f) => { if (!isMix(x)) return f(x); const a = mixRgb(x.a, f), b = mixRgb(x.b, f); return a.map((v, i) => lerp(v, b[i], x.e)); };
+const mixBool = (x, k) => isMix(x) ? mixBool(x.e < .5 ? x.a : x.b, k) : x[k];
+const curveCache = new WeakMap();
+const curveOf = (s, k) => { let c = curveCache.get(s[k]); if (!c) curveCache.set(s[k], c = curveFn(s[k])); return c; };
+const colsLen = x => isMix(x) ? Math.max(colsLen(x.a), colsLen(x.b)) : x.cols.length;
+const layerOf = (s, c, rising) => { const t = s.cols[c]; return t === "x" || t === (rising ? "u" : "d") ? 1 : 0; };
+// a band's colour and presence, for rule i of a layer
+function bandOf(x, i, rising) {
+  if (!isMix(x)) { const seq = bandsOf(x, rising), c = seq[i % seq.length]; return c ? [...rgbOf(c), 1] : null; }
+  const a = bandOf(x.a, i, rising), b = bandOf(x.b, i, rising);
+  if (!a && !b) return null;
+  const A = a || [...b.slice(0, 3), 0], B = b || [...a.slice(0, 3), 0];
+  return A.map((v, k) => lerp(v, B[k], x.e));
+}
+// a flat, drawable picture of a spec
+function flatten(x) {
+  const num = k => mixNum(x, s => s[k]), D = {};
+  for (const k of ["w","p","rise","k","t","hair","stagger","spineW","tail","alpha"]) D[k] = num(k);
+  for (const k of ["paper","rule","spineC"]) D[k] = rgbCss(mixRgb(x, s => rgbOf(s[k])));
+  D.blend = mixBool(x, "blend"); D.riseOnTop = mixBool(x, "riseOnTop");
+  D.spineF = mixNum(x, s => s.spine ? 1 : 0);
+  D.n = num("n"); D.colsN = mixNum(x, s => s.cols.length); // only for the stagger's place in the height
+  const L = colsLen(x);
+  D.lay = Array.from({length:L}, (_, c) => [false, true].map(r => mixNum(x, s => c < s.cols.length ? layerOf(s, c, r) : 0)));
+  // a column that is coming or going narrows to nothing, so the others close up
+  D.cw = Array.from({length:L}, (_, c) => D.w*mixNum(x, s => c < s.cols.length ? 1 : 0));
+  D.cx = D.cw.map((_, c) => D.cw.slice(0, c).reduce((a, v) => a + v, 0));
+  const count = Math.max(1, Math.ceil(D.n - 1e-6)), run = (D.n-1)*D.p, ys = [], ws = [];
+  for (let i=0; i<count; i++) {
+    const u = D.n > 1 ? Math.min(1, i/(D.n-1)) : .5, grow = i > D.n-1 ? D.n - Math.floor(D.n) : 1;
+    ys.push(run*mixNum(x, s => curveOf(s, "sCurve")(u)));
+    ws.push(D.t*D.p*2*mixNum(x, s => curveOf(s, "wCurve")(u))*grow);
+  }
+  D.ys = ys; D.ws = ws;
+  D.band = (i, rising) => bandOf(x, i, rising);
+  return D;
+}
+// paint a flattened spec: as paint(), but each rule's bands are filled on their own, in their own colour
+function paintFlat(g, D, W, H, marginFrac, view) {
+  g.setTransform(g.__dpr||1, 0, 0, g.__dpr||1, 0, 0);
+  g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+  g.fillStyle = D.paper; g.fillRect(0, 0, W, H);
+  const bw = D.cw.reduce((a, v) => a + v, 0), tMax = Math.max(0, ...D.ws);
+  const body = (D.n-1)*D.p + D.rise*D.p + tMax + (D.colsN > 1 ? D.stagger*D.p : 0), bh = body + D.spineF*D.tail;
+  const m = Math.min(W,H)*marginFrac, fitSc = Math.min((W-2*m)/bw, (H-2*m)/bh), sc = fitSc*(view ? view.z : 1);
+  const ox = (W-bw*sc)/2 + (view ? view.x : 0), oy = (H-bh*sc)/2 + (view ? view.y : 0);
+  g.translate(ox, oy); g.scale(sc, sc);
+  const out = canvasOut(g), {ys, ws} = D, cols = D.lay.map((l, c) => c).filter(c => D.cw[c] > 1e-3);
+  // as ribbon(), for a column at its own place and width
+  const rib = (c, rising, y, a, b) => {
+    const H = D.rise*D.lay[c][rising ? 1 : 0]*D.p, kH = D.k*H, L = D.cx[c], R = L + D.cw[c];
+    const yL = rising ? y+H : y, yR = rising ? y : y+H, c1 = rising ? yL-kH : yL+kH, c2 = rising ? yR+kH : yR-kH;
+    out.m(L, yL+a); out.c(L, c1+a, R, c2+a, R, yR+a); out.l(R, yR+b); out.c(R, c2+b, L, c1+b, L, yL+b); out.z();
+  };
+  g.lineJoin = "round";
+  for (const rising of layerOrder(D)) {
+    const live = cols.filter(c => D.lay[c][rising ? 1 : 0] > 1e-3);
+    const off = c => c%2 ? D.stagger*D.p : 0, f = c => D.lay[c][rising ? 1 : 0];
+    if (D.alpha > 1e-3) {
+      g.globalCompositeOperation = D.blend ? "multiply" : "source-over";
+      for (let i=0; i<ys.length-1; i++) {
+        const b = D.band(i, rising); if (!b || b[3] <= 1e-3) continue;
+        g.globalAlpha = D.alpha*b[3]; g.fillStyle = rgbCss(b.slice(0, 3)); g.beginPath();
+        for (const c of live) { const a = ws[i]/2, z = ys[i+1]-ys[i]+ws[i+1]/2; rib(c, rising, off(c)+ys[i], a, a + (z-a)*f(c)); }
+        g.fill();
+      }
+      g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+    }
+    g.fillStyle = g.strokeStyle = D.rule;
+    for (const c of live) {
+      g.beginPath();
+      for (let i=0; i<ys.length; i++) rib(c, rising, off(c)+ys[i], 0, ws[i]*f(c));
+      g.fill();
+      if (D.hair > 0) { g.lineWidth = D.hair*f(c); g.stroke(); }
+    }
+  }
+  if (D.spineF > 1e-3) { g.fillStyle = D.spineC; const sw = D.spineW*D.spineF; g.fillRect(bw/2 - sw/2, 0, sw, bh); }
+  return {ox, oy, sc, W, H, fitSc, bw, bh};
+}
+
 function fit(cv, maxDpr) {
   const r = cv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio||1, maxDpr);
   const w = Math.max(1, Math.round(r.width*dpr)), h = Math.max(1, Math.round(r.height*dpr));
@@ -467,9 +561,24 @@ const main = $("main"), mainCanvas = $("mainCanvas"), hover = $("hover"), hint =
 
 let raf = 0;
 function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawMain(); }); }
+// what the main view shows: the state itself, or a move towards it under way (see tweenTo)
+let shown = null, tween = null;
+function tweenTo() {
+  const to = clone(S);
+  if (shown && JSON.stringify(isMix(shown) ? null : shown) === JSON.stringify(to)) { shown = to; tween = null; return; }
+  // carry on from what's on screen; a long chain of interruptions is cut short at its most recent target
+  let from = shown || to, depth = 0; for (let x = from; isMix(x); x = x.a) depth++;
+  if (depth > 3) from = from.b;
+  tween = {from, to, t0:performance.now()};
+}
 function drawMain() {
   const {g,W,H} = fit(mainCanvas, 2);
-  mainLayout = paint(g, S, W, H, .055, view);
+  if (tween) {
+    const t = Math.min(1, (performance.now() - tween.t0)/TWEEN_MS);
+    if (t < 1) { shown = {a:tween.from, b:tween.to, e:ease(t)}; mainLayout = paintFlat(g, flatten(shown), W, H, .055, view); schedule(); }
+    else { shown = tween.to; tween = null; }
+  }
+  if (!tween) { shown = clone(S); mainLayout = paint(g, S, W, H, .055, view); }
   $("zoomLevel").textContent = Math.round(view.z*100) + "%";
 }
 function drawNeighbours() {
@@ -813,7 +922,9 @@ function syncControls() {
   renderStrip();
   renderCurves();
 }
+// skipNeighbours marks a change made while dragging or typing, which is shown at once; any other moves there smoothly
 function changed(skipNeighbours = false) {
+  if (skipNeighbours) tween = null; else tweenTo();
   syncControls();
   schedule();
   if (!skipNeighbours && exploring) queueNeighbours();
