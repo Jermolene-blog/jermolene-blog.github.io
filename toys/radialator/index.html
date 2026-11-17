@@ -401,7 +401,7 @@ function render(p,target,size,phase=0,view=null){
   gl.uniform1f(U.uRings,p.rings);gl.uniform1f(U.uXR,p.xrings||0);gl.uniform1f(U.uNest,p.nest||0);gl.uniform1f(U.uLZ,p.layerSize??1);gl.uniform1f(U.uSectors,2*Math.round(p.spokes*p.count/2));gl.uniform1f(U.uLine,p.outline);gl.uniform1f(U.uRim,p.rim);gl.uniform1f(U.uWarp,p.dome);gl.uniform1f(U.uInv,p.invert);gl.uniform1f(U.uHub,p.hub);gl.uniform1f(U.uNotch,p.notch);gl.uniform1f(U.uPx,extent(p)*1.0089/(size*.5)*(size/1000));gl.uniform1f(U.uLayers,p.layers);gl.uniform1f(U.uLS,p.layerScale);
   gl.uniform1f(U.uDots,p.dots);gl.uniform1f(U.uDotN,p.dotN);gl.uniform1f(U.uDotSize,p.dotSize);gl.uniform1f(U.uLight,p.light);gl.uniform1f(U.uLightAng,p.lightAng);
   gl.uniform1f(U.uPhase,phase);gl.uniform1f(U.uExtent,extent(p));gl.uniform1f(U.uClip,p.clip);
-  const pal=PALETTES[p.palette];gl.uniform3fv(U.uInk,hex(pal[1]));gl.uniform3fv(U.uPaper,hex(pal[2]));
+  const pal=PALETTES[p.palette];gl.uniform3fv(U.uInk,p._ink||hex(pal[1]));gl.uniform3fv(U.uPaper,p._paper||hex(pal[2]));
   const mo=MOSAICS[p.mpal]||MOSAICS[0],three=a=>[0,1,2].flatMap(i=>hex(a[i%a.length]));
   gl.uniform1f(U.uMosaic,p.invert==2?1:0);gl.uniform1f(U.uBandA,p.bandA);gl.uniform1f(U.uBandB,p.bandB);gl.uniform1f(U.uCut,p.cut);gl.uniform1f(U.uFrame,p.frame);
   gl.uniform1f(U.uStar,p.star);gl.uniform1f(U.uTiles,p.tiles);gl.uniform1f(U.uFold,p.fold);gl.uniform1f(U.uNA,mo.a.length);gl.uniform1f(U.uNB,mo.b.length);
@@ -442,7 +442,7 @@ PALETTES.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.te
 MOSAICS.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=m.n;$('mpal').appendChild(o)});
 SELECTS.forEach(k=>$(k).addEventListener('change',e=>{push();P[k]=+e.target.value;syncUI();changed()}));
 Object.keys(PRESETS).forEach(name=>{const b=document.createElement('button');b.type='button';b.textContent=name;
-  b.addEventListener('click',()=>{lastPush=0;push();P={...DEFAULTS,...PRESETS[name]};phase=0;view.x=view.y=0;view.z=1;syncUI();changed()});$('presets').appendChild(b)});
+  b.addEventListener('click',()=>{lastPush=0;push();P={...DEFAULTS,...PRESETS[name]};phase=0;view.x=view.y=0;view.z=1;syncUI();glideTo();changed()});$('presets').appendChild(b)});
 function fmt(s){const v=P[s.k];$('o_'+s.k).textContent=s.step>=1?v:(Math.abs(v)>=10?v.toFixed(1):v.toFixed(2))}
 function syncUI(){SPEC.forEach(s=>{$('p_'+s.k).value=P[s.k];fmt(s)});SELECTS.forEach(k=>$(k).value=P[k]);$('undo').disabled=!history.length;
   $('paletteRow').hidden=P.invert==2;$('mosaicHint').hidden=P.invert==2}
@@ -452,7 +452,19 @@ function push(){const now=performance.now();if(now-lastPush<400)return;lastPush=
 function mainSize(){const r=main.getBoundingClientRect();return Math.min(2048,Math.round(Math.max(200,r.width)*Math.min(devicePixelRatio||1,2)))}
 let phase=0,last=0,raf=0;
 const view={x:0,y:0,z:1};
-function drawMain(){render(P,main,mainSize(),phase,view);$('stage').classList.toggle('zoomed',view.z>1.001)}
+// Moving smoothly between settings: after a jump (Randomise, a preset, Reset, Undo) the main view glides there over
+// GLIDE_MS. Numbers move, whole-number ones a step at a time; the ink and paper blend; the other choices switch half way.
+// A jump made mid-glide carries on from what's on screen.
+const GLIDE_MS=650,glideEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,WHOLE=new Set(SPEC.filter(s=>s.step>=1).map(s=>s.k));
+const glide={from:null,to:null,t0:0,on:false,raf:0};let shownP=null;
+const inkOf=p=>p._ink||hex(PALETTES[p.palette][1]),paperOf=p=>p._paper||hex(PALETTES[p.palette][2]);
+function glideMix(a,b,e){const m={...(e<.5?a:b)};
+  for(const k in b)if(typeof a[k]==='number'&&typeof b[k]==='number'&&!SELG[k]){const v=a[k]+(b[k]-a[k])*e;m[k]=WHOLE.has(k)?Math.round(v):v}
+  m._ink=inkOf(a).map((v,i)=>v+(inkOf(b)[i]-v)*e);m._paper=paperOf(a).map((v,i)=>v+(paperOf(b)[i]-v)*e);return m}
+function glideTo(){if(!shownP){shownP=P;return}glide.from=shownP;glide.to={...P};glide.t0=performance.now();glide.on=true}
+function drawMain(){let p=P;
+  if(glide.on){const t=Math.min(1,(performance.now()-glide.t0)/GLIDE_MS);if(t<1){p=glideMix(glide.from,glide.to,glideEase(t));if(!glide.raf)glide.raf=requestAnimationFrame(()=>{glide.raf=0;if(!(P.speed&&raf))drawMain()})}else glide.on=false}
+  shownP=p;render(p,main,mainSize(),phase,view);$('stage').classList.toggle('zoomed',view.z>1.001)}
 function loop(t){
   raf=0;if(!P.speed||exploring)return;
   fpsTick(t);const dt=last?Math.min(.05,(t-last)/1000):0;last=t;phase+=P.speed*dt*.5;drawMain();raf=requestAnimationFrame(loop);
@@ -560,9 +572,9 @@ function randomise(){
     q.cut=0;q.frame=Math.random()<.5?0:+R(.01,.06).toFixed(3);q.hub=Math.random()<.5?0:+R(.12,.3).toFixed(3)}
   return q;
 }
-$('rand').addEventListener('click',()=>{lastPush=0;push();P=randomise();syncUI();changed()});
-$('reset').addEventListener('click',()=>{lastPush=0;push();P={...DEFAULTS};phase=0;view.x=view.y=0;view.z=1;syncUI();changed()});
-$('undo').addEventListener('click',()=>{if(!history.length)return;P=history.pop();syncUI();changed()});
+$('rand').addEventListener('click',()=>{lastPush=0;push();P=randomise();syncUI();glideTo();changed()});
+$('reset').addEventListener('click',()=>{lastPush=0;push();P={...DEFAULTS};phase=0;view.x=view.y=0;view.z=1;syncUI();glideTo();changed()});
+$('undo').addEventListener('click',()=>{if(!history.length)return;P=history.pop();syncUI();glideTo();changed()});
 
 // --- SVG export: same geometry as the shader, as one even-odd path ---
 // Dots: the same centres and ink as the shader's dotCentre()/dotInk(), with coverage read back from a solid render

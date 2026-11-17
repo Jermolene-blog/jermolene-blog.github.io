@@ -574,7 +574,7 @@ function frame(now){
   // apply any size/scale change here, before drawing, so a cleared canvas is never presented
   if(needResize){needResize=false;resize();dirty=true}
   ST.verts=ST.passes=ST.tiles=ST.draws=0;const t0=performance.now();
-  step(main,dt);if(exploring)tiles.forEach((t,i)=>{if(i!==4)step(t,dt)});
+  glideStep();step(main,dt);if(exploring)tiles.forEach((t,i)=>{if(i!==4)step(t,dt)});
   const active=handDown||now-lastStrokeT<Math.min(P.memory,40)*4000||view.x!==gView.x||view.y!==gView.y||view.z!==gView.z;
   groomActive=lastStrokeT>0&&(P.memory>=120||now-lastStrokeT<P.memory*5000);
   if(!exploring&&(active||!paused))updateGroom(dt);
@@ -701,7 +701,18 @@ function randomP(){const n={};ALL.forEach(s=>{if(s.keep){n[s.k]=P[s.k];return}if
   n.seed=Math.floor(Math.random()*1e6);n.len=60+Math.random()*200;n.width=.6+Math.random()*2;n.dash=Math.random()<.5?0:Math.random()*.5;
   n.paper=Math.random()<.55?.82+Math.random()*.16:Math.random()*.1;n.drift=.03+Math.random()*.25;n.flow=(Math.random()-.5)*2.4;n.cycle=(Math.random()-.5)*.2;
   n.oct=1+Math.floor(Math.random()*3);n.ink=.3+Math.random()*.5;n.crease=.6+Math.random()*.4;return n}
-function adopt(n){Object.keys(P).forEach(k=>delete P[k]);Object.assign(P,n);main.P=P;seeds();dirty=true;sync();save()}
+function adopt(n){const was=main.P&&main.P!==P?main.P:clone(P);Object.keys(P).forEach(k=>delete P[k]);Object.assign(P,n);main.P=P;seeds();dirty=true;sync();save();
+  glide.from=was;glide.t0=performance.now();glide.on=true}
+// Moving smoothly between drawings: after a jump (Randomise, Reset, an Explore pick) the main drawing glides there over
+// GLIDE_MS. Numbers move, whole-number ones a step at a time; the choices switch half way. The strokes are re-seeded at
+// once; the field, ink and colour carry them across. A jump mid-glide carries on from what's on screen.
+const GLIDE_MS=650,glide={from:null,t0:0,on:false};
+const glideEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function glideStep(){if(!glide.on){main.P=P;return}const t=Math.min(1,(performance.now()-glide.t0)/GLIDE_MS);
+  if(t>=1){glide.on=false;main.P=P;dirty=true;return}
+  const e=glideEase(t),a=glide.from,m={...(e<.5?a:P)};
+  ALL.forEach(s=>{if(s.type==='seg'||typeof a[s.k]!=='number'||typeof P[s.k]!=='number')return;const v=a[s.k]+(P[s.k]-a[s.k])*e;m[s.k]=s.step>=1?Math.round(v):v});
+  m.seed=P.seed;main.P=m;dirty=true}
 // explore: each neighbour is a delta from the centre, only in the ticked groups (keep:1 params never change)
 const XG=SPEC.filter(g=>g.items.some(s=>!s.keep)).map(g=>g.g),allowed=new Set(XG);
 function mutate(amt){const d={};

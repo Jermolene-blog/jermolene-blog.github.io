@@ -480,11 +480,11 @@ const CS=`#version 300 es
 precision highp float;precision highp int;
 uniform highp sampler2D uIter;uniform sampler2D uPal;
 uniform vec2 uSrcSize;uniform vec2 uDstSize;uniform vec2 uDstOrigin;
-uniform float uDensity;uniform float uPhase;uniform float uRelief;uniform float uPalRow;uniform int uMap;uniform vec2 uLight;uniform vec3 uInside;
+uniform float uDensity;uniform float uPhase;uniform float uRelief;uniform float uPalRow;uniform float uPalRow2;uniform float uPalMix;uniform int uMap;uniform vec2 uLight;uniform vec3 uInside;
 out vec4 o;
 float mu(ivec2 p){p=clamp(p,ivec2(0),ivec2(uSrcSize)-1);uvec4 b=uvec4(texelFetch(uIter,p,0)*255.0+0.5);return uintBitsToFloat(b.r|(b.g<<8u)|(b.b<<16u)|(b.a<<24u));}
 float tm(float m){if(uMap==0)return m*0.03*uDensity;if(uMap==1)return sqrt(m)*0.25*uDensity;return log(m+1.0)*0.35*uDensity;}
-vec3 shade(float m){if(!(m>=0.0))return uInside;return texture(uPal,vec2(tm(m)+uPhase,uPalRow)).rgb;}
+vec3 shade(float m){if(!(m>=0.0))return uInside;vec2 q=vec2(tm(m)+uPhase,uPalRow);vec3 a=texture(uPal,q).rgb;return uPalMix>0.0?mix(a,texture(uPal,vec2(q.x,uPalRow2)).rgb,uPalMix):a;}
 void main(){
  vec2 uv=(gl_FragCoord.xy-uDstOrigin)/uDstSize;vec2 s=uv*uSrcSize-0.5;vec2 fl=floor(s);vec2 f=s-fl;ivec2 i=ivec2(fl);
  float a=mu(i),b=mu(i+ivec2(1,0)),c=mu(i+ivec2(0,1)),d=mu(i+ivec2(1,1));
@@ -636,7 +636,19 @@ function computeDirect(T,w,h,julia,cx,cy,r,jc,iter){
   ui(P,'uJulia',julia?1:0);u2(P,'uJdc',jc.x,jc.y);ui(P,'uMaxIter',iter);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
-function colOf(){return{palette:S.palette,density:S.density,phase:S.phase+cyclePhase,map:S.map,relief:S.relief,light:S.light};}
+function colOf(){const c={palette:S.palette,density:S.density,phase:S.phase+cyclePhase,map:S.map,relief:S.relief,light:S.light};return colGlide.on?glideCol(c):c;}
+/* Moving smoothly between colourings: after a jump (Randomise, Reset, a palette, an Explore pick, fitting the colours) the
+   colours glide there over GLIDE_MS while the view flies: the two palettes blend, density moves in proportion, phase and
+   light take the short way round, relief moves, and the colour map switches half way. A jump mid-glide carries on from
+   what's on screen. */
+const GLIDE_MS=650,colGlide={from:null,t0:0,on:false};let shownCol=null;
+const glideEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,wrapD=(a,b,m)=>{let d=(b-a)%m;if(d>m/2)d-=m;if(d<-m/2)d+=m;return d};
+function glideCol(to){const t=Math.min(1,(performance.now()-colGlide.t0)/GLIDE_MS);if(t>=1){colGlide.on=false;return to}
+  const e=glideEase(t),f=colGlide.from,show=f.pmix>=.5?f.pal2:f.palette;
+  // a palette blend already under way is cut to whichever of its two palettes is nearer
+  return{palette:show,pal2:to.palette,pmix:show===to.palette?0:e,density:f.density*Math.pow(to.density/f.density,e),
+    phase:f.phase+wrapD(f.phase,to.phase,1)*e,map:e<.5?f.map:to.map,relief:f.relief+(to.relief-f.relief)*e,light:f.light+wrapD(f.light,to.light,360)*e}}
+function startColGlide(){if(shownCol){colGlide.from=shownCol;colGlide.t0=performance.now();colGlide.on=true}}
 function colourPass(fbo,T,sw,sh,dx,dy,dw,dh,c,scH){
   gl.useProgram(CP.p);gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.viewport(dx,dy,dw,dh);
   if(scH!=null){gl.enable(gl.SCISSOR_TEST);gl.scissor(dx,dy,dw,scH);}else gl.disable(gl.SCISSOR_TEST);
@@ -644,9 +656,10 @@ function colourPass(fbo,T,sw,sh,dx,dy,dw,dh,c,scH){
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,palTex);
   u2(CP,'uSrcSize',sw,sh);u2(CP,'uDstSize',dw,dh);u2(CP,'uDstOrigin',dx,dy);
   uf(CP,'uDensity',c.density);uf(CP,'uPhase',c.phase);uf(CP,'uRelief',c.relief);ui(CP,'uMap',c.map);
-  uf(CP,'uPalRow',(c.palette+0.5)/PALETTES.length);
+  const p2=c.pal2??c.palette,pm=c.pmix||0;
+  uf(CP,'uPalRow',(c.palette+0.5)/PALETTES.length);uf(CP,'uPalRow2',(p2+0.5)/PALETTES.length);uf(CP,'uPalMix',pm);
   const a=c.light*Math.PI/180;u2(CP,'uLight',Math.cos(a),Math.sin(a));
-  const ins=hex(PALETTES[c.palette].inside);u3(CP,'uInside',ins[0]/255,ins[1]/255,ins[2]/255);
+  const i1=hex(PALETTES[c.palette].inside),i2=hex(PALETTES[p2].inside),ins=i1.map((v,k)=>v+(i2[k]-v)*pm);u3(CP,'uInside',ins[0]/255,ins[1]/255,ins[2]/255);
   gl.drawArrays(gl.TRIANGLES,0,3);gl.disable(gl.SCISSOR_TEST);
 }
 
@@ -696,7 +709,7 @@ function renderInset(){
 function composite(noInset){
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);gl.disable(gl.SCISSOR_TEST);
   gl.clearColor(0.02,0.027,0.043,1);gl.clear(gl.COLOR_BUFFER_BIT);
-  const c=colOf();
+  const c=colOf();shownCol=c;
   if(disp){
     colourPass(null,disp.T,disp.w,disp.h,0,0,W,H,c);
     if(!hiDone&&hiRow>0&&disp.T===low){const rows=Math.floor(hiRow/ssF);if(rows>0)colourPass(null,hi,hi.w,hi.h,0,0,W,H,c,rows);}
@@ -839,7 +852,7 @@ function setJulia(on,c){
 }
 function resetAll(){
   stopMotion();S.palette=0;S.density=1;S.phase=0;S.map=0;S.cycle=0;S.relief=0.35;S.light=135;S.iterMul=1;
-  const v=S.julia?FORMULAS[S.formula].jview:FORMULAS[S.formula].view;setView(v[0],v[1],v[2]);syncUI();recolor=true;varsDirty=true;
+  const v=S.julia?FORMULAS[S.formula].jview:FORMULAS[S.formula].view;setView(v[0],v[1],v[2]);syncUI();recolor=true;varsDirty=true;startColGlide();
 }
 
 /* ---------------- randomise ---------------- */
@@ -877,7 +890,7 @@ function randomise(){
     const v=hunt(f,false,null,F.view[0],F.view[1],F.view[2],1+Math.floor(Math.random()*6));
     flyTo([v.x,0],[v.y,0],v.r,null,{fit:true});
   }
-  syncUI();recolor=true;varsDirty=true;
+  syncUI();recolor=true;varsDirty=true;startColGlide();
 }
 function goPlace(p){
   S.iterMul=p.iter||1;
@@ -902,7 +915,7 @@ function fitColours(){
   if(v.length<40)return true;
   v.sort((a,b)=>a-b);const lo=v[Math.floor(v.length*0.04)],hiV=v[Math.floor(v.length*0.96)];
   const diff=gmap(hiV,S.map)-gmap(lo,S.map);if(!(diff>0))return true;
-  S.density=Math.min(40,Math.max(0.02,2.6/diff));syncUI();recolor=true;varsDirty=true;return true;
+  S.density=Math.min(40,Math.max(0.02,2.6/diff));syncUI();recolor=true;varsDirty=true;startColGlide();return true;
 }
 
 /* ---------------- explore 8 ways ---------------- */
@@ -965,7 +978,7 @@ function adopt(i){
   if(v.iterMul!==S.iterMul||v.ox||v.oy||v.r!==S.r||v.jc!==S.jc){
     stopMotion();S.iterMul=v.iterMul;S.cx=ddAddN(S.cx,v.ox);S.cy=ddAddN(S.cy,v.oy);S.r=v.r;zoomTarget=Math.log(S.r);S.jc={...v.jc};invalidate();insetDirty=true;}
   tiles[4].ctx.drawImage(tiles.find(t=>t.vi===i).cv,0,0);
-  newMuts();syncUI();recolor=true;
+  newMuts();syncUI();recolor=true;startColGlide();
 }
 function setExplore(on){
   if(on===xOn)return;xOn=on;xgrid.hidden=!on;$('#xbox').hidden=!on;$('#mid').classList.toggle('exploring',on);
@@ -982,7 +995,7 @@ $('#modes').addEventListener('click',e=>{const b=e.target.closest('button');if(!
   if(b.dataset.mode==='julia'){const c=hoverC||{x:ddNum(S.cx),y:ddNum(S.cy)};setJulia(true,S.julia?null:{x:c.x,y:c.y});}else setJulia(false);});
 const chips=$('#chips');
 PALETTES.forEach((P,i)=>{const b=document.createElement('button');b.title=P.name;b.setAttribute('aria-label',P.name+' palette');
-  b.style.background='linear-gradient(90deg,'+P.stops.concat(P.stops[0]).join(',')+')';b.addEventListener('click',()=>{S.palette=i;syncUI();recolor=true;varsDirty=true;});chips.appendChild(b);});
+  b.style.background='linear-gradient(90deg,'+P.stops.concat(P.stops[0]).join(',')+')';b.addEventListener('click',()=>{S.palette=i;syncUI();recolor=true;varsDirty=true;startColGlide();});chips.appendChild(b);});
 $('#maps').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.map=+b.dataset.map;fitColours();syncUI();recolor=true;varsDirty=true;});
 const placesEl=$('#places');
 PLACES.forEach(p=>{
@@ -1121,6 +1134,7 @@ function frame(now){
   if(S.cycle>0){cyclePhase=(cyclePhase+dt*0.00025*S.cycle*S.cycle*4)%1;recolor=true;}
   if(pendingFit&&!flight&&sel&&!needLow){pendingFit=false;if($('#autofit').checked)fitColours();}
   if(now-rectT>250&&insetVisible()){rectT=now;const rc=insetEl.getBoundingClientRect();const k=rc.left+','+rc.top+','+rc.width+','+rc.height;if(k!==rectKey){rectKey=k;recolor=true;}}
+  if(colGlide.on)recolor=true;
   if(recolor){composite();recolor=false;}
   if(xOn)stepExplore(sel);
   hud(now,iter,sel);

@@ -306,7 +306,7 @@ const hex=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)/255);
 const P_of=S=>Math.pow(2,S.curve);
 const WARPS={none:0,bulge:1,twist:2,ripple:3,wave:4};
 function setUniforms(S,W,H){
-  const p=PALS[S.pal],mn=Math.min(W,H);
+  const p=S._pal||PALS[S.pal],mn=Math.min(W,H);
   gl.uniform2f(U.uPan,S.panX*mn,S.panY*mn);gl.uniform2f(U.uHalf,W/2,H/2);gl.uniform1f(U.uMn,mn/2);
   gl.uniform1f(U.uAmt,S.warpAmt);gl.uniform1f(U.uFr,S.warpFreq);gl.uniform1i(U.uWarp,WARPS[S.warp]);
   gl.uniform1f(U.uN,S.strands);gl.uniform1f(U.uDuty,S.weight);gl.uniform1f(U.uPhase,S.polarity?.5:0);gl.uniform1f(U.uP,P_of(S));
@@ -317,7 +317,7 @@ function setUniforms(S,W,H){
 /* The mesh is stored in world px at build scale; a pan uniform moves it. Positions are relative to the world origin. */
 function drawPane(mesh,S,x,y,W,H,ratio,E,overlay){
   gl.viewport(x,y,W*ratio,H*ratio);gl.scissor(x,y,W*ratio,H*ratio);
-  const p=PALS[S.pal],c=hex(p.p);gl.clearColor(c[0],c[1],c[2],1);gl.clear(gl.COLOR_BUFFER_BIT);
+  const p=S._pal||PALS[S.pal],c=hex(p.p);gl.clearColor(c[0],c[1],c[2],1);gl.clear(gl.COLOR_BUFFER_BIT);
   setUniforms(S,W,H);
   gl.bindVertexArray(mesh.vao);gl.drawArrays(gl.TRIANGLES,0,mesh.count);
   if(overlay&&overlay.count){gl.bindVertexArray(overlay.vao);gl.drawArrays(gl.TRIANGLES,0,overlay.count)}
@@ -346,6 +346,7 @@ function frame(now){
     if(done.length){for(const f of done)for(const[x,v]of f.ops)S.cell.f[x]=v;flips=flips.filter(f=>now-f.t0<FLIP_MS);dirty=true}
     if(flips.length)active=true;
   }
+  if(glide.on)active=true;
   if(dirty||active)render(now);
   dirty=false;
   if(active||(churn>0&&!exploring&&!isStar(S)))raf=requestAnimationFrame(frame);
@@ -384,10 +385,11 @@ function render(now){
     return;
   }
   if(!mainMesh)mainMesh=newMesh();
-  const E=E_of(S,CSSW,CSSH);
-  buildMesh(mainMesh,S,CSSW,CSSH,E,false);
-  const ov=buildOverlay(now,E);
-  drawPane(mainMesh,S,0,0,CSSW,CSSH,dpr,E,ov);
+  const M=glideNow(now)||S;shownS=M;
+  const E=E_of(M,CSSW,CSSH);
+  buildMesh(mainMesh,M,CSSW,CSSH,E,false);
+  const ov=M===S?buildOverlay(now,E):null;
+  drawPane(mainMesh,M,0,0,CSSW,CSSH,dpr,E,ov);
 }
 
 /* ---------- flips ---------- */
@@ -567,7 +569,24 @@ function refresh(){
   [...document.querySelectorAll(".pal")].forEach((b,i)=>b.classList.toggle("on",i===S.pal));
   rows.churn.hidden=star||S.tile==="chevron";
 }
-function afterChange(){flips=[];refresh();invalidate()}
+function afterChange(){flips=[];glideTo();refresh();invalidate()}
+/* Moving smoothly between settings: after a jump (Randomise, Reset, Undo, a chip or a palette) the main view glides there
+   over GLIDE_MS. Numbers move, whole-number ones a step at a time; the palette's colours blend; a warp switched on or off
+   grows from or shrinks to nothing; the tiling and other choices switch half way. A jump mid-glide carries on from what's
+   on screen. Slider drags show at once. */
+const GLIDE_MS=650,glide={from:null,to:null,t0:0,on:false};let shownS=null;
+const palOf=s=>s._pal||PALS[s.pal];
+const mixHex=(a,b,e)=>"#"+[1,3,5].map(i=>Math.round(parseInt(a.substr(i,2),16)*(1-e)+parseInt(b.substr(i,2),16)*e).toString(16).padStart(2,"0")).join("");
+function glideMix(a,b,e){const m={...(e<.5?a:b)};
+  for(const k in SPEC){let x=a[k],y=b[k];
+    if(k==="warpAmt"){if(a.warp==="none")x=0;if(b.warp==="none")y=0}
+    const v=x+(y-x)*e;m[k]=SPEC[k].step>=1?Math.round(v):v}
+  m.panX=a.panX+(b.panX-a.panX)*e;m.panY=a.panY+(b.panY-a.panY)*e;
+  if(a.warp==="none"||b.warp==="none")m.warp=a.warp==="none"?b.warp:a.warp;
+  const A=palOf(a),B=palOf(b);m._pal={p:mixHex(A.p,B.p,e),i:mixHex(A.i,B.i,e),r:mixHex(A.r,B.r,e),t:A.t.map((c,i)=>mixHex(c,B.t[i],e))};
+  return m}
+function glideTo(){if(!shownS||exploring){shownS=S;glide.on=false;return}glide.from=shownS;glide.to=clone(S);glide.to.cell=S.cell;glide.t0=performance.now();glide.on=true}
+function glideNow(now){if(!glide.on)return null;const t=Math.min(1,(performance.now()-glide.t0)/GLIDE_MS);if(t>=1){glide.on=false;return null}return glideMix(glide.from,glide.to,ease(t))}
 
 /* random + mutate */
 const clampSpec=(k,v)=>{const s=SPEC[k];v=Math.min(s.max,Math.max(s.min,v));return s.step>=1?Math.round(v):Math.round(v/s.step)*s.step};

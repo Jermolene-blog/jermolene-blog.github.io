@@ -322,7 +322,7 @@ function syncUI(){syncs.forEach(f=>f());$('names').checked=S.names;$('tgt').chec
  const sc=$('shedChips');sc.innerHTML='';if(S.hubs){S.hubs.forEach((h,i)=>chip(sc,placeOf(h)?.name||'',()=>{S.hubs.splice(i,1);if(!S.hubs.length)S.hubs=null;update()}))}
  const mc=$('meetChips');mc.innerHTML='';S.trav.forEach((h,i)=>chip(mc,placeOf(h)?.name||'',()=>{if(S.trav.length>2){S.trav.splice(i,1);update()}else toast('A meeting needs at least two travellers.')}));
  const p=placeOf(S.dest);if(document.activeElement!==$('dest'))$('dest').value=p?p.name:'';
- const pr=$('presets');if(!pr.dataset.done){pr.dataset.done=1;[['Capitals',['London','Cardiff','Edinburgh']],['Scottish cities',['Glasgow','Edinburgh','Aberdeen','Dundee','Inverness','Perth','Stirling']],['University towns',['Oxford','Cambridge','St Andrews','Durham','Bath','Aberystwyth','Exeter','York','Lancaster','Norwich','Bangor']]].forEach(([n,l])=>{const b=document.createElement('button');b.className='chip';b.textContent=n;b.style.textDecoration='none';b.onclick=()=>{S.hubs=l.slice();update()};pr.appendChild(b)})}}
+ const pr=$('presets');if(!pr.dataset.done){pr.dataset.done=1;[['Capitals',['London','Cardiff','Edinburgh']],['Scottish cities',['Glasgow','Edinburgh','Aberdeen','Dundee','Inverness','Perth','Stirling']],['University towns',['Oxford','Cambridge','St Andrews','Durham','Bath','Aberystwyth','Exeter','York','Lancaster','Norwich','Bangor']]].forEach(([n,l])=>{const b=document.createElement('button');b.className='chip';b.textContent=n;b.style.textDecoration='none';b.onclick=()=>{fadeFromCurrent();S.hubs=l.slice();update()};pr.appendChild(b)})}}
 function recolour(){syncUI();if(scene){scene.pal=palOf(S);render()}}
 $('tgt').onchange=e=>{S.target=e.target.checked;render()};
 $('names').onchange=e=>{S.names=e.target.checked;render()};
@@ -411,10 +411,21 @@ $('rec').onclick=()=>{if(!scene)return;if(!window.MediaRecorder||!mapC.captureSt
 /* ---------- randomise, reset, variations ---------- */
 const rnd=a=>a[Math.random()*a.length|0],rr=(a,b)=>a+Math.random()*(b-a);
 function randomTowns(k){const pool=G.towns.filter(t=>t.pop>12000&&!t.sub);const o=[];while(o.length<k){const t=rnd(pool);if(!o.includes(t))o.push(t)}return o}
+// Moving smoothly between maps: Randomise or a preset is a new network, so there is nothing to blend; instead the old map,
+// copied onto a canvas over the poster, fades away over GLIDE_MS while the new one draws beneath it.
+const GLIDE_MS=650;
+function fadeFromCurrent(){
+ if(!mapC.width||!poster.offsetWidth)return;
+ for(const o of poster.querySelectorAll('.mapfade'))o.remove();
+ const o=document.createElement('canvas');o.className='mapfade';o.width=mapC.width;o.height=mapC.height;o.getContext('2d').drawImage(mapC,0,0);
+ Object.assign(o.style,{position:'absolute',left:mapC.offsetLeft+'px',top:mapC.offsetTop+'px',width:mapC.offsetWidth+'px',height:mapC.offsetHeight+'px',
+  pointerEvents:'none',transition:`opacity ${GLIDE_MS}ms cubic-bezier(.65,0,.35,1)`});
+ poster.appendChild(o);requestAnimationFrame(()=>requestAnimationFrame(()=>{o.style.opacity='0'}));setTimeout(()=>o.remove(),GLIDE_MS+80);
+}
 function randomise(){const s=clone(S);s.metric=Math.random()<.8?'time':'dist';s.measure=rnd(['land','people']);s.power=+rr(.42,.82).toFixed(2);s.weight=+rr(.7,1.5).toFixed(2);s.twig=rnd([0,0,1,2,3,4]);s.moto=Math.random()<.85;s.ferry=Math.random()<.8;s.style=rnd(['paper','paper','night','chart']);s.colorBy=rnd(['branch','branch','time','ink']);s.goal=rnd(['fair','fair','total']);
  if(s.mode==='shed'){if(Math.random()<.65){s.hubs=null;s.n=2+(Math.random()**1.6*98|0)}else s.hubs=randomTowns(3+(Math.random()*25|0))}else if(s.mode==='one')s.dest=rnd(G.towns.filter(t=>t.pop>8000&&!t.sub));else s.trav=randomTowns(2+(Math.random()*5|0));return s}
 const clone=s=>({...s,hubs:s.hubs?s.hubs.slice():null,trav:s.trav.slice()});
-$('rand').onclick=()=>{S=randomise();V={z:1,dx:0,dy:0};update()};
+$('rand').onclick=()=>{fadeFromCurrent();S=randomise();V={z:1,dx:0,dy:0};update()};
 $('reset').onclick=()=>{S=clone(DEF);V={z:1,dx:0,dy:0};render.base=null;update()};
 $('zr').onclick=()=>{V={z:1,dx:0,dy:0};render.base=null;render()};
 function neighbours(s){const m=[];const put=(lab,f)=>{const c=clone(s);f(c);m.push([lab,c])};

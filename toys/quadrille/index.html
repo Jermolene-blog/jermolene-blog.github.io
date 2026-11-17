@@ -426,8 +426,22 @@ let mainL = null;
 function drawMain() {
   const c = $("sheet");
   const [W, H] = fitCanvas(c);
-  mainL = viewLayout(W, H);
-  paint(c.getContext("2d"), g, W, H, mainL, driftPhase);
+  const ctx = c.getContext("2d"), gl = glideNow();
+  if (!gl) { mainL = viewLayout(W, H); paint(ctx, g, W, H, mainL, driftPhase); shownG = g; }
+  else {
+    // the old layout underneath and the new one fading in over it, both with the moving numbers and colours
+    // the new sheet in the current view; the old one fitted, unless a zoomed view is being kept (Undo)
+    const LB = viewLayout(W, H), LA = view ? LB : layout(gl.A, W, H, FIT);
+    if (gl.same) paint(ctx, gl.B, W, H, LB, driftPhase);
+    else {
+      paint(ctx, gl.A, W, H, LA, driftPhase);
+      if (!glideCanvas) glideCanvas = document.createElement("canvas");
+      glideCanvas.width = W; glideCanvas.height = H; paint(glideCanvas.getContext("2d"), gl.B, W, H, LB, driftPhase);
+      ctx.globalAlpha = gl.e; ctx.drawImage(glideCanvas, 0, 0); ctx.globalAlpha = 1;
+    }
+    mainL = LB; shownG = gl.e < .5 ? gl.A : gl.B;
+    if (!glide.raf) glide.raf = requestAnimationFrame(() => { glide.raf = 0; drawMain(); });
+  }
   drawHover();
   $("zv").textContent = Math.round((view ? view.z : 1) * 100) + "%";
   $("zfit").disabled = !view;
@@ -595,7 +609,26 @@ $("zfit").addEventListener("click", fitView);
 
 /* ---------- state ---------- */
 function remember() { history.push(JSON.stringify(g)); if (history.length > 200) history.shift(); $("undo").disabled = false; }
-function setG(next, keep) { if (keep !== false) remember(); g = next; view = null; render(); }
+function setG(next, keep) { if (keep !== false) remember(); g = next; view = null; startGlide(); render(); }
+/* Moving smoothly between designs: after a jump (Randomise, a preset, Reset, Undo, an Explore pick) the sheet glides there
+   over GLIDE_MS. The stripe count steps, ink, swell and phase move, and the colours blend. If the cells themselves change
+   (motif, size, shift, colouring or finish), the new sheet also fades in over the old one. A jump mid-glide carries on
+   from what's on screen. Edits to cells and slider drags show at once. */
+const GLIDE_MS = 650, glide = { from: null, t0: 0, on: false, raf: 0 };
+let shownG = null, glideCanvas = null;
+const glideEase = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const mixHex = (a, b, e) => "#" + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - e) + parseInt(b.substr(i, 2), 16) * e).toString(16).padStart(2, "0")).join("");
+const STRUCTURE = ["cols", "rows", "mw", "mh", "motif", "shift", "mode", "finish", "finishInner"];
+function startGlide() { if (shownG && shownG !== g) { glide.from = clone(shownG); glide.t0 = performance.now(); glide.on = true; } }
+function glideNow() {
+  if (!glide.on) return null;
+  const t = Math.min(1, (performance.now() - glide.t0) / GLIDE_MS);
+  if (t >= 1) { glide.on = false; return null; }
+  const e = glideEase(t), a = glide.from, b = g;
+  const nums = p => ({ ...p, n: Math.round(a.n + (b.n - a.n) * e), ink: a.ink + (b.ink - a.ink) * e, swell: a.swell + (b.swell - a.swell) * e,
+    phase: a.phase + (b.phase - a.phase) * e, paper: mixHex(a.paper, b.paper, e), inks: a.inks.map((c, i) => mixHex(c, b.inks[i] || c, e)) });
+  return { e, A: nums(a), B: nums(b), same: STRUCTURE.every(k => JSON.stringify(a[k]) === JSON.stringify(b[k])) };
+}
 function resizeMotif(p, mw, mh) {
   const out = [];
   for (let j = 0; j < mh; j++) for (let i = 0; i < mw; i++) out.push(p.motif[(j % p.mh) * p.mw + (i % p.mw)]);
@@ -807,7 +840,7 @@ $("reset").addEventListener("click", () => {
   driftPhase = 0; if (driftOn) toggleDrift();
   setG(clone(OPENING));
 });
-$("undo").addEventListener("click", () => { if (history.length) { g = JSON.parse(history.pop()); render(); } });
+$("undo").addEventListener("click", () => { if (history.length) { g = JSON.parse(history.pop()); startGlide(); render(); } });
 $("exploreBtn").addEventListener("click", () => {
   exploring = !exploring;
   $("exploreBtn").setAttribute("aria-pressed", exploring);

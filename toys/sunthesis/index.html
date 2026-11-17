@@ -1924,7 +1924,7 @@ function render(){
   gl.enable(gl.SCISSOR_TEST);
   if(pass===0){ gl.disable(gl.BLEND); gl.scissor(0,0,W,H); gl.clearColor(0.04,0.047,0.07, hdr.active?0:1); gl.clear(gl.COLOR_BUFFER_BIT); jit=[0,0]; }
   else { gl.enable(gl.BLEND); gl.blendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA); gl.blendColor(0,0,0,1/(pass+1)); jit=[halton(pass,2)-0.5, halton(pass,3)-0.5]; }
-  if(!exploring){ drawTile(S,0,0,W,H,view); }
+  if(!exploring){ const D=glideNow(); shownS=D; drawTile(D,0,0,W,H,view); }
   else{
     const g=Math.round(3*scale), tw=Math.floor((W-2*g)/3), th=Math.floor((H-2*g)/3);
     for(let i=0;i<9;i++){
@@ -1945,6 +1945,26 @@ let rq=0, pass=0, jit=[0,0];
 const MAXPASS=12; const maxPass=()=>((exploring?Math.max(S.blur,...deltas.map((_,i)=>neighbour(i).blur)):S.blur)>0.01?40:MAXPASS);
 function halton(i,b){let f=1,r=0;while(i>0){f/=b;r+=f*(i%b);i=Math.floor(i/b);}return r;}
 function refine(){ if(animating||draft||pass>=maxPass()-1) return; pass++; render(); rq=requestAnimationFrame(()=>{rq=0; refine();}); }
+// Moving smoothly between skies: after a jump (Randomise, a preset, Reset, Back, an Explore pick) the main view glides
+// there over GLIDE_MS in quick draft frames, then refines as usual. Numbers move; the scene and other choices switch half
+// way. A jump mid-glide carries on from what's on screen.
+const GLIDE_MS=650, glide={from:null,t0:0,on:false,raf:0}; let shownS=null;
+const glideEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function glideNow(){
+  if(!glide.on) return S;
+  const t=Math.min(1,(performance.now()-glide.t0)/GLIDE_MS); if(t>=1){ glide.on=false; return S; }
+  const e=glideEase(t), a=glide.from, m={...(e<.5?a:S)};
+  for(const k of KEYS) if(P[k].type!=='select' && typeof a[k]==='number') m[k]=a[k]+(S[k]-a[k])*e;
+  m.frame=S.frame; return m;
+}
+function startGlide(){
+  if(exploring||!shownS) return;
+  glide.from=shownS; glide.t0=performance.now(); glide.on=true;
+  if(animating) return; // the animation loop draws every frame anyway
+  if(rq){cancelAnimationFrame(rq); rq=0;} clearTimeout(idleTimer);
+  const step=()=>{ glide.raf=0; draft=true; pass=0; render(); if(glide.on) glide.raf=requestAnimationFrame(step); else requestRender(false); };
+  if(!glide.raf) glide.raf=requestAnimationFrame(step);
+}
 function requestRender(isDraft){
   draft=!!isDraft && !animating;
   pass=0; if(rq){cancelAnimationFrame(rq); rq=0;}
@@ -2032,7 +2052,7 @@ function buildUI(){
     if(!p.ref || !THUMBS[p.ref]) return;
     const b=document.createElement('button'); b.type='button'; b.className='pthumb'; b.title=p.name; b.setAttribute('aria-label',p.name); b.setAttribute('aria-pressed','false');
     const im=document.createElement('img'); im.src=THUMBS[p.ref]; im.alt=''; im.loading='lazy'; b.appendChild(im);
-    b.addEventListener('click',()=>{ applySettings({...defaults(),frame:S.frame,...PRESETS[i].s}); markPreset(b); if(exploring) makeDeltas(); requestRender(); });
+    b.addEventListener('click',()=>{ applySettings({...defaults(),frame:S.frame,...PRESETS[i].s}); markPreset(b); if(exploring) makeDeltas(); requestRender(); startGlide(); });
     pg.appendChild(b);
   });
 }
@@ -2083,7 +2103,7 @@ function randomise(){
     s=best;
     if(bestFails) toast('No sunset-like result in 20 tries: showing the closest');
   }
-  S=s; derivCache.clear(); syncUI(); markPreset(null); if(exploring) makeDeltas(); requestRender();
+  S=s; derivCache.clear(); syncUI(); markPreset(null); if(exploring) makeDeltas(); requestRender(); startGlide();
 }
 
 // drag to move the sun; pinch or scroll to zoom, two fingers, right-drag or shift-drag to pan, double-click to see it all
@@ -2138,11 +2158,11 @@ cv.addEventListener('dblclick',e=>{ if(!exploring){ e.preventDefault(); resetVie
 cv.addEventListener('wheel',e=>{ if(exploring) return; e.preventDefault(); zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015))); },{passive:false});
 
 $('randBtn').onclick=randomise;
-$('resetBtn').onclick=()=>{ S={...defaults(),frame:S.frame}; view.x=view.y=0; view.z=1; derivCache.clear(); syncUI(); if(exploring) makeDeltas(); markPreset(null); requestRender(); };
+$('resetBtn').onclick=()=>{ S={...defaults(),frame:S.frame}; view.x=view.y=0; view.z=1; derivCache.clear(); syncUI(); if(exploring) makeDeltas(); markPreset(null); requestRender(); startGlide(); };
 $('exploreBtn').onclick=()=>setExplore(!exploring);
 $('exploreChip').onclick=()=>setExplore(!exploring);
 $('newNb').onclick=()=>{makeDeltas(); requestRender();};
-$('backBtn').onclick=()=>{ if(!history.length){toast('Already at the first step');return;} S=history.pop(); makeDeltas(); syncUI(); requestRender(); };
+$('backBtn').onclick=()=>{ if(!history.length){toast('Already at the first step');return;} S=history.pop(); makeDeltas(); syncUI(); requestRender(); startGlide(); };
 $('stepSize').addEventListener('input',()=>{ $('stepVal').textContent=(+$('stepSize').value).toFixed(2); });
 $('stepSize').addEventListener('change',()=>{ makeDeltas(); requestRender(); });
 $('quality').addEventListener('change',()=>requestRender());

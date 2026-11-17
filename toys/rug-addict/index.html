@@ -904,7 +904,18 @@ function mutate(base){
   else{q[s.k]=!q[s.k];changed.push(s)}}
  let guard=0;while(!changed.length&&guard++<20){const s=free[Math.floor(rnd()*free.length)];const nv=s.t==='bool'?!q[s.k]:s.t==='sel'?randomValue(s):snap(s,q[s.k]+(rnd()<0.5?-1:1)*Math.max(s.s,(s.max-s.min)*0.2*strength));if(nv!==q[s.k]){q[s.k]=nv;changed.push(s)}}
  return{q,changed}}
-function commit(np){hist.push(committed);if(hist.length>80)hist.shift();p=Object.assign({},np);committed=Object.assign({},p);$('back').disabled=false;syncControls();renderMain();regenVariants()}
+// Moving smoothly between rugs: a new rug is a new structure, knot by knot, so there is nothing to blend; instead the old
+// rug, copied onto a canvas over the new one, fades away over GLIDE_MS. (Not in the room view or while exploring.)
+const GLIDE_MS=650;
+function fadeFromCurrent(){
+ const cv=$('rug');if(exploring||view==='room'||!cv.width||!cv.offsetWidth)return;
+ for(const o of document.querySelectorAll('.rugfade'))o.remove();
+ const o=document.createElement('canvas');o.className='rugfade';o.width=cv.width;o.height=cv.height;o.getContext('2d').drawImage(cv,0,0);
+ Object.assign(o.style,{position:'absolute',left:cv.offsetLeft+'px',top:cv.offsetTop+'px',width:cv.offsetWidth+'px',height:cv.offsetHeight+'px',
+  pointerEvents:'none',imageRendering:cv.style.imageRendering,filter:getComputedStyle(cv).filter,transition:`opacity ${GLIDE_MS}ms cubic-bezier(.65,0,.35,1)`});
+ cv.parentNode.appendChild(o);requestAnimationFrame(()=>requestAnimationFrame(()=>{o.style.opacity='0'}));setTimeout(()=>o.remove(),GLIDE_MS+80);
+}
+function commit(np){fadeFromCurrent();hist.push(committed);if(hist.length>80)hist.shift();p=Object.assign({},np);committed=Object.assign({},p);$('back').disabled=false;syncControls();renderMain();regenVariants()}
 
 // ---------- controls ----------
 function buildControls(){
@@ -1075,7 +1086,7 @@ function markPreset(i){PRESETS.forEach((_,k)=>{const b=$('preset'+k);if(b)b.setA
 // ---------- wiring ----------
 $('rand').addEventListener('click',()=>{const q=Object.assign({},p);for(const s of SPECS)q[s.k]=randomValue(s);commit(q)});
 $('reset').addEventListener('click',()=>commit(Object.assign({},DEFAULTS)));
-$('back').addEventListener('click',()=>{if(!hist.length)return;p=hist.pop();committed=Object.assign({},p);$('back').disabled=!hist.length;syncControls();renderMain();regenVariants()});
+$('back').addEventListener('click',()=>{if(!hist.length)return;fadeFromCurrent();p=hist.pop();committed=Object.assign({},p);$('back').disabled=!hist.length;syncControls();renderMain();regenVariants()});
 $('reroll').addEventListener('click',regenVariants);
 $('explore').addEventListener('click',()=>setExplore(!exploring));
 $('dl').addEventListener('click',()=>{const rug=build(p);let cv=$('rug');

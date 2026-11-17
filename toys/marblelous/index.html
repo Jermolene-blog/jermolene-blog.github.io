@@ -1239,22 +1239,39 @@ function scheduleBake() {
   clearTimeout(bakeTimer);
   bakeTimer = setTimeout(() => { bakeNow(); requestRender(); }, 250);
 }
+// Moving smoothly between marblings: a new marbling is a new run of strokes, so there is nothing to blend; instead the old
+// one is redrawn (the canvas keeps no copy), copied onto a canvas over the bath and faded away over GLIDE_MS.
+const GLIDE_MS = 650;
+function fadeFromCurrent() {
+  if (!canvas.width || !canvas.offsetWidth) return;
+  const base = bakeValid ? Math.min(bakedThrough, packedCount) : 0;
+  drawPass(null, view.origin, view.scale, base, packedCount, bakeValid, 1);
+  for (const o of document.querySelectorAll(".bathfade")) o.remove();
+  const o = document.createElement("canvas"); o.className = "bathfade"; o.width = canvas.width; o.height = canvas.height;
+  o.getContext("2d").drawImage(canvas, 0, 0);
+  Object.assign(o.style, { position: "absolute", left: canvas.offsetLeft + "px", top: canvas.offsetTop + "px", width: canvas.offsetWidth + "px",
+    height: canvas.offsetHeight + "px", pointerEvents: "none", transition: `opacity ${GLIDE_MS}ms cubic-bezier(.65,0,.35,1)` });
+  canvas.parentNode.appendChild(o);
+  requestAnimationFrame(() => requestAnimationFrame(() => { o.style.opacity = "0"; }));
+  setTimeout(() => o.remove(), GLIDE_MS + 80);
+}
 function undo() {
   let i = cursor - 1;
   while (i > 0 && snapshots[i].kind !== "action") i--;
-  if (i >= 0) { applySnapshot(i); scheduleBake(); }
+  if (i >= 0) { fadeFromCurrent(); applySnapshot(i); scheduleBake(); }
 }
 function redo() {
   if (cursor >= snapshots.length - 1) return;
   let i = cursor + 1;
   while (i < snapshots.length - 1 && snapshots[i].kind !== "action") i++;
-  applySnapshot(i); scheduleBake();
+  fadeFromCurrent(); applySnapshot(i); scheduleBake();
 }
 function stepHistory(n) {
   const i = Math.max(0, Math.min(snapshots.length - 1, cursor + n));
   if (i !== cursor) { applySnapshot(i); scheduleBake(); }
 }
 function shuffle() {
+  fadeFromCurrent();
   beginAction();
   seedP = rand32(); seedR = rand32();
   generatePreset(parseFloat(freqEl.value));
