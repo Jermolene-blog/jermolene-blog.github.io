@@ -1319,7 +1319,9 @@ function startTurn() {
   if (active.every(i => shots[i] === 0)) return endGame();
   let seat = seatOfTurn();
   while (shots[seat] === 0) { turn++; seat = seatOfTurn(); }
-  if (!W.quickDone && ringsEmpty()) return startQuickfire();
+  // not before everyone has had a go: at the start the rings are empty only because nobody has flicked yet
+  const flicked = active.reduce((n, i) => n + perPlayer - shots[i], 0);
+  if (!W.quickDone && flicked >= active.length && ringsEmpty()) return startQuickfire();
   W.shooter = seat;
   W.spotCool = W.spotCool.map(c => Math.max(0, c - 1));
   if (W.surgeTurns > 0 && --W.surgeTurns === 0) { W.spinTarget = 1; sSurgeDown(); }
