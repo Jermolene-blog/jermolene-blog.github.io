@@ -1,0 +1,43 @@
+{
+	"name": "Bear Scare",
+	"short_name": "Bear Scare",
+	"description": "A not-too-scary haunted house for small children: tap left or right to choose which way the bear turns at each corner, past candlelit corridors, cobwebs, spiders, bats and ghosts, with the odd jump scare and pots of honey to collect",
+	"id": "/games/bear-scare/",
+	"start_url": "/games/bear-scare/",
+	"scope": "/games/bear-scare/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#050307",
+	"background_color": "#050307",
+	"icons": [
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}
+	]
+}

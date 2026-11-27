@@ -30,7 +30,7 @@ responses can still be stored.
 "use strict";
 
 self.PRECACHE = {
-	"version": "5c88c65df5dff778",
+	"version": "d1505e3e0a46d9a6",
 	"urls": [
 		"/games/",
 		"/toys/",
@@ -42,6 +42,12 @@ self.PRECACHE = {
 		"/games/animal-island/",
 		"/games/animal-island/manifest.webmanifest",
 		"/games/apple-touch-icon.png",
+		"/games/bear-scare/apple-touch-icon.png",
+		"/games/bear-scare/icon-192.png",
+		"/games/bear-scare/icon-512.png",
+		"/games/bear-scare/icon.svg",
+		"/games/bear-scare/",
+		"/games/bear-scare/manifest.webmanifest",
 		"/games/bowling-bear/apple-touch-icon.png",
 		"/games/bowling-bear/icon-192.png",
 		"/games/bowling-bear/icon-512.png",
@@ -284,6 +290,7 @@ self.PRECACHE = {
 		"/screenshots/games/animal-island.webp",
 		"/screenshots/toys/arterial-britain.webp",
 		"/screenshots/toys/bear-beat.webp",
+		"/screenshots/games/bear-scare.webp",
 		"/screenshots/toys/blobbles.webp",
 		"/screenshots/games/bowling-bear.webp",
 		"/screenshots/games/catflap.webp",
@@ -320,6 +327,7 @@ self.PRECACHE = {
 		"https://fonts.googleapis.com/css2?family=Grandstander:wght@700;900&family=Nunito:wght@600;800&display=swap",
 		"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
 		"https://fonts.googleapis.com/css2?family=Monoton&family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap",
+		"https://fonts.googleapis.com/css2?family=Creepster&family=Fredoka:wght@600&display=swap",
 		"https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap",
 		"https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Barlow:wght@400;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap",
 		"https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap",

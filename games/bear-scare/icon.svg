@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+<radialGradient id="glow" cx="50%" cy="46%" r="55%">
+<stop offset="0" stop-color="#ffb347"/>
+<stop offset="0.35" stop-color="#9a4a12"/>
+<stop offset="1" stop-color="#050307"/>
+</radialGradient>
+<radialGradient id="flame" cx="50%" cy="60%" r="50%">
+<stop offset="0" stop-color="#fff4c2"/>
+<stop offset="0.5" stop-color="#ffc35a"/>
+<stop offset="1" stop-color="#ff8a1e" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="512" height="512" fill="#050307"/>
+<!-- The corridor: an arched doorway glowing with candlelight -->
+<path d="M150 450 V210 a106 106 0 0 1 212 0 V450 Z" fill="url(#glow)"/>
+<path d="M150 450 V210 a106 106 0 0 1 212 0 V450" fill="none" stroke="#2a1a10" stroke-width="10"/>
+<!-- Candles on the walls -->
+<circle cx="118" cy="232" r="30" fill="url(#flame)"/>
+<rect x="113" y="240" width="10" height="34" rx="3" fill="#e8d7b5"/>
+<circle cx="394" cy="232" r="30" fill="url(#flame)"/>
+<rect x="389" y="240" width="10" height="34" rx="3" fill="#e8d7b5"/>
+<!-- A little ghost far down the corridor -->
+<path d="M232 230 a24 24 0 0 1 48 0 v34 l-8 -8 -8 8 -8 -8 -8 8 -8 -8 -8 8 Z" fill="#f3eee6" opacity="0.92"/>
+<circle cx="248" cy="228" r="4.5" fill="#050307"/>
+<circle cx="264" cy="228" r="4.5" fill="#050307"/>
+<!-- The bear, from behind, looking in -->
+<g fill="#3b2412">
+<circle cx="196" cy="318" r="30"/>
+<circle cx="316" cy="318" r="30"/>
+<ellipse cx="256" cy="392" rx="96" ry="88"/>
+<ellipse cx="256" cy="470" rx="140" ry="50"/>
+</g>
+<circle cx="196" cy="318" r="14" fill="#6b4222"/>
+<circle cx="316" cy="318" r="14" fill="#6b4222"/>
+<!-- Rim light from the corridor -->
+<path d="M172 360 a96 88 0 0 1 168 0" fill="none" stroke="#c9792e" stroke-width="5" opacity="0.7"/>
+</svg>
